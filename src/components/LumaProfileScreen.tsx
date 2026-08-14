@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { LanguageCode, TRANSLATIONS } from '../data/translations';
 import { UserProfileData, LifeMoment } from '../types';
+import { formatPrice, priceForCycle } from '../data/pricing';
 import { getCalculatedDaysLeft } from '../utils/momentUtils';
 
 const LOCALIZED_PROFILE_STRINGS: Record<LanguageCode, {
@@ -56,9 +57,11 @@ const LOCALIZED_PROFILE_STRINGS: Record<LanguageCode, {
   fact3: string;
   gotItBtn: string;
   manageModalTitle: string;
-  manageModalDesc: string;
+  manageModalDesc: (planLabel: string) => string;
+  perMonth: string;
+  perYear: string;
   nextPaymentLabel: string;
-  nextPaymentValue: string;
+  nextPaymentValue: (amount: string, date: string) => string;
   downgradeBtn: string;
 }> = {
   en: {
@@ -113,9 +116,11 @@ const LOCALIZED_PROFILE_STRINGS: Record<LanguageCode, {
     fact3: '3. Daily rhythm',
     gotItBtn: 'Got it',
     manageModalTitle: 'Manage Subscription',
-    manageModalDesc: 'You are currently subscribed to Luma Pro ($8/month).',
+    manageModalDesc: (planLabel: string) => `You are currently subscribed to Luma Pro (${planLabel}).`,
+    perMonth: 'month',
+    perYear: 'year',
     nextPaymentLabel: 'YOUR NEXT PAYMENT',
-    nextPaymentValue: '$8.00 on September 11, 2026',
+    nextPaymentValue: (amount: string, date: string) => `${amount} on ${date}`,
     downgradeBtn: 'Switch to Free plan',
   },
   ru: {
@@ -176,9 +181,11 @@ const LOCALIZED_PROFILE_STRINGS: Record<LanguageCode, {
     fact3: '3. Ежедневный ритм',
     gotItBtn: 'Понятно',
     manageModalTitle: 'Управление подпиской',
-    manageModalDesc: 'Вы подписаны на тариф Luma Pro ($8/месяц).',
+    manageModalDesc: (planLabel: string) => `Вы подписаны на тариф Luma Pro (${planLabel}).`,
+    perMonth: 'месяц',
+    perYear: 'год',
     nextPaymentLabel: 'СЛЕДУЮЩИЙ ПЛАТЕЖ',
-    nextPaymentValue: '$8.00, 11 сентября 2026',
+    nextPaymentValue: (amount: string, date: string) => `${amount}, ${date}`,
     downgradeBtn: 'Перейти на тариф Free',
   },
   es: {
@@ -233,9 +240,11 @@ const LOCALIZED_PROFILE_STRINGS: Record<LanguageCode, {
     fact3: '3. Ritmo diario',
     gotItBtn: 'Entendido',
     manageModalTitle: 'Gestionar suscripción',
-    manageModalDesc: 'Actualmente estás suscrito a Luma Pro ($8/mes).',
+    manageModalDesc: (planLabel: string) => `Actualmente estás suscrito a Luma Pro (${planLabel}).`,
+    perMonth: 'mes',
+    perYear: 'año',
     nextPaymentLabel: 'TU PRÓXIMO PAGO',
-    nextPaymentValue: '$8.00 el 11 de septiembre de 2026',
+    nextPaymentValue: (amount: string, date: string) => `${amount} el ${date}`,
     downgradeBtn: 'Cambiar al plan Free',
   },
   fr: {
@@ -290,9 +299,11 @@ const LOCALIZED_PROFILE_STRINGS: Record<LanguageCode, {
     fact3: '3. Rythme quotidien',
     gotItBtn: 'Compris',
     manageModalTitle: 'Gérer l\'abonnement',
-    manageModalDesc: 'Vous êtes actuellement abonné à Luma Pro ($8/mois).',
+    manageModalDesc: (planLabel: string) => `Vous êtes actuellement abonné à Luma Pro (${planLabel}).`,
+    perMonth: 'mois',
+    perYear: 'an',
     nextPaymentLabel: 'VOTRE PROCHAIN PAIEMENT',
-    nextPaymentValue: '$8.00 le 11 septembre 2026',
+    nextPaymentValue: (amount: string, date: string) => `${amount} le ${date}`,
     downgradeBtn: 'Passer au forfait Free',
   },
   it: {
@@ -347,9 +358,11 @@ const LOCALIZED_PROFILE_STRINGS: Record<LanguageCode, {
     fact3: '3. Ritmo quotidiano',
     gotItBtn: 'Capito',
     manageModalTitle: 'Gestisci abbonamento',
-    manageModalDesc: 'Sei attualmente abbonato a Luma Pro ($8/mese).',
+    manageModalDesc: (planLabel: string) => `Sei attualmente abbonato a Luma Pro (${planLabel}).`,
+    perMonth: 'mese',
+    perYear: 'anno',
     nextPaymentLabel: 'IL TUO PROSSIMO PAGAMENTO',
-    nextPaymentValue: '$8.00 il 11 settembre 2026',
+    nextPaymentValue: (amount: string, date: string) => `${amount} il ${date}`,
     downgradeBtn: 'Passa al piano Free',
   },
   pt: {
@@ -404,9 +417,11 @@ const LOCALIZED_PROFILE_STRINGS: Record<LanguageCode, {
     fact3: '3. Ritmo diário',
     gotItBtn: 'Entendido',
     manageModalTitle: 'Gerenciar assinatura',
-    manageModalDesc: 'Você está atualmente inscrito no Luma Pro ($8/mês).',
+    manageModalDesc: (planLabel: string) => `Você está atualmente inscrito no Luma Pro (${planLabel}).`,
+    perMonth: 'mês',
+    perYear: 'ano',
     nextPaymentLabel: 'SEU PRÓXIMO PAGAMENTO',
-    nextPaymentValue: '$8.00 em 11 de setembro de 2026',
+    nextPaymentValue: (amount: string, date: string) => `${amount} em ${date}`,
     downgradeBtn: 'Mudar para o plano Free',
   },
   tr: {
@@ -461,9 +476,11 @@ const LOCALIZED_PROFILE_STRINGS: Record<LanguageCode, {
     fact3: '3. Günlük ritim',
     gotItBtn: 'Tamam',
     manageModalTitle: 'Aboneliği Yönet',
-    manageModalDesc: 'Şu anda Luma Pro ($8/ay) abonesisiniz.',
+    manageModalDesc: (planLabel: string) => `Şu anda Luma Pro (${planLabel}) abonesisiniz.`,
+    perMonth: 'ay',
+    perYear: 'yıl',
     nextPaymentLabel: 'SONRAKİ ÖDEMENİZ',
-    nextPaymentValue: '11 Eylül 2026 tarihinde $8.00',
+    nextPaymentValue: (amount: string, date: string) => `${date} tarihinde ${amount}`,
     downgradeBtn: 'Free plana geç',
   },
   zh: {
@@ -518,9 +535,11 @@ const LOCALIZED_PROFILE_STRINGS: Record<LanguageCode, {
     fact3: '3. 日常作息',
     gotItBtn: '知道了',
     manageModalTitle: '管理订阅',
-    manageModalDesc: '您当前已订阅 Luma Pro（$8/月）。',
+    manageModalDesc: (planLabel: string) => `您当前已订阅 Luma Pro（${planLabel}）。`,
+    perMonth: '月',
+    perYear: '年',
     nextPaymentLabel: '您的下一笔付款',
-    nextPaymentValue: '2026年9月11日付款 $8.00',
+    nextPaymentValue: (amount: string, date: string) => `${date}付款 ${amount}`,
     downgradeBtn: '切换到 Free 计划',
   },
   de: {
@@ -575,9 +594,11 @@ const LOCALIZED_PROFILE_STRINGS: Record<LanguageCode, {
     fact3: '3. Täglicher Rhythmus',
     gotItBtn: 'Verstanden',
     manageModalTitle: 'Abonnement verwalten',
-    manageModalDesc: 'Sie haben derzeit Luma Pro abonniert ($8/Monat).',
+    manageModalDesc: (planLabel: string) => `Sie haben derzeit Luma Pro abonniert (${planLabel}).`,
+    perMonth: 'Monat',
+    perYear: 'Jahr',
     nextPaymentLabel: 'IHRE NÄCHSTE ZAHLUNG',
-    nextPaymentValue: '$8.00 am 11. September 2026',
+    nextPaymentValue: (amount: string, date: string) => `${amount} am ${date}`,
     downgradeBtn: 'Zu Free wechseln',
   }
 };
@@ -638,6 +659,31 @@ export const LumaProfileScreen: React.FC<LumaProfileScreenProps> = ({
       nextRenewal.setMonth(nextRenewal.getMonth() + cycleMonths);
     }
     return p.renewsLabel(nextRenewal.toLocaleDateString(language, { month: 'short', day: 'numeric', year: 'numeric' }));
+  })();
+
+  // What this person is actually paying, for the manage-subscription modal.
+  // Derived from the billing cycle they picked at upgrade time rather than
+  // written into the copy, so a price change can't leave the modal lying.
+  const subscriptionPlanLabel = `${formatPrice(priceForCycle(profileData.billingCycle))}/${
+    profileData.billingCycle === 'annual' ? p.perYear : p.perMonth
+  }`;
+
+  // The date of the next charge. Null when this account has no trial record
+  // to count from — in that case the modal shows the generic billing line
+  // instead of inventing a date.
+  const nextPaymentDate = (() => {
+    if (!profileData.trialEndsAt) return null;
+    const trialEnd = new Date(profileData.trialEndsAt);
+    if (isNaN(trialEnd.getTime())) return null;
+    // While the trial is still running, the first charge lands when it ends.
+    if (trialEnd.getTime() > Date.now()) return trialEnd;
+    const cycleMonths = profileData.billingCycle === 'annual' ? 12 : 1;
+    const next = new Date(trialEnd);
+    next.setMonth(next.getMonth() + cycleMonths);
+    while (next.getTime() < Date.now()) {
+      next.setMonth(next.getMonth() + cycleMonths);
+    }
+    return next;
   })();
 
 
@@ -1400,16 +1446,25 @@ export const LumaProfileScreen: React.FC<LumaProfileScreenProps> = ({
 
             <div className="space-y-3 text-xs leading-relaxed">
               <p className="text-[#6B6258]">
-                {p.manageModalDesc}
+                {p.manageModalDesc(subscriptionPlanLabel)}
               </p>
 
               <div className="p-3.5 rounded-2xl bg-[#FAF7F2] border border-[#E5DFD4]">
-                <span className="text-[10px] uppercase font-semibold text-[#5C6B52] tracking-wider block mb-1">
-                  {p.nextPaymentLabel}
-                </span>
-                <span className="font-serif text-sm text-[#2C2723] font-medium block">
-                  {p.nextPaymentValue}
-                </span>
+                {nextPaymentDate ? (
+                  <>
+                    <span className="text-[10px] uppercase font-semibold text-[#5C6B52] tracking-wider block mb-1">
+                      {p.nextPaymentLabel}
+                    </span>
+                    <span className="font-serif text-sm text-[#2C2723] font-medium block">
+                      {p.nextPaymentValue(
+                        formatPrice(priceForCycle(profileData.billingCycle)),
+                        nextPaymentDate.toLocaleDateString(language, { month: 'long', day: 'numeric', year: 'numeric' })
+                      )}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-[#6B6258] block">{p.nextBilling}</span>
+                )}
               </div>
             </div>
 

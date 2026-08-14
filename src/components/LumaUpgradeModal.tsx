@@ -1,6 +1,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { LanguageCode } from '../data/translations';
+import { MONTHLY_PRICE, ANNUAL_PRICE, ANNUAL_MONTHLY_EQUIVALENT } from '../data/pricing';
 import { LumaCheckIcon, LumaLotusIcon } from './icons/LumaIcons';
 
 interface UpgradeModalStrings {
@@ -213,10 +214,6 @@ interface LumaUpgradeModalProps {
   onClose: () => void;
   onUpgrade: (billingCycle: 'monthly' | 'annual') => void;
 }
-
-const MONTHLY_PRICE = 9.99;
-const ANNUAL_PRICE = 79;
-const ANNUAL_MONTHLY_EQUIVALENT = (ANNUAL_PRICE / 12).toFixed(2);
 
 export const LumaUpgradeModal: React.FC<LumaUpgradeModalProps> = ({
   language,

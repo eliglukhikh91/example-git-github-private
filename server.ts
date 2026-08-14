@@ -129,6 +129,50 @@ const getGeminiClient = () => {
   });
 };
 
+/**
+ * Calls Gemini, retrying briefly when the model comes back overloaded.
+ *
+ * Google answers 503 UNAVAILABLE ("this model is currently experiencing high
+ * demand ... try again later") when a model is momentarily saturated. That is
+ * transient, so the useful response is to wait a moment and try again — but
+ * the retry has to actually differ from the first attempt to stand a chance.
+ * Retrying instantly against the same model is what made every free-plan
+ * request fall through to the canned template: the "fallback" model name was
+ * hardcoded to the same lite model the free plan already uses as its primary,
+ * so the second call re-hit the same saturated backend microseconds later.
+ *
+ * Attempts run primary -> fallback (when it is a genuinely different model)
+ * -> fallback again, with a growing pause before each retry.
+ */
+async function generateWithRetry(
+  ai: any,
+  opts: { primaryModel: string; fallbackModel: string; contents: string; config: any; label: string }
+): Promise<any> {
+  const { primaryModel, fallbackModel, contents, config, label } = opts;
+  const differsFromPrimary = fallbackModel && fallbackModel !== primaryModel;
+  const attempts = differsFromPrimary
+    ? [primaryModel, fallbackModel, fallbackModel]
+    : [primaryModel, primaryModel, primaryModel];
+  const delaysMs = [0, 700, 2000];
+
+  let lastError: any;
+  for (let i = 0; i < attempts.length; i++) {
+    if (delaysMs[i] > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delaysMs[i]));
+    }
+    try {
+      return await ai.models.generateContent({ model: attempts[i], contents, config });
+    } catch (err: any) {
+      lastError = err;
+      console.warn(
+        `${label}: attempt ${i + 1}/${attempts.length} on ${attempts[i]} failed:`,
+        err?.message || err
+      );
+    }
+  }
+  throw lastError;
+}
+
 // Standard Fallback Preset Generators for seamless experience when offline or without key
 const getFallbackPrepPlan = (title: string, category?: string, details?: string, lang: string = 'en') => {
   const lower = title.toLowerCase();
@@ -479,25 +523,15 @@ Format strictly as JSON:
     // model, since a failure-retry shouldn't itself be an expensive call.
     const primaryModel = plan === 'pro' ? 'gemini-3.6-flash' : 'gemini-3.1-flash-lite';
 
-    let response;
-    try {
-      response = await ai.models.generateContent({
-        model: primaryModel,
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json',
-        },
-      });
-    } catch (apiErr: any) {
-      console.warn(`Primary model ${primaryModel} failed, attempting fallback model gemini-3.1-flash-lite:`, apiErr);
-      response = await ai.models.generateContent({
-        model: 'gemini-3.1-flash-lite',
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json',
-        },
-      });
-    }
+    const response = await generateWithRetry(ai, {
+      primaryModel,
+      fallbackModel: 'gemini-3.1-flash-lite',
+      contents: prompt,
+      label: 'generate-prep',
+      config: {
+        responseMimeType: 'application/json',
+      },
+    });
 
     const text = response.text || '{}';
     const parsed = JSON.parse(text);
@@ -1306,27 +1340,16 @@ Return a JSON object with keys "reply", "action", and "updatedContext".
 
     const primaryTalkModel = plan === 'pro' ? 'gemini-3.6-flash' : 'gemini-3.1-flash-lite';
 
-    let response;
-    try {
-      response = await ai.models.generateContent({
-        model: primaryTalkModel,
-        contents: prompt,
-        config: {
-          systemInstruction,
-          responseMimeType: 'application/json',
-        },
-      });
-    } catch (apiErr: any) {
-      console.warn(`Primary model ${primaryTalkModel} failed in luma-talk, attempting fallback model gemini-3.1-flash-lite:`, apiErr);
-      response = await ai.models.generateContent({
-        model: 'gemini-3.1-flash-lite',
-        contents: prompt,
-        config: {
-          systemInstruction,
-          responseMimeType: 'application/json',
-        },
-      });
-    }
+    const response = await generateWithRetry(ai, {
+      primaryModel: primaryTalkModel,
+      fallbackModel: 'gemini-3.1-flash-lite',
+      contents: prompt,
+      label: 'luma-talk',
+      config: {
+        systemInstruction,
+        responseMimeType: 'application/json',
+      },
+    });
 
     const parsed = JSON.parse(response.text || '{}');
     
