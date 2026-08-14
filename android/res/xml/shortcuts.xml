@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Luma Android Shortcuts Configuration (shortcuts.xml)
+  Registers shortcuts for Android launcher and Google Assistant.
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="create_luma_entry"
+        android:enabled="true"
+        android:icon="@drawable/ic_luma_lotus"
+        android:shortcutShortLabel="@string/shortcut_add_event_short"
+        android:shortcutLongLabel="@string/shortcut_add_event_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.luma.app"
+            android:targetClass="com.luma.app.MainActivity"
+            android:data="https://luma-app.run.app/create" />
+        <categories android:name="android.shortcut.conversation" />
+        <capability android:name="actions.intent.CREATE_NOTE">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:targetPackage="com.luma.app"
+                android:data="https://luma-app.run.app/create?source=google_assistant">
+                <parameter
+                    android:name="note.text"
+                    android:key="text" />
+            </intent>
+        </capability>
+    </shortcut>
+</shortcuts>

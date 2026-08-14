@@ -1,0 +1,6 @@
+{
+  "name": "Luma",
+  "description": "Luma — AI assistant for event preparation that thinks ahead so you can stay calm and confident.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

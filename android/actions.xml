@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Luma Android App Actions configuration (actions.xml)
+  Connects Google Assistant voice queries to Luma's core entry creation action.
+  Supported Voice Queries:
+  - "Hey Google, add an event to Luma"
+  - "Hey Google, create a note in Luma"
+  - "Hey Google, ask Luma to prepare for interview next Friday"
+-->
+<actions>
+    <!-- Standard BII (Built-In Intent) for Create Note / Create Task -->
+    <action intentName="actions.intent.CREATE_NOTE">
+        <fulfillment fulfillmentMode="actions.fulfillment.DEEPLINK">
+            <template urlTemplate="https://luma-app.run.app/entry{?text,date,time}">
+                <parameter-mapping
+                    urlParameter="text"
+                    intentParameter="note.text" />
+                <parameter-mapping
+                    urlParameter="date"
+                    intentParameter="note.temporalCoverage.startDate" />
+            </template>
+        </fulfillment>
+    </action>
+
+    <!-- Custom Intent for Luma Moment Preparation -->
+    <action intentName="com.luma.app.CREATE_ENTRY">
+        <fulfillment fulfillmentMode="actions.fulfillment.SLICE">
+            <template urlTemplate="https://luma-app.run.app/api/generate-prep{?text,category}">
+                <parameter-mapping
+                    urlParameter="text"
+                    intentParameter="entry.text" />
+                <parameter-mapping
+                    urlParameter="category"
+                    intentParameter="entry.category" />
+            </template>
+        </fulfillment>
+    </action>
+</actions>

@@ -1,0 +1,16 @@
+# Заменяет .gitignore для gcloud-загрузки.
+# ВАЖНО: .env.production НЕ исключён — он нужен на сборке, чтобы
+# VITE_-переменные попали в клиентский бандл. В нём только публичные
+# значения (они и так видны в браузере), секретов там нет.
+.git/
+.gitignore
+node_modules/
+dist/
+build/
+coverage/
+*.log
+.DS_Store
+.env.local
+.env.local.bak
+env.yaml
+screenshot.cjs
