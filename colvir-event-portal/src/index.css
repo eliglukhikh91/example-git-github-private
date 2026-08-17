@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --brand-blue: #1560AA;
+    --brand-blue-hover: #104b88;
+    --brand-blue-light: #f0f6fc;
+  }
+
+  body {
+    background-color: #f3f4f6;
+    color: #1f2937;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Akrobat', 'Roboto', sans-serif;
+    letter-spacing: 0.01em;
+  }
+}
+
+.font-heading {
+  font-family: 'Akrobat', 'Roboto', sans-serif !important;
+}
+
+.font-body, .font-sans {
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
+/* Custom scrollbars for clean UI */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+@keyframes fall {
+  0% {
+    transform: translateY(-10px) translateX(0px) rotate(0deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  80% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(50px) translateX(15px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes bloom {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+}
+
+.animate-fall-slow {
+  animation: fall 4s linear infinite;
+}
+.animate-fall-mid {
+  animation: fall 3s linear infinite 1.2s;
+}
+.animate-fall-fast {
+  animation: fall 2.5s linear infinite 0.5s;
+}
+.animate-bloom {
+  animation: bloom 3s ease-in-out infinite;
+}
+
+

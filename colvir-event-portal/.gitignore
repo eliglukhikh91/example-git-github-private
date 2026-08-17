@@ -1,0 +1,16 @@
+node_modules/
+dist/
+dist-server/
+build/
+coverage/
+
+# Секреты окружения: в репозиторий попадает только .env.example
+.env
+.env.*
+!.env.example
+
+# Файловый каталог пользователей для локальной разработки
+dev-directory.json
+
+*.log
+.DS_Store

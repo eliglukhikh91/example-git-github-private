@@ -1,0 +1,6 @@
+{
+  "name": "Корпоративные Мероприятия",
+  "description": "Система записи сотрудников на командные игры и клубные мероприятия компании с управлением группами, дайджестом и экспортом в Excel",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

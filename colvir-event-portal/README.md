@@ -1,0 +1,251 @@
+# Портал корпоративных мероприятий Colvir
+
+Веб-приложение для записи сотрудников на внутренние мероприятия, тимбилдинги,
+Speaking Club, книжный клуб и Random Coffee.
+
+Стек: React 19 + Vite (фронтенд), Express + PostgreSQL (бэкенд),
+аутентификация — Active Directory через LDAP.
+
+---
+
+## Что изменилось при переносе в production
+
+До переноса приложение было прототипом с двумя принципиальными ограничениями,
+которые делали его непригодным для корпоративной эксплуатации:
+
+| Было | Стало |
+| --- | --- |
+| Все данные в `localStorage` браузера — каждый сотрудник видел только свои записи | PostgreSQL: мероприятия, участники, команды, оценки и уведомления общие для всех |
+| `/api/auth/ad/login` не проверял пароль: любой email нужного домена + любой пароль = вход | Реальный bind к контроллеру домена через `ldapts`, отдельно паролем пользователя |
+| Самодельный `token: ad_jwt_token_${Date.now()}`, хранимый на клиенте | Подписанный JWT в httpOnly-cookie + отдельный refresh-токен |
+| Права администратора по PIN-коду `2026` и списку email в коде клиента | Роль вычисляется сервером из атрибута `memberOf` Active Directory |
+| `SUPER_ADMIN_EMAIL` с личным gmail, зашитый в бандл | Удалён; персональных адресов в исходниках нет |
+| Описание мероприятия выводилось через `dangerouslySetInnerHTML` без очистки | Санитизация DOMPurify при записи на сервере и при выводе на клиенте |
+| «Все попытки логируются службой безопасности» — но логирования не было | Таблица `auth_audit_log` + вывод в stdout для сборщика логов |
+| Заголовок `X-Remote-User` принимался от кого угодно | Принимается только с адресов из `SSO_TRUSTED_PROXIES`, SSO по умолчанию выключен |
+
+---
+
+## Архитектура
+
+```
+server/
+  config/env.ts          валидация конфигурации; отказ старта при небезопасных значениях
+  db/
+    migrations/*.sql     схема базы
+    migrate.ts           идемпотентный запуск миграций под advisory-блокировкой
+    seed.ts              демо-наполнение (опционально)
+    pool.ts              пул соединений PostgreSQL
+  auth/
+    directory.ts         LDAP-каталог (production) и файловый каталог (разработка)
+    roles.ts             вычисление роли из memberOf
+    tokens.ts            подпись JWT и установка httpOnly-cookie
+    trusted-proxy.ts     проверка источника SSO-заголовка по IP/CIDR
+    middleware.ts        requireAuth / requireAdmin
+    audit.ts             журнал попыток входа
+    routes.ts            /api/auth/*
+  routes/api.ts          /api/* — данные портала
+  services/              работа с базой
+  app.ts                 helmet, CORS, rate limit, HTTPS
+  index.ts               точка входа
+src/
+  api/client.ts          обёртка над fetch с автообновлением сессии
+  context/AuthContext    состояние сессии
+  context/AppContext     данные портала (запросы к API)
+```
+
+---
+
+## Запуск на корпоративном сервере
+
+### 1. База данных
+
+```bash
+createdb colvir_events
+createuser colvir_events --pwprompt
+psql -c "GRANT ALL PRIVILEGES ON DATABASE colvir_events TO colvir_events;"
+```
+
+### 2. Конфигурация
+
+```bash
+cp .env.example .env
+```
+
+Обязательно заполните:
+
+| Переменная | Назначение |
+| --- | --- |
+| `DATABASE_URL` | строка подключения к PostgreSQL |
+| `JWT_SECRET` | сгенерируйте: `openssl rand -base64 48` |
+| `LDAP_URL` | `ldaps://dc01.colvir.com:636` |
+| `LDAP_BIND_DN` / `LDAP_BIND_PASSWORD` | сервисная учётная запись для поиска в каталоге |
+| `LDAP_SEARCH_BASE` | `DC=colvir,DC=com` |
+| `AD_DOMAIN` | `COLVIR.COM` |
+| `AD_ADMIN_GROUPS` | группа AD, дающая права администратора портала |
+
+`.env` не коммитится — он в `.gitignore`.
+
+Сервер **не стартует**, если:
+
+* `JWT_SECRET` пустой, короче 32 символов или равен значению из примера;
+* в production не заданы параметры LDAP;
+* `LDAP_URL` использует незашифрованный `ldap://` без явного `LDAP_ALLOW_PLAINTEXT=true`;
+* не задан `AD_ADMIN_GROUPS`;
+* при `NODE_ENV=production` задан `AUTH_DEV_DIRECTORY_FILE`;
+* `SSO_ENABLED=true`, но не перечислены `SSO_TRUSTED_PROXIES`.
+
+### 3. Сборка и запуск
+
+```bash
+npm ci
+npm run build        # фронтенд в dist/, сервер в dist-server/
+npm start            # node dist-server/server.mjs
+```
+
+Миграции применяются автоматически при старте. Если схемой управляет CI,
+поставьте `RUN_MIGRATIONS_ON_START=false` и запускайте `npm run migrate` отдельно.
+
+Демо-наполнение (не нужно в production):
+
+```bash
+npm run seed          # только если база пуста
+npm run seed -- --force
+```
+
+### 4. Reverse-proxy и HTTPS
+
+Node слушает `127.0.0.1:3000` и **не должен быть доступен из корпоративной сети
+напрямую** — иначе SSO-заголовок можно выставить в обход прокси.
+
+Готовый пример конфигурации: [`deploy/nginx.conf`](deploy/nginx.conf).
+Сертификат — от внутреннего CA компании либо Let's Encrypt, если домен
+резолвится публично.
+
+### 5. Docker
+
+```bash
+docker build -t colvir-event-portal .
+docker run -d --name colvir-events -p 127.0.0.1:3000:3000 --env-file .env colvir-event-portal
+```
+
+---
+
+## Аутентификация Active Directory
+
+### Вход по логину и паролю
+
+`POST /api/auth/ad/login` c `{ email, password }`:
+
+1. Проверяется домен корпоративной почты (`AD_ALLOWED_EMAIL_DOMAINS`).
+2. Сервисной учётной записью выполняется поиск сотрудника по
+   `LDAP_USER_SEARCH_FILTER`; значение логина экранируется по RFC 4515,
+   так что инъекция в фильтр невозможна.
+3. Проверяется флаг `ACCOUNTDISABLE` в `userAccountControl`.
+4. Выполняется **отдельный bind паролем пользователя** — это и есть проверка пароля.
+   Пустой пароль отклоняется до обращения к каталогу: в LDAP пустой пароль
+   означает анонимный bind, который завершился бы успешно.
+5. Роль вычисляется из `memberOf`.
+6. Выдаётся пара токенов в httpOnly-cookie.
+
+Ответ при неверном пароле и при несуществующем логине одинаков — эндпоинт
+нельзя использовать для перебора учётных записей домена.
+
+### Сквозной вход (Kerberos / NTLM)
+
+Работает только за корпоративным reverse-proxy и только при `SSO_ENABLED=true`.
+
+Прокси выполняет SPNEGO-негошиэйшн и передаёт имя пользователя в заголовке
+`X-Remote-User`. Сервер принимает заголовок, **только если `req.socket.remoteAddress`
+входит в `SSO_TRUSTED_PROXIES`** — это реальный адрес отправителя пакета, его
+нельзя подделать. Профиль и группы всё равно читаются из каталога, а не из заголовка.
+
+В `deploy/nginx.conf` заголовок принудительно очищается (`proxy_set_header X-Remote-User "";`)
+и заполняется только в блоке `/api/auth/ad/sso` после успешной проверки билета.
+
+### Роли
+
+Роль администратора выдаётся членством в группе из `AD_ADMIN_GROUPS`
+(сравнение по CN, регистр не важен). Чтобы выдать или отозвать права,
+измените состав группы в домене — портал не хранит собственных списков.
+
+`POST /api/auth/ad/sync` перечитывает профиль и группы и перевыпускает токены,
+поэтому отзыв прав применяется без ожидания истечения сессии.
+
+### Журнал безопасности
+
+Каждый вход, выход, обновление сессии и отказ в доступе пишется в
+`auth_audit_log` (тип события, UPN, результат, причина, IP, User-Agent) и
+дублируется в stdout.
+
+```sql
+-- неудачные попытки входа за сутки
+SELECT occurred_at, upn, reason, ip_address
+FROM auth_audit_log
+WHERE NOT success AND occurred_at > now() - interval '1 day'
+ORDER BY occurred_at DESC;
+```
+
+---
+
+## Локальная разработка
+
+Контроллер домена для разработки не нужен — есть файловый каталог с
+scrypt-хешами паролей. В production он запрещён проверкой конфигурации.
+
+```bash
+createdb colvir_events_dev
+
+cat > .env <<'EOF'
+NODE_ENV=development
+DATABASE_URL=postgres://localhost:5432/colvir_events_dev
+JWT_SECRET=локальный-секрет-минимум-32-символа-для-разработки
+AD_DOMAIN=COLVIR.COM
+AD_ADMIN_GROUPS=Colvir-Event-Managers
+AUTH_DEV_DIRECTORY_FILE=./dev-directory.json
+COOKIE_SECURE=false
+FORCE_HTTPS=false
+EOF
+
+npm install
+npm run dev:directory -- i.ivanov@colvir.com Пароль123
+npm run dev:directory -- a.admin@colvir.com Пароль123 --admin
+npm run migrate
+npm run seed
+npm run dev
+```
+
+---
+
+## Проверки
+
+```bash
+npm run lint    # tsc --noEmit, strict mode
+npm test        # интеграционные тесты (нужен PostgreSQL)
+```
+
+Тесты поднимают приложение целиком и проверяют: отказ при неверном и пустом
+пароле, неразличимость ответов для несуществующего логина, выдачу роли по
+группе AD, отклонение подделанного SSO-заголовка, запись событий в журнал,
+недоступность API без сессии, запрет операций администратора рядовому
+сотруднику, вырезание `<script>` и `javascript:` из описания мероприятия,
+подстановку email из сессии вместо тела запроса, запрет повторной записи и
+отмены чужой записи, видимость данных между разными сессиями.
+
+База для тестов задаётся через `TEST_DATABASE_URL`
+(по умолчанию `postgres://postgres@localhost:5432/colvir_events_test`).
+
+---
+
+## Известные ограничения
+
+* **`xlsx` (SheetJS)**. Пакет используется для выгрузки списков участников в
+  Excel. Версия в npm-реестре не обновляется и имеет незакрытые уязвимости
+  (prototype pollution, ReDoS) — исправления публикуются только на
+  `cdn.sheetjs.com`. Выгрузка выполняется в браузере администратора на данных
+  из собственной базы, поэтому вектор ограничен, но при первой возможности
+  стоит перейти на дистрибутив с cdn.sheetjs.com либо на `exceljs`.
+* **Аватары и картинки мероприятий** хранятся как data:URL в базе. Для
+  большого числа мероприятий имеет смысл вынести их в объектное хранилище.
+* **Обновление данных** происходит по запросу пользователя. Живого обновления
+  списка участников (SSE/WebSocket) пока нет.
