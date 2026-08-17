@@ -3,8 +3,7 @@ import {
   SEED_EVENTS,
   SEED_PARTICIPANTS,
   SEED_RATINGS,
-  SEED_HOLIDAY_CHAT,
-  SEED_HOLIDAY_TRACKS
+  SEED_HOLIDAY_CHAT
 } from './seed-data.js';
 
 /**
@@ -28,7 +27,6 @@ export async function seedDemoData(options: { force?: boolean } = {}): Promise<b
       // participants/ratings/notifications удалятся каскадом вместе с events
       await client.query('DELETE FROM events');
       await client.query('DELETE FROM holiday_chat_messages');
-      await client.query('DELETE FROM holiday_tracks');
     }
 
     for (const event of SEED_EVENTS) {
@@ -98,25 +96,16 @@ export async function seedDemoData(options: { force?: boolean } = {}): Promise<b
       );
     }
 
-    for (const track of SEED_HOLIDAY_TRACKS) {
-      await client.query(
-        `INSERT INTO holiday_tracks (id, title, artist, duration, mood, added_by)
-         VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT (id) DO NOTHING`,
-        [track.id, track.title, track.artist, track.duration, track.mood, track.addedBy]
-      );
-    }
-
     for (const [index, message] of SEED_HOLIDAY_CHAT.entries()) {
       await client.query(
-        `INSERT INTO holiday_chat_messages (id, author, department, text, music_track, created_at)
-         VALUES ($1,$2,$3,$4,$5, now() - ($6 || ' minutes')::interval)
+        `INSERT INTO holiday_chat_messages (id, author, department, text, created_at)
+         VALUES ($1,$2,$3,$4, now() - ($5 || ' minutes')::interval)
          ON CONFLICT (id) DO NOTHING`,
         [
           message.id,
           message.author,
           message.department,
           message.text,
-          message.musicTrack ? JSON.stringify(message.musicTrack) : null,
           String((SEED_HOLIDAY_CHAT.length - index) * 5)
         ]
       );

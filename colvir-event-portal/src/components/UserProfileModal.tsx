@@ -476,12 +476,12 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                           </h4>
 
                           <div className="text-xs text-slate-600 space-y-1 pt-1">
-                            <div>📅 Дата: <strong>{evt?.date}</strong> ({reg.timeSlot || '10:00'})</div>
-                            <div>📍 Место: {evt?.location}</div>
+                            <div>Дата: <strong>{evt?.date}</strong> ({reg.timeSlot || '10:00'})</div>
+                            <div>Место: {evt?.location}</div>
                             {reg.isTeamGame && (
                               <div className="text-[#1560AA] font-bold flex items-center gap-1 pt-0.5">
                                 <Gamepad2 className="w-3.5 h-3.5" />
-                                Команда: {reg.teamName} ({reg.role === 'captain' ? '👑 Капитан' : '🏃 Игрок'})
+                                Команда: {reg.teamName} ({reg.role === 'captain' ? 'Капитан' : 'Игрок'})
                               </div>
                             )}
                           </div>

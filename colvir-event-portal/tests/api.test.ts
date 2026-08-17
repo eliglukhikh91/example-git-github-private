@@ -264,6 +264,48 @@ describe('Оценки мероприятий', () => {
   });
 });
 
+describe('Праздничный чат', () => {
+  test('сообщение сохраняется и автор берётся из сессии', async () => {
+    const response = await employee.request('/api/holiday/messages', {
+      method: 'POST',
+      body: { text: 'Всем отличного дня!' }
+    });
+
+    assert.equal(response.status, 201);
+    assert.equal(response.body.message.text, 'Всем отличного дня!');
+    assert.equal(response.body.message.author, 'Иванов Иван');
+    assert.ok(response.body.message.time, 'должно быть время сообщения');
+  });
+
+  test('сообщение видно в другой сессии', async () => {
+    const list = await admin.request('/api/holiday/messages');
+    assert.equal(list.status, 200);
+    assert.ok(
+      list.body.messages.some((m: any) => m.text === 'Всем отличного дня!'),
+      'сообщение должно быть общим для всех сотрудников'
+    );
+  });
+
+  test('пустое сообщение отклоняется', async () => {
+    const response = await employee.request('/api/holiday/messages', {
+      method: 'POST',
+      body: { text: '   ' }
+    });
+    assert.equal(response.status, 400);
+  });
+
+  test('эндпоинты музыкального плейлиста удалены', async () => {
+    // Плеер убран из продукта: маршрут не должен отвечать даже администратору.
+    for (const method of ['GET', 'POST'] as const) {
+      const response = await admin.request('/api/holiday/tracks', {
+        method,
+        body: method === 'POST' ? { title: 'Трек' } : undefined
+      });
+      assert.equal(response.status, 404, `${method} /api/holiday/tracks должен быть удалён`);
+    }
+  });
+});
+
 describe('Данные общие для всех пользователей', () => {
   test('мероприятие, созданное администратором, видно другому сотруднику', async () => {
     const created = await admin.request('/api/events', {

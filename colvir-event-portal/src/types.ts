@@ -107,7 +107,13 @@ export interface EventRating {
   timestamp: string;
 }
 
-export type ViewMode = 'digest' | 'teams' | 'my-events' | 'admin-manage' | 'random-coffee';
+export type ViewMode =
+  | 'digest'
+  | 'teams'
+  | 'my-events'
+  | 'admin-manage'
+  | 'random-coffee'
+  | 'holiday-chat';
 
 export type ThemeType = 'classic' | 'spring' | 'birthday' | 'newyear';
 
@@ -117,23 +123,6 @@ export interface HolidayChatMessage {
   department: string;
   text: string;
   time: string;
-  musicTrack?: {
-    title: string;
-    artist?: string;
-    duration?: string;
-    audioUrl?: string;
-    mood?: string;
-  };
-}
-
-export interface HolidayTrack {
-  id: string;
-  title: string;
-  artist: string;
-  duration: string;
-  mood: string;
-  addedBy: string;
-  audioUrl?: string;
 }
 
 /** Состояние подключения к контроллеру домена, отдаётся /api/auth/ad/status. */

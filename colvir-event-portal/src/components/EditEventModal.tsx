@@ -191,7 +191,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
 
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">
-              🔗 Ссылка на онлайн-встречу (Teams / Zoom / Webex)
+              Ссылка на онлайн-встречу (Teams / Zoom / Webex)
             </label>
             <input
               type="url"

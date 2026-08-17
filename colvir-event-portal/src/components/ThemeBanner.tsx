@@ -1,49 +1,48 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import blueGiftBoxImg from '../assets/images/blue_gift_box_1785842784484.jpg';
-import springFlowerImg from '../assets/images/spring_flower_icon_1785843467346.jpg';
-import newYearTreeImg from '../assets/images/new_year_tree_icon_1785843481320.jpg';
+import { getTheme, getThemeBannerText } from '../utils/themes';
 
+/**
+ * Тонкая полоса с названием активной темы.
+ *
+ * Заменяет прежний баннер с градиентом, blur-подложкой и тяжёлой тенью:
+ * иконка, текст, крестик — и ничего больше. Цвет берётся из --bg-accent-muted,
+ * который меняется вместе с data-theme на <html>.
+ */
 export const ThemeBanner: React.FC = () => {
   const { theme, cmsContent } = useApp();
+  const [dismissedTheme, setDismissedTheme] = useState<string | null>(null);
 
-  if (theme === 'classic') return null;
+  // Смена темы возвращает полосу: закрытие относится к конкретной теме,
+  // а не выключает баннер навсегда.
+  useEffect(() => {
+    setDismissedTheme(null);
+  }, [theme]);
+
+  if (theme === 'classic' || dismissedTheme === theme) return null;
+
+  const text = getThemeBannerText(theme, cmsContent);
+  if (!text) return null;
+
+  const { icon: Icon, label } = getTheme(theme);
 
   return (
-    <div className="relative overflow-hidden bg-gradient-to-r from-[#EBF3FE] via-[#DDEBFE] to-[#C8E0FE] border-b-2 border-white/80 px-5 py-4 sm:py-4.5 shadow-[0_12px_32px_rgba(21,96,170,0.15)]">
-      
-      {/* Background Volumetric Light */}
-      <div className="absolute -right-10 -top-10 w-64 h-64 bg-[#1560AA]/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -left-10 -bottom-10 w-48 h-48 bg-white/40 rounded-full blur-2xl pointer-events-none" />
-      
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 relative z-10">
-        
-        {/* Banner Content */}
-        <div className="flex items-center gap-4 sm:gap-5">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/95 border-2 border-white shadow-[0_8px_20px_rgba(21,96,170,0.22)] flex items-center justify-center shrink-0 text-3xl sm:text-4xl overflow-hidden p-1 transform hover:scale-105 transition-transform">
-            {theme === 'spring' && (
-              <img src={springFlowerImg} alt="Colvir Spring" className="w-full h-full object-cover rounded-xl shadow-2xs" />
-            )}
-            {theme === 'birthday' && (
-              <img src={blueGiftBoxImg} alt="Gift Box" className="w-full h-full object-cover rounded-xl shadow-2xs" />
-            )}
-            {theme === 'newyear' && (
-              <img src={newYearTreeImg} alt="New Year Tree" className="w-full h-full object-cover rounded-xl shadow-2xs" />
-            )}
-          </div>
-
-          <div>
-            <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-slate-900 tracking-tight leading-snug">
-              {theme === 'spring' && (cmsContent?.holidayBannerSpringText || 'Colvir Spring: Атмосфера свежести и весеннего вдохновения!')}
-              {theme === 'birthday' && (cmsContent?.holidayBannerBirthdayText || 'День Рождения Colvir: Празднуем успехи компании вместе!')}
-              {theme === 'newyear' && (cmsContent?.holidayBannerNewYearText || 'Новый Год в Colvir: Зимняя сказка и праздничное настроение!')}
-            </h2>
-          </div>
-        </div>
-
+    <div
+      className="border-b border-slate-200/80"
+      style={{ background: 'var(--bg-accent-muted)' }}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center gap-3">
+        <Icon className="w-4 h-4 shrink-0" style={{ color: 'var(--theme-accent)' }} />
+        <p className="flex-1 min-w-0 text-xs font-semibold text-slate-700 truncate">{text}</p>
+        <button
+          onClick={() => setDismissedTheme(theme)}
+          className="p-1 -mr-1 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-white/60 transition-colors shrink-0"
+          aria-label={`Скрыть сообщение темы «${label}»`}
+        >
+          <X className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );
 };
-
-

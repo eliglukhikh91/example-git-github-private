@@ -5,6 +5,26 @@
     --brand-blue: #1560AA;
     --brand-blue-hover: #104b88;
     --brand-blue-light: #f0f6fc;
+
+    /* Акцент текущей темы. Одна точка истины для полосы-баннера и свотчей
+       переключателя — атрибут data-theme проставляет AppContext. */
+    --theme-accent: #1560AA;
+    --bg-accent-muted: #f0f6fc;
+  }
+
+  :root[data-theme='spring'] {
+    --theme-accent: #2f9e6b;
+    --bg-accent-muted: #eef8f2;
+  }
+
+  :root[data-theme='birthday'] {
+    --theme-accent: #b4553d;
+    --bg-accent-muted: #fdf2ed;
+  }
+
+  :root[data-theme='newyear'] {
+    --theme-accent: #2a6fb0;
+    --bg-accent-muted: #eef4fb;
   }
 
   body {

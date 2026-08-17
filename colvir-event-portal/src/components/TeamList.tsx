@@ -220,7 +220,7 @@ export const TeamList: React.FC = () => {
                               <Crown className="w-3.5 h-3.5 text-amber-600" />
                               Капитан команды
                             </span>
-                            <span className="text-[10px] text-amber-700 font-semibold">👑 LEADER</span>
+                            <span className="text-[10px] text-amber-700 font-semibold flex items-center gap-1"><Crown className="w-3 h-3" />Капитан</span>
                           </div>
                           <div className="font-bold text-slate-900 text-sm">
                             {captain.lastName} {captain.firstName}

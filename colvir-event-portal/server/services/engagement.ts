@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import { query } from '../db/pool.js';
-import { sanitizePlainText, sanitizeUrl } from '../utils/sanitize.js';
+import { sanitizePlainText } from '../utils/sanitize.js';
 
 // ---------------------------------------------------------------------------
 // Уведомления администраторам
@@ -193,7 +193,7 @@ export async function upsertRating(input: {
 }
 
 // ---------------------------------------------------------------------------
-// Праздничный чат и плейлист
+// Праздничный чат
 // ---------------------------------------------------------------------------
 
 export interface HolidayMessageDto {
@@ -202,13 +202,6 @@ export interface HolidayMessageDto {
   department: string;
   text: string;
   time: string;
-  musicTrack?: {
-    title: string;
-    artist?: string;
-    duration?: string;
-    mood?: string;
-    audioUrl?: string;
-  };
 }
 
 interface HolidayMessageRow {
@@ -216,7 +209,6 @@ interface HolidayMessageRow {
   author: string;
   department: string;
   text: string;
-  music_track: HolidayMessageDto['musicTrack'] | null;
   created_at: Date;
 }
 
@@ -230,16 +222,15 @@ function toHolidayMessage(row: HolidayMessageRow): HolidayMessageDto {
       hour: '2-digit',
       minute: '2-digit',
       timeZone: 'Europe/Moscow'
-    }),
-    musicTrack: row.music_track ?? undefined
+    })
   };
 }
 
 export async function listHolidayMessages(limit = 200): Promise<HolidayMessageDto[]> {
   const { rows } = await query<HolidayMessageRow>(
-    `SELECT id, author, department, text, music_track, created_at
+    `SELECT id, author, department, text, created_at
      FROM (
-       SELECT id, author, department, text, music_track, created_at
+       SELECT id, author, department, text, created_at
        FROM holiday_chat_messages ORDER BY created_at DESC LIMIT $1
      ) recent
      ORDER BY created_at ASC`,
@@ -253,96 +244,20 @@ export async function addHolidayMessage(input: {
   author: string;
   department: string;
   text: string;
-  musicTrack?: { title: string; artist?: string; duration?: string; mood?: string };
 }): Promise<HolidayMessageDto> {
   const id = `hchat-${Date.now()}-${crypto.randomBytes(3).toString('hex')}`;
-  const track = input.musicTrack
-    ? {
-        title: sanitizePlainText(input.musicTrack.title).slice(0, 200),
-        artist: sanitizePlainText(input.musicTrack.artist ?? 'Colvir Artist').slice(0, 200),
-        duration: sanitizePlainText(input.musicTrack.duration ?? '3:30').slice(0, 20),
-        mood: sanitizePlainText(input.musicTrack.mood ?? 'Праздничный Джайв').slice(0, 100)
-      }
-    : null;
 
   const { rows } = await query<HolidayMessageRow>(
-    `INSERT INTO holiday_chat_messages (id, user_id, author, department, text, music_track)
-     VALUES ($1,$2,$3,$4,$5,$6)
-     RETURNING id, author, department, text, music_track, created_at`,
+    `INSERT INTO holiday_chat_messages (id, user_id, author, department, text)
+     VALUES ($1,$2,$3,$4,$5)
+     RETURNING id, author, department, text, created_at`,
     [
       id,
       input.userId,
       sanitizePlainText(input.author).slice(0, 200),
       sanitizePlainText(input.department).slice(0, 200),
-      sanitizePlainText(input.text).slice(0, 2000),
-      track ? JSON.stringify(track) : null
+      sanitizePlainText(input.text).slice(0, 2000)
     ]
   );
   return toHolidayMessage(rows[0]);
-}
-
-export interface HolidayTrackDto {
-  id: string;
-  title: string;
-  artist: string;
-  duration: string;
-  mood: string;
-  addedBy: string;
-  audioUrl?: string;
-}
-
-interface HolidayTrackRow {
-  id: string;
-  title: string;
-  artist: string;
-  duration: string;
-  mood: string;
-  added_by: string;
-  audio_url: string | null;
-}
-
-function toHolidayTrack(row: HolidayTrackRow): HolidayTrackDto {
-  return {
-    id: row.id,
-    title: row.title,
-    artist: row.artist,
-    duration: row.duration,
-    mood: row.mood,
-    addedBy: row.added_by,
-    audioUrl: row.audio_url ?? undefined
-  };
-}
-
-export async function listHolidayTracks(): Promise<HolidayTrackDto[]> {
-  const { rows } = await query<HolidayTrackRow>(
-    `SELECT id, title, artist, duration, mood, added_by, audio_url
-     FROM holiday_tracks ORDER BY created_at DESC`
-  );
-  return rows.map(toHolidayTrack);
-}
-
-export async function addHolidayTrack(input: {
-  title: string;
-  artist?: string;
-  duration?: string;
-  mood?: string;
-  audioUrl?: string;
-  addedBy: string;
-}): Promise<HolidayTrackDto> {
-  const id = `track-${Date.now()}-${crypto.randomBytes(3).toString('hex')}`;
-  const { rows } = await query<HolidayTrackRow>(
-    `INSERT INTO holiday_tracks (id, title, artist, duration, mood, added_by, audio_url)
-     VALUES ($1,$2,$3,$4,$5,$6,$7)
-     RETURNING id, title, artist, duration, mood, added_by, audio_url`,
-    [
-      id,
-      sanitizePlainText(input.title).slice(0, 200),
-      sanitizePlainText(input.artist ?? 'Colvir Music').slice(0, 200),
-      sanitizePlainText(input.duration ?? '3:30').slice(0, 20),
-      sanitizePlainText(input.mood ?? 'Праздничное Настроение').slice(0, 100),
-      sanitizePlainText(input.addedBy).slice(0, 200),
-      sanitizeUrl(input.audioUrl)
-    ]
-  );
-  return toHolidayTrack(rows[0]);
 }

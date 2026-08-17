@@ -312,58 +312,23 @@ export const SEED_RATINGS = [
   }
 ];
 
-export const SEED_HOLIDAY_TRACKS = [
-  {
-    id: 'track-1',
-    title: 'Colvir Celebration Lounge',
-    artist: 'Colvir Music Studio',
-    duration: '3:45',
-    mood: 'Праздник & Дзен',
-    addedBy: 'Colvir HR Dept'
-  },
-  {
-    id: 'track-2',
-    title: 'Spring Inspiration Wave',
-    artist: 'Colvir Sound Team',
-    duration: '4:10',
-    mood: 'Весенний Джайв',
-    addedBy: 'Департамент QA'
-  },
-  {
-    id: 'track-3',
-    title: 'Colvir Acoustic Chillout',
-    artist: 'Acoustic Colvir Band',
-    duration: '3:20',
-    mood: 'Уютная Атмосфера',
-    addedBy: 'Разработка Backend'
-  }
-];
-
 export const SEED_HOLIDAY_CHAT = [
   {
     id: 'hchat-1',
     author: 'Анна Васильева',
     department: 'Департамент QA',
-    text: 'Отличный праздничный режим! Поздравляю всю команду Colvir! 🎉🌸',
-    musicTrack: null
+    text: 'Отличный праздничный режим! Поздравляю всю команду Colvir!'
   },
   {
     id: 'hchat-2',
     author: 'Михаил Соколов',
     department: 'Разработка Backend',
-    text: 'Музыка отличная 👍 Послушайте классный джазовый трек к празднику!',
-    musicTrack: {
-      title: 'Colvir Celebration Lounge',
-      artist: 'Colvir Music Studio',
-      duration: '3:45',
-      mood: 'Праздник & Дзен'
-    }
+    text: 'Присоединяюсь к поздравлениям, отличная работа за квартал.'
   },
   {
     id: 'hchat-3',
     author: 'Елена Смирнова',
     department: 'HR & Корпоративная культура',
-    text: 'Всем хорошего настроения и отличного дня! ✨',
-    musicTrack: null
+    text: 'Всем хорошего настроения и отличного дня!'
   }
 ];

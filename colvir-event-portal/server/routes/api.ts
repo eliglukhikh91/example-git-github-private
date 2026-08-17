@@ -30,9 +30,7 @@ import {
   listRatings,
   upsertRating,
   listHolidayMessages,
-  addHolidayMessage,
-  listHolidayTracks,
-  addHolidayTrack
+  addHolidayMessage
 } from '../services/engagement.js';
 
 const eventSchema = z.object({
@@ -76,23 +74,7 @@ const ratingSchema = z.object({
 });
 
 const holidayMessageSchema = z.object({
-  text: z.string().trim().min(1, 'Сообщение не может быть пустым').max(2000),
-  musicTrack: z
-    .object({
-      title: z.string().trim().min(1).max(200),
-      artist: z.string().trim().max(200).optional(),
-      duration: z.string().trim().max(20).optional(),
-      mood: z.string().trim().max(100).optional()
-    })
-    .optional()
-});
-
-const holidayTrackSchema = z.object({
-  title: z.string().trim().min(1, 'Укажите название трека').max(200),
-  artist: z.string().trim().max(200).optional(),
-  duration: z.string().trim().max(20).optional(),
-  mood: z.string().trim().max(100).optional(),
-  audioUrl: z.string().max(2000).optional()
+  text: z.string().trim().min(1, 'Сообщение не может быть пустым').max(2000)
 });
 
 /** Единый ответ на ошибку валидации, чтобы клиент показывал понятный текст. */
@@ -324,7 +306,7 @@ export function createApiRouter(): Router {
   });
 
   // -------------------------------------------------------------------------
-  // Праздничный чат и плейлист
+  // Праздничный чат
   // -------------------------------------------------------------------------
   router.get('/holiday/messages', async (_req, res) => {
     res.json({ success: true, messages: await listHolidayMessages() });
@@ -341,42 +323,9 @@ export function createApiRouter(): Router {
       userId: user.id,
       author: user.displayName || `${user.lastName} ${user.firstName}`.trim(),
       department: user.department || 'Команда Colvir',
-      text: parsed.data.text,
-      musicTrack: parsed.data.musicTrack
+      text: parsed.data.text
     });
     res.status(201).json({ success: true, message });
-  });
-
-  router.get('/holiday/tracks', async (_req, res) => {
-    res.json({ success: true, tracks: await listHolidayTracks() });
-  });
-
-  router.post('/holiday/tracks', async (req, res) => {
-    const parsed = holidayTrackSchema.safeParse(req.body ?? {});
-    if (!parsed.success) {
-      res.status(400).json(validationError(parsed.error));
-      return;
-    }
-    const user = req.user!;
-    const author = user.displayName || `${user.lastName} ${user.firstName}`.trim();
-
-    const track = await addHolidayTrack({ ...parsed.data, addedBy: author });
-
-    // Трек попадает и в чат, чтобы его увидели все — как это делал клиент раньше.
-    const message = await addHolidayMessage({
-      userId: user.id,
-      author,
-      department: user.department || 'Команда Colvir',
-      text: `🎵 Добавил новый музыкальный трек в праздничный плейлист: "${track.title}" (${track.artist})! Послушайте вместе!`,
-      musicTrack: {
-        title: track.title,
-        artist: track.artist,
-        duration: track.duration,
-        mood: track.mood
-      }
-    });
-
-    res.status(201).json({ success: true, track, message });
   });
 
   return router;

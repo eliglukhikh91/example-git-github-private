@@ -14,7 +14,9 @@ import {
   ArrowRight,
   UserCheck,
   Building,
-  Gamepad2
+  Gamepad2,
+  ChevronDown,
+  Crown
 } from 'lucide-react';
 
 interface RegistrationModalProps {
@@ -58,6 +60,9 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const [errorMsg, setErrorMsg] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showIdentityFields, setShowIdentityFields] = useState(false);
+
+  const initials = `${lastName.charAt(0)}${firstName.charAt(0)}`.toUpperCase() || '—';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,11 +134,11 @@ ${
   event.isTeamGame
     ? `КОМАНДНАЯ ИГРА:
 Команда: ${completedParticipant.teamName}
-Роль: ${completedParticipant.role === 'captain' ? 'Капитан команды 👑' : 'Игрок 🏃'}`
+Роль: ${completedParticipant.role === 'captain' ? 'Капитан команды' : 'Игрок'}`
     : ''
 }
 
-Статус: ПОДТВЕРЖДЕНО ✅
+Статус: ПОДТВЕРЖДЕНО
 Код билета: ${completedParticipant.id}
 Зарегистрирован: ${formatMoscowDateTime(completedParticipant.registeredAt)}
 ===================================================
@@ -244,8 +249,13 @@ ${
                         {completedParticipant.teamName}
                       </span>
                     </div>
-                    <span className="px-2.5 py-1 bg-[#1560AA] text-white text-xs font-bold rounded-lg flex items-center gap-1">
-                      {completedParticipant.role === 'captain' ? '👑 Капитан' : '🏃 Игрок'}
+                    <span className="px-2.5 py-1 bg-[#1560AA] text-white text-xs font-bold rounded-lg flex items-center gap-1.5">
+                      {completedParticipant.role === 'captain' ? (
+                        <Crown className="w-3.5 h-3.5" />
+                      ) : (
+                        <UserCheck className="w-3.5 h-3.5" />
+                      )}
+                      {completedParticipant.role === 'captain' ? 'Капитан' : 'Игрок'}
                     </span>
                   </div>
                 )}
@@ -295,83 +305,106 @@ ${
                 </div>
               )}
 
-              {/* Personal Information */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <UserCheck className="w-4 h-4 text-[#1560AA]" />
-                  Данные сотрудника
-                </h4>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Фамилия <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      placeholder="Например: Иванов"
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-[#1560AA] focus:ring-2 focus:ring-[#1560AA]/20 outline-hidden"
-                    />
+              {/* Данные сотрудника: сводка вместо повторного ввода.
+                  ФИО, email и отдел уже известны из Active Directory, поэтому
+                  поля разворачиваются только по кнопке «Изменить». */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#1560AA] text-white flex items-center justify-center text-xs font-black shrink-0">
+                    {initials}
                   </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Имя <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      placeholder="Например: Алексей"
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-[#1560AA] focus:ring-2 focus:ring-[#1560AA]/20 outline-hidden"
-                    />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-bold text-slate-900 truncate">
+                      {lastName} {firstName}
+                    </div>
+                    <div className="text-xs text-slate-500 truncate">
+                      {[email, department].filter(Boolean).join(' · ')}
+                    </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowIdentityFields((prev) => !prev)}
+                    aria-expanded={showIdentityFields}
+                    className="shrink-0 px-3 py-1.5 text-xs font-bold text-[#1560AA] hover:bg-white rounded-lg transition-colors flex items-center gap-1"
+                  >
+                    <span>Изменить</span>
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 transition-transform ${showIdentityFields ? 'rotate-180' : ''}`}
+                    />
+                  </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Рабочий Email (из Active Directory)
-                    </label>
-                    <input
-                      type="email"
-                      readOnly
-                      disabled
-                      value={email}
-                      className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm text-slate-600 cursor-not-allowed outline-hidden"
-                    />
-                  </div>
+                {showIdentityFields && (
+                  <div className="mt-3 pt-3 border-t border-slate-200 space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          Фамилия <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-[#1560AA] focus:ring-2 focus:ring-[#1560AA]/20 outline-hidden"
+                        />
+                      </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Telegram (опционально)
-                    </label>
-                    <input
-                      type="text"
-                      value={telegram}
-                      onChange={(e) => setTelegram(e.target.value)}
-                      placeholder="@username"
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-[#1560AA] focus:ring-2 focus:ring-[#1560AA]/20 outline-hidden"
-                    />
-                  </div>
-                </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          Имя <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-[#1560AA] focus:ring-2 focus:ring-[#1560AA]/20 outline-hidden"
+                        />
+                      </div>
+                    </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Отдел / Департамент
-                  </label>
-                  <input
-                    type="text"
-                    value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
-                    placeholder="Например: Департамент бэкенда"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-[#1560AA] focus:ring-2 focus:ring-[#1560AA]/20 outline-hidden"
-                  />
-                </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          Рабочий Email (из Active Directory)
+                        </label>
+                        <input
+                          type="email"
+                          readOnly
+                          disabled
+                          value={email}
+                          className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm text-slate-600 cursor-not-allowed outline-hidden"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          Telegram (необязательно)
+                        </label>
+                        <input
+                          type="text"
+                          value={telegram}
+                          onChange={(e) => setTelegram(e.target.value)}
+                          placeholder="@username"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-[#1560AA] focus:ring-2 focus:ring-[#1560AA]/20 outline-hidden"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        Отдел / Департамент
+                      </label>
+                      <input
+                        type="text"
+                        value={department}
+                        onChange={(e) => setDepartment(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-[#1560AA] focus:ring-2 focus:ring-[#1560AA]/20 outline-hidden"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Time Slot Selection */}
@@ -499,7 +532,8 @@ ${
                             : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                         }`}
                       >
-                        <span>👑 Капитан</span>
+                        <Crown className="w-4 h-4" />
+                        <span>Капитан</span>
                       </button>
 
                       <button
@@ -511,7 +545,8 @@ ${
                             : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                         }`}
                       >
-                        <span>🏃 Просто игрок</span>
+                        <UserCheck className="w-4 h-4" />
+                        <span>Просто игрок</span>
                       </button>
                     </div>
                   </div>

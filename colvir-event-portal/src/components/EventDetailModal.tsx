@@ -149,6 +149,20 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                 </span>
                 <strong className="text-slate-900 text-xs block truncate">{event.location}</strong>
               </div>
+
+              {/* Размер команды перенесён сюда с карточки события, чтобы не
+                  держать на ней второй бейдж. */}
+              {event.isTeamGame && (
+                <div className="space-y-0.5">
+                  <span className="text-slate-400 font-semibold block flex items-center gap-1">
+                    <Users className="w-3.5 h-3.5 text-[#1560AA]" />
+                    Формат:
+                  </span>
+                  <strong className="text-slate-900 text-xs block">
+                    Командная игра · до {event.maxTeamSize || 5} чел. в команде
+                  </strong>
+                </div>
+              )}
             </div>
 
             {/* Online Meeting Join Button Banner */}
@@ -168,7 +182,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                   rel="noopener noreferrer"
                   className="px-4 py-2.5 bg-[#1560AA] hover:bg-[#104d88] text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5 shrink-0"
                 >
-                  <span>🔗 Подключиться</span>
+                  <span>Подключиться</span>
                 </a>
               </div>
             )}

@@ -12,8 +12,7 @@ import {
   ThemeType,
   CMSContent,
   EventRating,
-  HolidayChatMessage,
-  HolidayTrack
+  HolidayChatMessage
 } from '../types';
 
 /**
@@ -56,11 +55,9 @@ interface AppContextType {
   selectedCategory: string;
   unreadCount: number;
   theme: ThemeType;
-  isThemeModalOpen: boolean;
   organizerTags: string[];
   ratings: EventRating[];
   holidayChatMessages: HolidayChatMessage[];
-  holidayPlaylistTracks: HolidayTrack[];
 
   /** true, пока идёт первичная загрузка данных с сервера. */
   isLoading: boolean;
@@ -73,8 +70,6 @@ interface AppContextType {
   setSearchQuery: (query: string) => void;
   setSelectedCategory: (cat: string) => void;
   setTheme: (theme: ThemeType) => void;
-  setIsThemeModalOpen: (open: boolean) => void;
-  openThemeModal: (targetTheme?: ThemeType) => void;
 
   updateUserProfile: (profile: UserProfile) => Promise<void>;
   updateCMSContent: (newContent: Partial<CMSContent>) => Promise<void>;
@@ -91,16 +86,7 @@ interface AppContextType {
     comment?: string;
   }) => Promise<void>;
   getEventAverageRating: (eventId: string) => number;
-  addHolidayChatMessage: (
-    msgText: string,
-    musicTrack?: { title: string; artist?: string; duration?: string; mood?: string }
-  ) => Promise<void>;
-  addHolidayTrack: (track: {
-    title: string;
-    artist: string;
-    duration?: string;
-    mood?: string;
-  }) => Promise<void>;
+  addHolidayChatMessage: (msgText: string) => Promise<void>;
 
   registerForEvent: (data: {
     eventId: string;
@@ -160,7 +146,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [organizerTags, setOrganizerTags] = useState<string[]>([]);
   const [ratings, setRatings] = useState<EventRating[]>([]);
   const [holidayChatMessages, setHolidayChatMessages] = useState<HolidayChatMessage[]>([]);
-  const [holidayPlaylistTracks, setHolidayPlaylistTracks] = useState<HolidayTrack[]>([]);
 
   const [isLoading, setIsLoading] = useState(true);
   const [lastError, setLastError] = useState<string | null>(null);
@@ -169,10 +154,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [theme, setTheme] = useState<ThemeType>(readStoredTheme);
-  const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem(THEME_STORAGE_KEY, theme);
+    // Атрибут на <html> даёт CSS-переменным темы одну точку истины,
+    // из которой берут цвет и полоса-баннер, и свотчи переключателя.
+    document.documentElement.dataset.theme = theme;
   }, [theme]);
 
   const reportError = useCallback((error: unknown, fallback: string) => {
@@ -211,17 +198,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     void refresh().finally(() => setIsLoading(false));
   }, [user, refresh]);
 
-  // Праздничный чат и плейлист подгружаются отдельно — они нужны только при
-  // открытии тематического окна и обновляются чаще остальных данных.
+  // Праздничный чат живёт в отдельном разделе и обновляется чаще остальных
+  // данных, поэтому подгружается отдельным запросом.
   const refreshHoliday = useCallback(async () => {
     if (!user) return;
     try {
-      const [messages, tracks] = await Promise.all([
-        api.get<{ messages: HolidayChatMessage[] }>('/api/holiday/messages'),
-        api.get<{ tracks: HolidayTrack[] }>('/api/holiday/tracks')
-      ]);
-      setHolidayChatMessages(messages.messages);
-      setHolidayPlaylistTracks(tracks.tracks);
+      const { messages } = await api.get<{ messages: HolidayChatMessage[] }>(
+        '/api/holiday/messages'
+      );
+      setHolidayChatMessages(messages);
     } catch (error) {
       reportError(error, 'Не удалось загрузить праздничный чат');
     }
@@ -230,11 +215,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     void refreshHoliday();
   }, [refreshHoliday]);
-
-  const openThemeModal = useCallback((targetTheme?: ThemeType) => {
-    if (targetTheme) setTheme(targetTheme);
-    setIsThemeModalOpen(true);
-  }, []);
 
   // ---------------------------------------------------------------------------
   // Мероприятия
@@ -492,34 +472,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Праздничный чат
   // ---------------------------------------------------------------------------
   const addHolidayChatMessage = useCallback(
-    async (
-      msgText: string,
-      musicTrack?: { title: string; artist?: string; duration?: string; mood?: string }
-    ) => {
+    async (msgText: string) => {
       try {
         const response = await api.post<{ message: HolidayChatMessage }>(
           '/api/holiday/messages',
-          { text: msgText, musicTrack }
+          { text: msgText }
         );
         setHolidayChatMessages((prev) => [...prev, response.message]);
       } catch (error) {
         reportError(error, 'Не удалось отправить сообщение');
-      }
-    },
-    [reportError]
-  );
-
-  const addHolidayTrack = useCallback(
-    async (track: { title: string; artist: string; duration?: string; mood?: string }) => {
-      try {
-        const response = await api.post<{ track: HolidayTrack; message: HolidayChatMessage }>(
-          '/api/holiday/tracks',
-          track
-        );
-        setHolidayPlaylistTracks((prev) => [response.track, ...prev]);
-        setHolidayChatMessages((prev) => [...prev, response.message]);
-      } catch (error) {
-        reportError(error, 'Не удалось добавить трек');
       }
     },
     [reportError]
@@ -609,11 +570,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       selectedCategory,
       unreadCount,
       theme,
-      isThemeModalOpen,
       organizerTags,
       ratings,
       holidayChatMessages,
-      holidayPlaylistTracks,
       isLoading,
       lastError,
       clearError: () => setLastError(null),
@@ -622,8 +581,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setSearchQuery,
       setSelectedCategory,
       setTheme,
-      setIsThemeModalOpen,
-      openThemeModal,
       updateUserProfile,
       updateCMSContent,
       addCoffeeSlot,
@@ -633,7 +590,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addEventRating,
       getEventAverageRating,
       addHolidayChatMessage,
-      addHolidayTrack,
       registerForEvent,
       cancelRegistration,
       createEvent,
@@ -661,15 +617,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       selectedCategory,
       unreadCount,
       theme,
-      isThemeModalOpen,
       organizerTags,
       ratings,
       holidayChatMessages,
-      holidayPlaylistTracks,
       isLoading,
       lastError,
       refresh,
-      openThemeModal,
       updateUserProfile,
       updateCMSContent,
       addCoffeeSlot,
@@ -679,7 +632,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addEventRating,
       getEventAverageRating,
       addHolidayChatMessage,
-      addHolidayTrack,
       registerForEvent,
       cancelRegistration,
       createEvent,

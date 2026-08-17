@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { getCategoryLabel } from '../utils/eventCategories';
 import { EventItem, Participant } from '../types';
 import { EditEventModal } from './EditEventModal';
 import {
@@ -31,6 +32,19 @@ import {
   MessageSquare
 } from 'lucide-react';
 
+type AdminTab = 'events' | 'cms' | 'coffee' | 'analytics';
+
+const TABS: {
+  id: AdminTab;
+  label: (coffeeCount: number) => string;
+  icon: typeof Calendar;
+}[] = [
+  { id: 'events', label: () => 'Мероприятия и участники', icon: Calendar },
+  { id: 'cms', label: () => 'Редактор текстов (CMS)', icon: FileText },
+  { id: 'coffee', label: (count) => `Слоты Random Coffee (${count})`, icon: Coffee },
+  { id: 'analytics', label: () => 'Аналитика и оценки', icon: BarChart3 }
+];
+
 interface AdminDashboardProps {
   onOpenCreateEvent: () => void;
   onOpenAccessSettings: () => void;
@@ -57,7 +71,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     getEventAverageRating
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'events' | 'cms' | 'coffee' | 'analytics'>('events');
+  const [activeTab, setActiveTab] = useState<AdminTab>('events');
 
   // Events management states
   const [selectedEventId, setSelectedEventId] = useState<string>(events[0]?.id || '');
@@ -90,7 +104,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             Требуются права администратора
           </h2>
           <p className="text-sm text-slate-500 max-w-md mx-auto">
-            Панель управления доступна только авторизованным администраторам Colvir Portal. Пожалуйста, войдите с учетной записью администратора или введите PIN-код.
+            Панель управления доступна сотрудникам, входящим в группу администраторов Active Directory. Права выдаются в домене — обратитесь к администратору AD.
           </p>
         </div>
         <div>
@@ -98,8 +112,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             onClick={onOpenAccessSettings}
             className="px-6 py-3 bg-[#1560AA] hover:bg-[#104d88] text-white font-bold text-xs rounded-xl shadow-md transition-all inline-flex items-center gap-2"
           >
-            <KeyRound className="w-4 h-4 text-white" />
-            <span>Открыть настройки доступа и ввести PIN</span>
+            <ShieldAlert className="w-4 h-4" />
+            <span>Посмотреть права доступа</span>
           </button>
         </div>
       </div>
@@ -121,6 +135,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const coffeeEvent = events.find((e) => e.category === 'coffee-break') || events[2];
   const coffeeRegistrations = participants.filter((p) => p.eventId === coffeeEvent?.id && p.status !== 'cancelled');
+
+  // Короткая статистика для светлого хедера — одной строкой вместо блока-баннера.
+  const activeParticipantsCount = participants.filter((p) => p.status !== 'cancelled').length;
 
   const handleSaveCMS = (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,81 +182,50 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fadeIn">
       
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 to-[#1560AA] text-white p-6 sm:p-8 rounded-3xl shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 text-white font-extrabold text-xs rounded-full border border-white/20">
-            <ShieldAlert className="w-3.5 h-3.5 text-white" />
-            <span>Панель управления администратора Colvir Portal</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-            Управление контентом и мероприятиями
+      {/* Заголовок: обычный светлый хедер, как на остальных страницах.
+          Прежний тёмный градиент визуально «давил» на экране, которым
+          администратор пользуется каждый день. */}
+      <div className="bg-white border-b border-slate-200 rounded-2xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            <ShieldAlert className="w-5 h-5 text-[#1560AA] shrink-0" />
+            Панель администратора
           </h1>
-          <p className="text-xs text-slate-200 max-w-xl">
-            Контролируйте списки участников, редактируйте тексты плашек платформы самостоятельно и управляйте слотами Random Coffee.
+          <p className="text-xs text-slate-500 mt-0.5">
+            {events.length} мероприятий · {activeParticipantsCount} участников ·{' '}
+            {coffeeRegistrations.length} записей Random Coffee
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onOpenCreateEvent}
-            className="px-5 py-3 bg-[#1560AA] hover:bg-[#104d88] text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-2"
-          >
-            <PlusCircle className="w-4 h-4 text-white" />
-            <span>Создать событие</span>
-          </button>
-        </div>
+        <button
+          onClick={onOpenCreateEvent}
+          className="shrink-0 px-4 py-2 bg-[#1560AA] hover:bg-[#104d88] text-white font-bold text-xs rounded-xl transition-colors flex items-center gap-2"
+        >
+          <PlusCircle className="w-4 h-4" />
+          <span>Создать событие</span>
+        </button>
       </div>
 
-      {/* Main Navigation Tabs */}
-      <div className="flex border-b border-slate-200 bg-white rounded-2xl p-1.5 shadow-xs">
-        <button
-          onClick={() => setActiveTab('events')}
-          className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-            activeTab === 'events'
-              ? 'bg-[#1560AA] text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          <Calendar className="w-4 h-4 text-white" />
-          <span>Мероприятия и участники</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('cms')}
-          className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-            activeTab === 'cms'
-              ? 'bg-[#1560AA] text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          <FileText className="w-4 h-4 text-white" />
-          <span>Редактор текстов платформы (CMS)</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('coffee')}
-          className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-            activeTab === 'coffee'
-              ? 'bg-[#1560AA] text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          <Coffee className="w-4 h-4 text-white" />
-          <span>Слоты Random Coffee ({coffeeRegistrations.length})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('analytics')}
-          className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-            activeTab === 'analytics'
-              ? 'bg-[#1560AA] text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          <BarChart3 className="w-4 h-4 text-white" />
-          <span>Аналитика & Оценки (1-10)</span>
-        </button>
+      {/* Вкладки подчёркиванием: тише при частом использовании, чем таблетки. */}
+      <div className="flex gap-1 border-b border-slate-200 overflow-x-auto">
+        {TABS.map((tab) => {
+          const isActive = activeTab === tab.id;
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-3 text-xs font-bold whitespace-nowrap border-b-2 -mb-px transition-colors flex items-center gap-2 ${
+                isActive
+                  ? 'border-[#1560AA] text-[#1560AA]'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              <span>{tab.label(coffeeRegistrations.length)}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* TAB 1: EVENTS MANAGEMENT */}
@@ -843,7 +829,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </td>
                         <td className="p-3 text-slate-600 font-medium">
                           <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md font-bold text-[10px]">
-                            {evt.category}
+                            {getCategoryLabel(evt.category)}
                           </span>
                         </td>
                         <td className="p-3 font-bold text-slate-900">

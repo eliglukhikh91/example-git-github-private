@@ -17,9 +17,10 @@ import { AccessSettingsModal } from './components/AccessSettingsModal';
 import { ActiveDirectoryAuthModal } from './components/ActiveDirectoryAuthModal';
 import { AdminDashboard } from './components/AdminDashboard';
 import { RandomCoffeeView } from './components/RandomCoffeeView';
-import { ThematicWindowModal } from './components/ThematicWindowModal';
+import { HolidayChatView } from './components/HolidayChatView';
+import { ThemedEventStrip } from './components/ThemedEventStrip';
 import { EventItem } from './types';
-import { Calendar, PlusCircle, Sparkles, Filter, Trophy, Users } from 'lucide-react';
+import { Calendar, PlusCircle, Filter, Trophy, Lock } from 'lucide-react';
 
 const MainApp: React.FC = () => {
   const {
@@ -81,6 +82,8 @@ const MainApp: React.FC = () => {
             <div className="space-y-8">
               <AnalyticsBanner />
 
+              <ThemedEventStrip onViewDetails={(evt) => setDetailEvent(evt)} />
+
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
                 
                 {/* Digest Section Title */}
@@ -137,8 +140,11 @@ const MainApp: React.FC = () => {
         {/* VIEW 5: 15-MIN COFFEE BREAK & RANDOMIZER */}
         {activeView === 'random-coffee' && <RandomCoffeeView />}
 
+        {/* VIEW 6: HOLIDAY CHAT */}
+        {activeView === 'holiday-chat' && <HolidayChatView />}
+
         {/* VIEW 2: REAL-TIME TEAMS & PARTICIPANTS */}
-        {activeView === 'teams' && (isAdmin ? <TeamList /> : <div className="max-w-md mx-auto p-12 text-center space-y-4"><div className="w-12 h-12 bg-amber-100 text-amber-700 rounded-2xl mx-auto flex items-center justify-center font-bold">🔒</div><h3 className="text-lg font-bold text-slate-800">Доступно только администратору</h3><p className="text-xs text-slate-500">Просмотр сформированных групп, команд и скачивание файлов доступны в панели администратора.</p></div>)}
+        {activeView === 'teams' && (isAdmin ? <TeamList /> : <div className="max-w-md mx-auto p-12 text-center space-y-4"><div className="w-12 h-12 bg-amber-100 text-amber-700 rounded-2xl mx-auto flex items-center justify-center"><Lock className="w-5 h-5" /></div><h3 className="text-lg font-bold text-slate-800">Доступно только администратору</h3><p className="text-xs text-slate-500">Просмотр сформированных групп, команд и скачивание файлов доступны в панели администратора.</p></div>)}
 
         {/* VIEW 4: ADMIN DASHBOARD */}
         {activeView === 'admin-manage' && (
@@ -229,11 +235,11 @@ const MainApp: React.FC = () => {
                             {evt?.title || 'Мероприятие'}
                           </h4>
                           <div className="text-xs text-slate-500">
-                            📅 {evt?.date} ({reg.timeSlot || '10:00'}) | 📍 {evt?.location}
+                            {[evt?.date, reg.timeSlot || '10:00', evt?.location].filter(Boolean).join(' · ')}
                           </div>
                           {reg.isTeamGame && (
                             <div className="text-xs text-[#1560AA] font-bold">
-                              Команда: {reg.teamName} ({reg.role === 'captain' ? '👑 Капитан' : '🏃 Игрок'})
+                              Команда: {reg.teamName} ({reg.role === 'captain' ? 'Капитан' : 'Игрок'})
                             </div>
                           )}
                         </div>
@@ -310,8 +316,6 @@ const MainApp: React.FC = () => {
         isOpen={isActiveDirectoryOpen}
         onClose={() => setIsActiveDirectoryOpen(false)}
       />
-
-      <ThematicWindowModal />
 
     </div>
   );

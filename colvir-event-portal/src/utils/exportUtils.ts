@@ -23,7 +23,7 @@ export function exportTeamsToExcel(
       'Мероприятие': event?.title || 'Не указано',
       'Тип мероприятия': p.isTeamGame ? 'Командная игра' : 'Индивидуальное / Клуб',
       'Название команды': p.teamName || '—',
-      'Роль в команде': p.role === 'captain' ? 'Капитан 👑' : p.role === 'player' ? 'Игрок' : '—',
+      'Роль в команде': p.role === 'captain' ? 'Капитан' : p.role === 'player' ? 'Игрок' : '—',
       'Фамилия': p.lastName,
       'Имя': p.firstName,
       'ФИО': `${p.lastName} ${p.firstName}`,
