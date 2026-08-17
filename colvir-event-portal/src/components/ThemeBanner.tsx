@@ -1,20 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { getTheme, getThemeBannerText } from '../utils/themes';
+import { getTheme, getThemeBannerText, splitBannerText } from '../utils/themes';
 
 /**
- * Тонкая полоса с названием активной темы.
+ * Баннер активной праздничной темы.
  *
- * Заменяет прежний баннер с градиентом, blur-подложкой и тяжёлой тенью:
- * иконка, текст, крестик — и ничего больше. Цвет берётся из --bg-accent-muted,
- * который меняется вместе с data-theme на <html>.
+ * Первая версия была тонкой полосой в одну строку — праздник не считывался.
+ * Теперь это блок с плотной заливкой цветом темы: иконка в кружке, заголовок и
+ * подзаголовок белым. Заливка сплошная, без градиента и блюра; по углам —
+ * несколько тематических иконок с низкой непрозрачностью как едва заметный
+ * узор (это не glassmorphism-блобы, а просто фон).
+ *
+ * Цвет берётся из --color-accent, который переопределяется под тему в index.css,
+ * поэтому баннер всегда совпадает по цвету с кнопками и бейджами страницы.
  */
 export const ThemeBanner: React.FC = () => {
   const { theme, cmsContent } = useApp();
   const [dismissedTheme, setDismissedTheme] = useState<string | null>(null);
 
-  // Смена темы возвращает полосу: закрытие относится к конкретной теме,
+  // Смена темы возвращает баннер: закрытие относится к конкретной теме,
   // а не выключает баннер навсегда.
   useEffect(() => {
     setDismissedTheme(null);
@@ -26,18 +31,43 @@ export const ThemeBanner: React.FC = () => {
   if (!text) return null;
 
   const { icon: Icon, label } = getTheme(theme);
+  const { title, subtitle } = splitBannerText(text, label);
 
   return (
-    <div
-      className="border-b border-slate-200/80"
-      style={{ background: 'var(--bg-accent-muted)' }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center gap-3">
-        <Icon className="w-4 h-4 shrink-0" style={{ color: 'var(--theme-accent)' }} />
-        <p className="flex-1 min-w-0 text-xs font-semibold text-slate-700 truncate">{text}</p>
+    <div className="relative overflow-hidden bg-accent">
+      {/* Декоративный узор: те же иконки темы, едва заметные. */}
+      <Icon
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-6 right-10 w-28 h-28 text-white/10"
+      />
+      <Icon
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-8 right-44 w-24 h-24 text-white/[0.07]"
+      />
+      <Icon
+        aria-hidden="true"
+        className="pointer-events-none absolute top-4 right-[19rem] w-14 h-14 text-white/[0.06] hidden lg:block"
+      />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 flex items-center gap-4">
+        <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/15 flex items-center justify-center shrink-0">
+          <Icon className="w-6 h-6 text-white" />
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <h2 className="text-lg sm:text-xl font-black text-white tracking-tight leading-snug">
+            {title}
+          </h2>
+          {subtitle && (
+            <p className="text-xs sm:text-sm text-white/85 font-medium mt-0.5 leading-snug">
+              {subtitle}
+            </p>
+          )}
+        </div>
+
         <button
           onClick={() => setDismissedTheme(theme)}
-          className="p-1 -mr-1 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-white/60 transition-colors shrink-0"
+          className="shrink-0 p-2 -mr-1 text-white/70 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
           aria-label={`Скрыть сообщение темы «${label}»`}
         >
           <X className="w-4 h-4" />

@@ -66,7 +66,7 @@ export const LoginScreen: React.FC = () => {
 
         <div className="bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-[#1560AA] flex items-center justify-center text-white shadow-md ring-4 ring-[#1560AA]/10">
+            <div className="w-11 h-11 rounded-2xl bg-accent flex items-center justify-center text-white shadow-md ring-4 ring-accent/10">
               <Building2 className="w-6 h-6" />
             </div>
             <div>
@@ -103,7 +103,7 @@ export const LoginScreen: React.FC = () => {
             {directoryStatus?.ssoEnabled && (
               <div className="space-y-3">
                 <div className="p-4 bg-blue-50/70 border border-blue-200/80 rounded-2xl space-y-1.5">
-                  <div className="flex items-center gap-2 text-xs font-black text-[#1560AA]">
+                  <div className="flex items-center gap-2 text-xs font-black text-accent">
                     <Sparkles className="w-4 h-4" />
                     <span>Сквозной вход по доменной учётной записи</span>
                   </div>
@@ -117,7 +117,7 @@ export const LoginScreen: React.FC = () => {
                   type="button"
                   onClick={handleSso}
                   disabled={isLoading}
-                  className="w-full py-3 px-4 bg-[#1560AA] hover:bg-[#104d88] text-white text-xs font-extrabold rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full py-3 px-4 bg-accent hover:bg-accent-hover text-white text-xs font-extrabold rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {isLoading ? (
                     <RefreshCw className="w-4 h-4 animate-spin" />
@@ -150,7 +150,7 @@ export const LoginScreen: React.FC = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="i.ivanov@colvir.com"
-                    className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#1560AA]/30 outline-hidden"
+                    className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-accent/30 outline-hidden"
                   />
                 </div>
                 {allowedDomains && (
@@ -174,7 +174,7 @@ export const LoginScreen: React.FC = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#1560AA]/30 outline-hidden"
+                    className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-accent/30 outline-hidden"
                   />
                 </div>
               </div>
@@ -182,7 +182,7 @@ export const LoginScreen: React.FC = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 px-4 bg-[#1560AA] hover:bg-[#104d88] text-white text-xs font-extrabold rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-3 px-4 bg-accent hover:bg-accent-hover text-white text-xs font-extrabold rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {isLoading ? (
                   <RefreshCw className="w-4 h-4 animate-spin" />

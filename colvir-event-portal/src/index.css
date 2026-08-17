@@ -1,30 +1,48 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+   Акцентный цвет приложения.
+
+   Раньше бренд-синий #1560AA был вписан прямо в компоненты (bg-[#1560AA],
+   text-[#1560AA], инлайн-стили) — больше 400 вхождений в 23 файлах, из-за чего
+   перекрасить интерфейс под праздничную тему было невозможно. Теперь это
+   theme-переменные Tailwind: утилиты bg-accent / text-accent / border-accent
+   компилируются в var(--color-accent), поэтому переопределение переменной
+   ниже меняет цвет во всём приложении на лету.
+
+   Значения подобраны так, чтобы проходить WCAG AA:
+     белый текст на accent      ≥ 6.1:1
+     accent-текст на accent-soft ≥ 4.8:1
+     accent-текст на accent-light ≥ 5.5:1
+--------------------------------------------------------------------------- */
+@theme {
+  --color-accent: #1560AA;
+  --color-accent-hover: #104D88;
+  --color-accent-light: #F0F6FC;
+  --color-accent-soft: #DCE9F7;
+}
+
 @layer base {
-  :root {
-    --brand-blue: #1560AA;
-    --brand-blue-hover: #104b88;
-    --brand-blue-light: #f0f6fc;
-
-    /* Акцент текущей темы. Одна точка истины для полосы-баннера и свотчей
-       переключателя — атрибут data-theme проставляет AppContext. */
-    --theme-accent: #1560AA;
-    --bg-accent-muted: #f0f6fc;
-  }
-
+  /* Тему проставляет AppContext атрибутом data-theme на <html>. */
   :root[data-theme='spring'] {
-    --theme-accent: #2f9e6b;
-    --bg-accent-muted: #eef8f2;
+    --color-accent: #1B6F49;
+    --color-accent-hover: #14563A;
+    --color-accent-light: #EEF8F2;
+    --color-accent-soft: #D7EFE3;
   }
 
   :root[data-theme='birthday'] {
-    --theme-accent: #b4553d;
-    --bg-accent-muted: #fdf2ed;
+    --color-accent: #AE3260;
+    --color-accent-hover: #8E284D;
+    --color-accent-light: #FDF0F5;
+    --color-accent-soft: #FADDE8;
   }
 
   :root[data-theme='newyear'] {
-    --theme-accent: #2a6fb0;
-    --bg-accent-muted: #eef4fb;
+    --color-accent: #17618A;
+    --color-accent-hover: #11496B;
+    --color-accent-light: #EEF6FB;
+    --color-accent-soft: #D8EAF6;
   }
 
   body {

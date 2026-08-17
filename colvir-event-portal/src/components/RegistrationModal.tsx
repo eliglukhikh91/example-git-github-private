@@ -161,7 +161,7 @@ ${
         {/* Header bar */}
         <div className="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
           <div>
-            <span className="text-xs font-extrabold uppercase text-[#1560AA] tracking-wider">
+            <span className="text-xs font-extrabold uppercase text-accent tracking-wider">
               {event.isTeamGame ? 'Командное мероприятие' : 'Индивидуальная запись'}
             </span>
             <h2 className="text-xl font-bold text-slate-900 line-clamp-1">
@@ -240,16 +240,16 @@ ${
 
                 {/* Team Info if Team Game */}
                 {completedParticipant.isTeamGame && (
-                  <div className="mt-3 pt-3 border-t border-slate-200/80 bg-[#f0f6fc] p-3 rounded-xl border border-[#1560AA]/20 flex items-center justify-between">
+                  <div className="mt-3 pt-3 border-t border-slate-200/80 bg-accent-light p-3 rounded-xl border border-accent/20 flex items-center justify-between">
                     <div>
-                      <span className="text-[11px] text-[#1560AA] font-bold uppercase block">
+                      <span className="text-[11px] text-accent font-bold uppercase block">
                         Сформированная команда:
                       </span>
                       <span className="text-sm font-extrabold text-slate-900">
                         {completedParticipant.teamName}
                       </span>
                     </div>
-                    <span className="px-2.5 py-1 bg-[#1560AA] text-white text-xs font-bold rounded-lg flex items-center gap-1.5">
+                    <span className="px-2.5 py-1 bg-accent text-white text-xs font-bold rounded-lg flex items-center gap-1.5">
                       {completedParticipant.role === 'captain' ? (
                         <Crown className="w-3.5 h-3.5" />
                       ) : (
@@ -278,7 +278,7 @@ ${
                       onClose();
                       onNavigateToTeams();
                     }}
-                    className="w-full py-3 px-4 bg-[#f0f6fc] border border-[#1560AA]/30 text-[#1560AA] text-sm font-bold rounded-xl hover:bg-[#1560AA] hover:text-white transition-all flex items-center justify-center gap-2"
+                    className="w-full py-3 px-4 bg-accent-light border border-accent/30 text-accent text-sm font-bold rounded-xl hover:bg-accent hover:text-white transition-all flex items-center justify-center gap-2"
                   >
                     <span>Смотреть состав всех команд</span>
                     <ArrowRight className="w-4 h-4" />
@@ -310,7 +310,7 @@ ${
                   поля разворачиваются только по кнопке «Изменить». */}
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#1560AA] text-white flex items-center justify-center text-xs font-black shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-accent text-white flex items-center justify-center text-xs font-black shrink-0">
                     {initials}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -325,7 +325,7 @@ ${
                     type="button"
                     onClick={() => setShowIdentityFields((prev) => !prev)}
                     aria-expanded={showIdentityFields}
-                    className="shrink-0 px-3 py-1.5 text-xs font-bold text-[#1560AA] hover:bg-white rounded-lg transition-colors flex items-center gap-1"
+                    className="shrink-0 px-3 py-1.5 text-xs font-bold text-accent hover:bg-white rounded-lg transition-colors flex items-center gap-1"
                   >
                     <span>Изменить</span>
                     <ChevronDown
@@ -346,7 +346,7 @@ ${
                           required
                           value={lastName}
                           onChange={(e) => setLastName(e.target.value)}
-                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-[#1560AA] focus:ring-2 focus:ring-[#1560AA]/20 outline-hidden"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 outline-hidden"
                         />
                       </div>
 
@@ -359,7 +359,7 @@ ${
                           required
                           value={firstName}
                           onChange={(e) => setFirstName(e.target.value)}
-                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-[#1560AA] focus:ring-2 focus:ring-[#1560AA]/20 outline-hidden"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 outline-hidden"
                         />
                       </div>
                     </div>
@@ -387,7 +387,7 @@ ${
                           value={telegram}
                           onChange={(e) => setTelegram(e.target.value)}
                           placeholder="@username"
-                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-[#1560AA] focus:ring-2 focus:ring-[#1560AA]/20 outline-hidden"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 outline-hidden"
                         />
                       </div>
                     </div>
@@ -400,7 +400,7 @@ ${
                         type="text"
                         value={department}
                         onChange={(e) => setDepartment(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-[#1560AA] focus:ring-2 focus:ring-[#1560AA]/20 outline-hidden"
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 outline-hidden"
                       />
                     </div>
                   </div>
@@ -412,10 +412,10 @@ ${
                 <div className="space-y-2 pt-2 border-t border-slate-100">
                   <div className="flex items-center justify-between">
                     <label className="block text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <Clock className="w-4 h-4 text-[#1560AA]" />
+                      <Clock className="w-4 h-4 text-accent" />
                       Выберите удобное время (Московское время)
                     </label>
-                    <span className="px-2 py-0.5 bg-blue-100 text-[#1560AA] text-[10px] font-black rounded uppercase">
+                    <span className="px-2 py-0.5 bg-blue-100 text-accent text-[10px] font-black rounded uppercase">
                       МСК / UTC+3
                     </span>
                   </div>
@@ -429,12 +429,12 @@ ${
                           onClick={() => setSelectedTimeSlot(slot)}
                           className={`p-3 rounded-xl border text-xs font-semibold transition-all text-left flex items-center justify-between ${
                             selectedTimeSlot === slot
-                              ? 'bg-[#f0f6fc] border-[#1560AA] text-[#1560AA] ring-1 ring-[#1560AA]'
+                              ? 'bg-accent-light border-accent text-accent ring-1 ring-accent'
                               : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                           }`}
                         >
                           <span>{displaySlot}</span>
-                          {selectedTimeSlot === slot && <CheckCircle2 className="w-4 h-4 text-[#1560AA]" />}
+                          {selectedTimeSlot === slot && <CheckCircle2 className="w-4 h-4 text-accent" />}
                         </button>
                       );
                     })}
@@ -444,10 +444,10 @@ ${
 
               {/* TEAM GAME SPECIFIC FIELDS */}
               {event.isTeamGame && (
-                <div className="space-y-4 pt-3 border-t border-slate-100 bg-[#f0f6fc]/60 p-4 rounded-2xl border border-[#1560AA]/20">
+                <div className="space-y-4 pt-3 border-t border-slate-100 bg-accent-light/60 p-4 rounded-2xl border border-accent/20">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold text-[#1560AA] uppercase tracking-wider flex items-center gap-1.5">
-                      <Gamepad2 className="w-4 h-4 text-[#1560AA]" />
+                    <h4 className="text-xs font-bold text-accent uppercase tracking-wider flex items-center gap-1.5">
+                      <Gamepad2 className="w-4 h-4 text-accent" />
                       Командная игра: Настройки команды
                     </h4>
                     <span className="text-[11px] font-semibold text-slate-500">
@@ -463,7 +463,7 @@ ${
                         onClick={() => setTeamSelectionMode('existing')}
                         className={`py-2 px-3 text-xs font-bold rounded-xl border transition-all ${
                           teamSelectionMode === 'existing'
-                            ? 'bg-white border-[#1560AA] text-[#1560AA] shadow-xs'
+                            ? 'bg-white border-accent text-accent shadow-xs'
                             : 'bg-slate-100/80 border-transparent text-slate-600'
                         }`}
                       >
@@ -476,7 +476,7 @@ ${
                       onClick={() => setTeamSelectionMode('new')}
                       className={`py-2 px-3 text-xs font-bold rounded-xl border transition-all ${
                         teamSelectionMode === 'new'
-                          ? 'bg-white border-[#1560AA] text-[#1560AA] shadow-xs'
+                          ? 'bg-white border-accent text-accent shadow-xs'
                           : 'bg-slate-100/80 border-transparent text-slate-600'
                       }`}
                     >
@@ -493,7 +493,7 @@ ${
                       <select
                         value={selectedTeamName}
                         onChange={(e) => setSelectedTeamName(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:border-[#1560AA] outline-hidden"
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:border-accent outline-hidden"
                       >
                         {existingTeams.map((t) => (
                           <option key={t.id} value={t.name}>
@@ -512,7 +512,7 @@ ${
                         value={newTeamName}
                         onChange={(e) => setNewTeamName(e.target.value)}
                         placeholder="Например: Альфа-Разработка"
-                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold focus:border-[#1560AA] focus:ring-2 focus:ring-[#1560AA]/20 outline-hidden"
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold focus:border-accent focus:ring-2 focus:ring-accent/20 outline-hidden"
                       />
                     </div>
                   )}
@@ -528,7 +528,7 @@ ${
                         onClick={() => setRole('captain')}
                         className={`p-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                           role === 'captain'
-                            ? 'bg-[#1560AA] border-[#1560AA] text-white shadow-xs'
+                            ? 'bg-accent border-accent text-white shadow-xs'
                             : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                         }`}
                       >
@@ -541,7 +541,7 @@ ${
                         onClick={() => setRole('player')}
                         className={`p-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                           role === 'player'
-                            ? 'bg-[#1560AA] border-[#1560AA] text-white shadow-xs'
+                            ? 'bg-accent border-accent text-white shadow-xs'
                             : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                         }`}
                       >
@@ -558,7 +558,7 @@ ${
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-3.5 px-4 bg-[#1560AA] hover:bg-[#104d88] text-white font-bold text-sm rounded-xl shadow-md transition-all active:scale-98 flex items-center justify-center gap-2"
+                  className="w-full py-3.5 px-4 bg-accent hover:bg-accent-hover text-white font-bold text-sm rounded-xl shadow-md transition-all active:scale-98 flex items-center justify-center gap-2"
                 >
                   <span>Подтвердить запись на мероприятие</span>
                   <ArrowRight className="w-4 h-4" />

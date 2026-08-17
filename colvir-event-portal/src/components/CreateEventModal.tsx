@@ -91,7 +91,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
         {/* Modal Header */}
         <div className="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-[#f0f6fc] text-[#1560AA] rounded-xl">
+            <div className="p-2 bg-accent-light text-accent rounded-xl">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
@@ -128,7 +128,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Например: Полезный кофе-брейк: Практика ИИ"
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-[#1560AA] outline-hidden"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-accent outline-hidden"
             />
           </div>
 
@@ -144,7 +144,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                   setCategory(cat);
                   if (cat === 'team-game') setIsTeamGame(true);
                 }}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-[#1560AA] outline-hidden"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-accent outline-hidden"
               >
                 <option value="coffee-break">☕ Полезный кофе-брейк</option>
                 <option value="speaking-club">🗣️ Speaking Club</option>
@@ -165,20 +165,20 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 placeholder="25 августа 2026"
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-[#1560AA] outline-hidden"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-accent outline-hidden"
               />
             </div>
           </div>
 
           {/* Team Game Checkbox */}
-          <div className="p-4 bg-[#f0f6fc] border border-[#1560AA]/20 rounded-2xl flex items-center justify-between">
+          <div className="p-4 bg-accent-light border border-accent/20 rounded-2xl flex items-center justify-between">
             <div className="flex items-center gap-3">
               <input
                 type="checkbox"
                 id="isTeamGameCheck"
                 checked={isTeamGame}
                 onChange={(e) => setIsTeamGame(e.target.checked)}
-                className="w-4 h-4 text-[#1560AA] rounded-md focus:ring-[#1560AA]"
+                className="w-4 h-4 text-accent rounded-md focus:ring-accent"
               />
               <label htmlFor="isTeamGameCheck" className="text-xs font-bold text-slate-800 cursor-pointer">
                 Это командная игра (нужна регистрация команд и капитана)
@@ -201,18 +201,18 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
           </div>
 
           {/* Time Slots Selector with Explicit Moscow Time Zone */}
-          <div className="space-y-3 bg-[#f0f6fc]/80 p-4 rounded-2xl border border-[#1560AA]/20">
+          <div className="space-y-3 bg-accent-light/80 p-4 rounded-2xl border border-accent/20">
             <div className="flex items-center justify-between">
               <label className="text-xs font-black text-slate-900 flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-[#1560AA]" />
+                <Clock className="w-4 h-4 text-accent" />
                 <span>Слоты времени для записи (Московское время)</span>
               </label>
-              <span className="px-2 py-0.5 bg-[#1560AA] text-white text-[10px] font-black rounded uppercase">
+              <span className="px-2 py-0.5 bg-accent text-white text-[10px] font-black rounded uppercase">
                 МСК / UTC+3
               </span>
             </div>
 
-            <div className="p-2.5 bg-blue-100/60 border border-blue-200/80 rounded-xl text-[11px] text-[#1560AA] font-semibold flex items-center gap-2">
+            <div className="p-2.5 bg-blue-100/60 border border-blue-200/80 rounded-xl text-[11px] text-accent font-semibold flex items-center gap-2">
               <Info className="w-4 h-4 shrink-0" />
               <span>Время всех событий автоматически фиксируется по Московскому часовому поясу (МСК).</span>
             </div>
@@ -223,12 +223,12 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                 value={newTimeSlot}
                 onChange={(e) => setNewTimeSlot(e.target.value)}
                 placeholder="Например: 14:00 - 15:00"
-                className="flex-1 px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:border-[#1560AA] outline-hidden"
+                className="flex-1 px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:border-accent outline-hidden"
               />
               <button
                 type="button"
                 onClick={() => handleAddTimeSlot()}
-                className="px-3.5 py-2 bg-[#1560AA] text-white text-xs font-bold rounded-xl hover:bg-[#104d88]"
+                className="px-3.5 py-2 bg-accent text-white text-xs font-bold rounded-xl hover:bg-accent-hover"
               >
                 + Добавить слот (МСК)
               </button>
@@ -256,9 +256,9 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
               {timeSlots.map((slot, idx) => (
                 <span
                   key={idx}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-blue-300 text-xs font-bold rounded-lg text-[#1560AA] shadow-xs"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-blue-300 text-xs font-bold rounded-lg text-accent shadow-xs"
                 >
-                  <Clock className="w-3 h-3 text-[#1560AA]" />
+                  <Clock className="w-3 h-3 text-accent" />
                   {slot}
                   <button
                     type="button"
@@ -325,13 +325,13 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-[#1560AA]" />
+                <Tag className="w-3.5 h-3.5 text-accent" />
                 <span>Организатор / Плашка события</span>
               </label>
               <button
                 type="button"
                 onClick={() => setIsAddingNewTag(!isAddingNewTag)}
-                className="text-xs font-bold text-[#1560AA] hover:underline"
+                className="text-xs font-bold text-accent hover:underline"
               >
                 {isAddingNewTag ? 'Выбрать из существующих' : '+ Добавить свою плашку'}
               </button>
@@ -344,7 +344,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                   value={newTagInput}
                   onChange={(e) => setNewTagInput(e.target.value)}
                   placeholder="Например: Colvir Innovation Lab"
-                  className="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:border-[#1560AA] outline-hidden"
+                  className="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:border-accent outline-hidden"
                 />
                 <button
                   type="button"
@@ -356,7 +356,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                       setIsAddingNewTag(false);
                     }
                   }}
-                  className="px-4 py-2 bg-[#1560AA] text-white text-xs font-bold rounded-xl hover:bg-[#104d88]"
+                  className="px-4 py-2 bg-accent text-white text-xs font-bold rounded-xl hover:bg-accent-hover"
                 >
                   Добавить
                 </button>
@@ -365,7 +365,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
               <select
                 value={organizer}
                 onChange={(e) => setOrganizer(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-[#1560AA] outline-hidden"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-accent outline-hidden"
               >
                 {organizerTags.map((tag) => (
                   <option key={tag} value={tag}>
@@ -391,7 +391,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
           <div className="pt-2">
             <button
               type="submit"
-              className="w-full py-3 px-4 bg-[#1560AA] hover:bg-[#104d88] text-white font-bold text-sm rounded-xl shadow-md transition-all"
+              className="w-full py-3 px-4 bg-accent hover:bg-accent-hover text-white font-bold text-sm rounded-xl shadow-md transition-all"
             >
               Опубликовать мероприятие в дайджесте
             </button>

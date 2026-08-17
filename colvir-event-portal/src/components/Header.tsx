@@ -47,11 +47,11 @@ export const Header: React.FC<HeaderProps> = ({
   const stats = getTotalStats();
 
   const navItems: { id: ViewMode; label: string; icon: (active: boolean) => React.ReactNode }[] = [
-    { id: 'digest', label: 'Дайджест мероприятий', icon: (active) => <Calendar className={`w-4 h-4 ${active ? 'text-white' : 'text-[#1560AA]'}`} /> },
-    { id: 'random-coffee', label: 'Random Coffee', icon: (active) => <Coffee className={`w-4 h-4 ${active ? 'text-white' : 'text-[#1560AA]'}`} /> },
-    ...(isAdmin ? [{ id: 'teams' as ViewMode, label: 'Сформированные группы', icon: (active: boolean) => <Users className={`w-4 h-4 ${active ? 'text-white' : 'text-[#1560AA]'}`} /> }] : []),
-    { id: 'my-events', label: 'Мои записи', icon: (active) => <User className={`w-4 h-4 ${active ? 'text-white' : 'text-[#1560AA]'}`} /> },
-    ...(isAdmin ? [{ id: 'admin-manage' as ViewMode, label: 'Панель администратора', icon: (active: boolean) => <ShieldAlert className={`w-4 h-4 ${active ? 'text-white' : 'text-[#1560AA]'}`} /> }] : [])
+    { id: 'digest', label: 'Дайджест мероприятий', icon: (active) => <Calendar className={`w-4 h-4 ${active ? 'text-white' : 'text-accent'}`} /> },
+    { id: 'random-coffee', label: 'Random Coffee', icon: (active) => <Coffee className={`w-4 h-4 ${active ? 'text-white' : 'text-accent'}`} /> },
+    ...(isAdmin ? [{ id: 'teams' as ViewMode, label: 'Сформированные группы', icon: (active: boolean) => <Users className={`w-4 h-4 ${active ? 'text-white' : 'text-accent'}`} /> }] : []),
+    { id: 'my-events', label: 'Мои записи', icon: (active) => <User className={`w-4 h-4 ${active ? 'text-white' : 'text-accent'}`} /> },
+    ...(isAdmin ? [{ id: 'admin-manage' as ViewMode, label: 'Панель администратора', icon: (active: boolean) => <ShieldAlert className={`w-4 h-4 ${active ? 'text-white' : 'text-accent'}`} /> }] : [])
   ];
 
   return (
@@ -80,7 +80,7 @@ export const Header: React.FC<HeaderProps> = ({
                   onClick={() => setActiveView(item.id)}
                   className={`flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-xl transition-all ${
                     isActive
-                      ? 'bg-[#1560AA] text-white shadow-xs'
+                      ? 'bg-accent text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
                   }`}
                 >
@@ -88,7 +88,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <span>{item.label}</span>
                   {item.id === 'teams' && (
                     <span className={`ml-1 text-xs px-2 py-0.5 font-bold rounded-full ${
-                      isActive ? 'bg-white/20 text-white' : 'bg-[#1560AA]/10 text-[#1560AA]'
+                      isActive ? 'bg-white/20 text-white' : 'bg-accent/10 text-accent'
                     }`}>
                       {stats.totalTeams}
                     </span>
@@ -107,7 +107,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
 
             {/* Real-time Counter Badge */}
-            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-[#f0f6fc] border border-[#1560AA]/20 rounded-xl text-xs font-semibold text-[#1560AA]">
+            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-accent-light border border-accent/20 rounded-xl text-xs font-semibold text-accent">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>{stats.totalParticipants} участников в системе</span>
             </div>
@@ -115,12 +115,12 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Admin Notifications Bell */}
             <button
               onClick={onToggleNotifications}
-              className="relative p-2.5 rounded-xl text-slate-600 hover:text-[#1560AA] hover:bg-slate-100 transition-colors focus:outline-hidden"
+              className="relative p-2.5 rounded-xl text-slate-600 hover:text-accent hover:bg-slate-100 transition-colors focus:outline-hidden"
               title="Уведомления администратора"
             >
               <Bell className="w-5 h-5" />
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 flex items-center justify-center min-w-[20px] h-[20px] px-1 bg-[#1560AA] text-white text-[10px] font-extrabold rounded-full ring-2 ring-white animate-bounce">
+                <span className="absolute top-1 right-1 flex items-center justify-center min-w-[20px] h-[20px] px-1 bg-accent text-white text-[10px] font-extrabold rounded-full ring-2 ring-white animate-bounce">
                   {unreadCount}
                 </span>
               )}
@@ -130,7 +130,7 @@ export const Header: React.FC<HeaderProps> = ({
             {isAdmin && (
               <button
                 onClick={onOpenCreateEvent}
-                className="hidden sm:flex items-center gap-2 px-3.5 py-2 bg-[#1560AA] hover:bg-[#104d88] text-white text-sm font-semibold rounded-xl shadow-xs transition-all transform active:scale-95"
+                className="hidden sm:flex items-center gap-2 px-3.5 py-2 bg-accent hover:bg-accent-hover text-white text-sm font-semibold rounded-xl shadow-xs transition-all transform active:scale-95"
               >
                 <PlusCircle className="w-4 h-4" />
                 <span>Создать событие</span>
@@ -143,12 +143,12 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={onOpenActiveDirectory}
                 className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
                   isAdAuthenticated
-                    ? 'bg-blue-50 border-blue-200 text-[#1560AA] hover:bg-blue-100'
+                    ? 'bg-blue-50 border-blue-200 text-accent hover:bg-blue-100'
                     : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
                 }`}
                 title="Авторизация Active Directory (Colvir AD)"
               >
-                <Building2 className={`w-3.5 h-3.5 ${isAdAuthenticated ? 'text-[#1560AA]' : 'text-slate-400'}`} />
+                <Building2 className={`w-3.5 h-3.5 ${isAdAuthenticated ? 'text-accent' : 'text-slate-400'}`} />
                 <span>Colvir AD</span>
                 {isAdAuthenticated && (
                   <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white"></span>
@@ -162,12 +162,12 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={onOpenAccessSettings}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
                   isAdmin
-                    ? 'bg-blue-50 border-blue-300 text-[#1560AA] hover:bg-blue-100'
+                    ? 'bg-blue-50 border-blue-300 text-accent hover:bg-blue-100'
                     : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
                 }`}
                 title="Настройка прав доступа и режима администратора"
               >
-                <ShieldAlert className={`w-3.5 h-3.5 ${isAdmin ? 'text-[#1560AA]' : 'text-slate-400'}`} />
+                <ShieldAlert className={`w-3.5 h-3.5 ${isAdmin ? 'text-accent' : 'text-slate-400'}`} />
                 <span>{isAdmin ? 'Админ' : 'Гость'}</span>
               </button>
             )}
@@ -180,7 +180,7 @@ export const Header: React.FC<HeaderProps> = ({
               <img
                 src={userProfile.avatarUrl || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80'}
                 alt={userProfile.firstName}
-                className="w-7 h-7 rounded-lg object-cover ring-1 ring-[#1560AA]/30"
+                className="w-7 h-7 rounded-lg object-cover ring-1 ring-accent/30"
               />
               <span className="hidden md:inline text-xs font-bold text-slate-800">
                 {userProfile.firstName}
@@ -212,7 +212,7 @@ export const Header: React.FC<HeaderProps> = ({
                 }}
                 className={`flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-semibold ${
                   activeView === item.id
-                    ? 'bg-[#f0f6fc] text-[#1560AA]'
+                    ? 'bg-accent-light text-accent'
                     : 'text-slate-700 hover:bg-slate-50'
                 }`}
               >
@@ -221,7 +221,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <span>{item.label}</span>
                 </div>
                 {item.id === 'teams' && (
-                  <span className="text-xs px-2 py-0.5 bg-[#1560AA] text-white font-bold rounded-full">
+                  <span className="text-xs px-2 py-0.5 bg-accent text-white font-bold rounded-full">
                     {stats.totalTeams}
                   </span>
                 )}
@@ -235,7 +235,7 @@ export const Header: React.FC<HeaderProps> = ({
                 onOpenCreateEvent();
                 setMobileMenuOpen(false);
               }}
-              className="flex items-center justify-center gap-2 w-full mt-2 py-3 bg-[#1560AA] text-white text-sm font-semibold rounded-xl"
+              className="flex items-center justify-center gap-2 w-full mt-2 py-3 bg-accent text-white text-sm font-semibold rounded-xl"
             >
               <PlusCircle className="w-4 h-4" />
               <span>Создать событие</span>

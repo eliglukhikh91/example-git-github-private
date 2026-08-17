@@ -44,7 +44,7 @@ export const AccessSettingsModal: React.FC<AccessSettingsModalProps> = ({ isOpen
       <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-[#1560AA] flex items-center justify-center text-white shadow-md ring-4 ring-[#1560AA]/10">
+            <div className="w-11 h-11 rounded-2xl bg-accent flex items-center justify-center text-white shadow-md ring-4 ring-accent/10">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
@@ -122,7 +122,7 @@ export const AccessSettingsModal: React.FC<AccessSettingsModalProps> = ({ isOpen
           {/* Как выдаются права */}
           <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-2">
             <div className="flex items-center gap-2 text-xs font-black text-slate-800">
-              <Info className="w-4 h-4 text-[#1560AA]" />
+              <Info className="w-4 h-4 text-accent" />
               Как выдаются права администратора
             </div>
             <p className="text-[11px] text-slate-600 leading-relaxed font-medium">

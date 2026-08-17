@@ -179,7 +179,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
             <img
               src={avatarUrl || userProfile.avatarUrl || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80'}
               alt={userProfile.firstName}
-              className="w-10 h-10 rounded-2xl object-cover ring-2 ring-[#1560AA]/30"
+              className="w-10 h-10 rounded-2xl object-cover ring-2 ring-accent/30"
             />
             <div>
               <h2 className="text-xl font-extrabold text-slate-900 leading-tight">
@@ -205,7 +205,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
             onClick={() => setActiveTab('profile')}
             className={`py-3.5 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 ${
               activeTab === 'profile'
-                ? 'border-[#1560AA] text-[#1560AA]'
+                ? 'border-accent text-accent'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -217,7 +217,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
             onClick={() => setActiveTab('history')}
             className={`py-3.5 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 ${
               activeTab === 'history'
-                ? 'border-[#1560AA] text-[#1560AA]'
+                ? 'border-accent text-accent'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -236,11 +236,11 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
               {/* Active Directory SSO Status Banner */}
               <div className="p-3.5 bg-blue-50/80 border border-blue-200/80 rounded-2xl flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <ShieldCheck className="w-5 h-5 text-[#1560AA] shrink-0" />
+                  <ShieldCheck className="w-5 h-5 text-accent shrink-0" />
                   <div>
-                    <div className="text-xs font-black text-[#1560AA] flex items-center gap-1.5">
+                    <div className="text-xs font-black text-accent flex items-center gap-1.5">
                       <span>Аутентификация Active Directory</span>
-                      <span className="bg-blue-200/70 text-[#1560AA] px-1.5 py-0.2 rounded-md text-[10px] font-black">{adDomain}</span>
+                      <span className="bg-blue-200/70 text-accent px-1.5 py-0.2 rounded-md text-[10px] font-black">{adDomain}</span>
                     </div>
                     <p className="text-[11px] text-slate-600 font-medium">
                       {isAdAuthenticated ? 'Учетная запись сотрудника Colvir подтверждена по SSO/LDAP' : 'Сессия Active Directory не активна'}
@@ -266,7 +266,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                 <img
                   src={avatarUrl || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80'}
                   alt="Avatar"
-                  className="w-16 h-16 rounded-2xl object-cover ring-2 ring-[#1560AA]/30 shrink-0"
+                  className="w-16 h-16 rounded-2xl object-cover ring-2 ring-accent/30 shrink-0"
                 />
                 <div className="space-y-1.5 flex-1">
                   <label className="block text-xs font-bold text-slate-800">
@@ -274,7 +274,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                   </label>
                   <div className="flex items-center gap-2">
                     <label className="px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-bold rounded-xl cursor-pointer shadow-2xs transition-all flex items-center gap-1.5">
-                      <Camera className="w-3.5 h-3.5 text-[#1560AA]" />
+                      <Camera className="w-3.5 h-3.5 text-accent" />
                       <span>Загрузить фото</span>
                       <input
                         type="file"
@@ -341,7 +341,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                     type="text"
                     value={telegram}
                     onChange={(e) => setTelegram(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-[#1560AA] outline-hidden"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-accent outline-hidden"
                   />
                 </div>
               </div>
@@ -355,7 +355,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                     type="text"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-[#1560AA] outline-hidden"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-accent outline-hidden"
                   />
                 </div>
 
@@ -376,7 +376,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
               {/* Interests Selector */}
               <div className="space-y-2 pt-2 border-t border-slate-100">
                 <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-[#1560AA]" />
+                  <Sparkles className="w-4 h-4 text-accent" />
                   Мои интересы (для рекомендованных событий):
                 </label>
 
@@ -390,7 +390,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                         onClick={() => handleToggleInterest(tag)}
                         className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                           isSelected
-                            ? 'bg-[#1560AA] text-white shadow-2xs'
+                            ? 'bg-accent text-white shadow-2xs'
                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                         }`}
                       >
@@ -422,7 +422,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
               <div className="pt-3">
                 <button
                   type="submit"
-                  className="w-full py-3 bg-[#1560AA] hover:bg-[#104d88] text-white font-bold text-sm rounded-xl shadow-xs transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-accent hover:bg-accent-hover text-white font-bold text-sm rounded-xl shadow-xs transition-all flex items-center justify-center gap-2"
                 >
                   <Save className="w-4 h-4" />
                   <span>Сохранить изменения профиля</span>
@@ -479,7 +479,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                             <div>Дата: <strong>{evt?.date}</strong> ({reg.timeSlot || '10:00'})</div>
                             <div>Место: {evt?.location}</div>
                             {reg.isTeamGame && (
-                              <div className="text-[#1560AA] font-bold flex items-center gap-1 pt-0.5">
+                              <div className="text-accent font-bold flex items-center gap-1 pt-0.5">
                                 <Gamepad2 className="w-3.5 h-3.5" />
                                 Команда: {reg.teamName} ({reg.role === 'captain' ? 'Капитан' : 'Игрок'})
                               </div>

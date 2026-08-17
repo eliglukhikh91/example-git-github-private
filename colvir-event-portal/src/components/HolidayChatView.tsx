@@ -51,8 +51,8 @@ export const HolidayChatView: React.FC = () => {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <div className="bg-white rounded-2xl border border-slate-200 p-6">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-[#f0f6fc] flex items-center justify-center shrink-0">
-            <MessageSquare className="w-5 h-5 text-[#1560AA]" />
+          <div className="w-11 h-11 rounded-xl bg-accent-light flex items-center justify-center shrink-0">
+            <MessageSquare className="w-5 h-5 text-accent" />
           </div>
           <div className="min-w-0">
             <h2 className="text-xl font-black text-slate-900 tracking-tight">Праздничный чат</h2>
@@ -84,7 +84,7 @@ export const HolidayChatView: React.FC = () => {
                 <div
                   key={message.id}
                   className={`p-3 rounded-xl border ${
-                    isMine ? 'bg-[#f0f6fc] border-[#1560AA]/20' : 'bg-slate-50 border-slate-200'
+                    isMine ? 'bg-accent-light border-accent/20' : 'bg-slate-50 border-slate-200'
                   }`}
                 >
                   <div className="flex items-baseline justify-between gap-3">
@@ -155,13 +155,13 @@ export const HolidayChatView: React.FC = () => {
             onChange={(event) => setText(event.target.value)}
             placeholder="Написать сообщение…"
             maxLength={2000}
-            className="flex-1 min-w-0 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-[#1560AA] focus:ring-2 focus:ring-[#1560AA]/20 outline-hidden"
+            className="flex-1 min-w-0 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-accent focus:ring-2 focus:ring-accent/20 outline-hidden"
           />
 
           <button
             type="submit"
             disabled={!text.trim() || isSending}
-            className="px-4 py-2.5 bg-[#1560AA] hover:bg-[#104d88] disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-2 shrink-0"
+            className="px-4 py-2.5 bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-2 shrink-0"
           >
             <Send className="w-4 h-4" />
             <span className="hidden sm:inline">Отправить</span>

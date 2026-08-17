@@ -81,7 +81,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
         {/* Header */}
         <div className="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-[#f0f6fc] text-[#1560AA] rounded-xl">
+            <div className="p-2 bg-accent-light text-accent rounded-xl">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
@@ -124,7 +124,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-[#1560AA] outline-hidden"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-accent outline-hidden"
             />
           </div>
 
@@ -136,7 +136,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as EventCategory)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-[#1560AA] outline-hidden"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-accent outline-hidden"
               >
                 <option value="coffee-break">☕ Полезный кофе-брейк</option>
                 <option value="speaking-club">🗣️ Speaking Club</option>
@@ -156,7 +156,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-[#1560AA] outline-hidden"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-accent outline-hidden"
               />
             </div>
           </div>
@@ -172,7 +172,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
                 max={500}
                 value={maxParticipants}
                 onChange={(e) => setMaxParticipants(Number(e.target.value))}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-[#1560AA] outline-hidden"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-accent outline-hidden"
               />
             </div>
 
@@ -184,7 +184,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-[#1560AA] outline-hidden"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-accent outline-hidden"
               />
             </div>
           </div>
@@ -208,7 +208,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
                 type="checkbox"
                 checked={isTeamGame}
                 onChange={(e) => setIsTeamGame(e.target.checked)}
-                className="w-4 h-4 text-[#1560AA] rounded-sm focus:ring-[#1560AA]"
+                className="w-4 h-4 text-accent rounded-sm focus:ring-accent"
               />
               <span className="text-xs font-bold text-slate-800">
                 Это командное соревнование / турнир
@@ -226,7 +226,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
                   max={15}
                   value={maxTeamSize}
                   onChange={(e) => setMaxTeamSize(Number(e.target.value))}
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold focus:border-[#1560AA] outline-hidden"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold focus:border-accent outline-hidden"
                 />
               </div>
             )}
@@ -240,7 +240,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
               {timeSlots.map((slot, idx) => (
                 <span
                   key={idx}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-[#1560AA] border border-blue-200 rounded-xl text-xs font-bold"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-accent border border-blue-200 rounded-xl text-xs font-bold"
                 >
                   <span>{slot}</span>
                   {timeSlots.length > 1 && (
@@ -277,13 +277,13 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-[#1560AA]" />
+                <Tag className="w-3.5 h-3.5 text-accent" />
                 <span>Организатор / Плашка события</span>
               </label>
               <button
                 type="button"
                 onClick={() => setIsAddingNewTag(!isAddingNewTag)}
-                className="text-xs font-bold text-[#1560AA] hover:underline"
+                className="text-xs font-bold text-accent hover:underline"
               >
                 {isAddingNewTag ? 'Выбрать из существующих' : '+ Добавить свою плашку'}
               </button>
@@ -296,7 +296,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
                   value={newTagInput}
                   onChange={(e) => setNewTagInput(e.target.value)}
                   placeholder="Например: Colvir Innovation Lab"
-                  className="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:border-[#1560AA] outline-hidden"
+                  className="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:border-accent outline-hidden"
                 />
                 <button
                   type="button"
@@ -308,7 +308,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
                       setIsAddingNewTag(false);
                     }
                   }}
-                  className="px-4 py-2 bg-[#1560AA] text-white text-xs font-bold rounded-xl hover:bg-[#104d88]"
+                  className="px-4 py-2 bg-accent text-white text-xs font-bold rounded-xl hover:bg-accent-hover"
                 >
                   Добавить
                 </button>
@@ -317,7 +317,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
               <select
                 value={organizer}
                 onChange={(e) => setOrganizer(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-[#1560AA] outline-hidden"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-accent outline-hidden"
               >
                 {organizerTags.map((tag) => (
                   <option key={tag} value={tag}>
@@ -348,7 +348,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
               type="text"
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-[#1560AA] outline-hidden"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-accent outline-hidden"
             />
           </div>
 
@@ -373,7 +373,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
               </button>
               <button
                 type="submit"
-                className="px-6 py-3 bg-[#1560AA] hover:bg-[#104d88] text-white font-bold text-xs rounded-xl shadow-xs transition-all"
+                className="px-6 py-3 bg-accent hover:bg-accent-hover text-white font-bold text-xs rounded-xl shadow-xs transition-all"
               >
                 Сохранить изменения
               </button>

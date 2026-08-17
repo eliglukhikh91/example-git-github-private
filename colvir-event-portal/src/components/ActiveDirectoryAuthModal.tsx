@@ -54,13 +54,13 @@ export const ActiveDirectoryAuthModal: React.FC<ActiveDirectoryAuthModalProps> =
       <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-xl max-h-[90vh] overflow-y-auto flex flex-col">
         <div className="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-[#1560AA] flex items-center justify-center text-white shadow-md ring-4 ring-[#1560AA]/10">
+            <div className="w-11 h-11 rounded-2xl bg-accent flex items-center justify-center text-white shadow-md ring-4 ring-accent/10">
               <Building2 className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-black text-slate-900">Colvir Active Directory</h2>
-                <span className="px-2 py-0.5 bg-blue-50 text-[#1560AA] border border-blue-200/80 rounded-md text-[10px] font-black uppercase">
+                <span className="px-2 py-0.5 bg-blue-50 text-accent border border-blue-200/80 rounded-md text-[10px] font-black uppercase">
                   {directoryStatus?.ssoEnabled ? 'SSO / LDAP' : 'LDAP'}
                 </span>
               </div>
@@ -133,7 +133,7 @@ export const ActiveDirectoryAuthModal: React.FC<ActiveDirectoryAuthModalProps> =
                     className="w-12 h-12 rounded-2xl object-cover ring-2 ring-blue-500/30"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-2xl bg-[#1560AA] text-white flex items-center justify-center font-black text-lg ring-2 ring-blue-500/30">
+                  <div className="w-12 h-12 rounded-2xl bg-accent text-white flex items-center justify-center font-black text-lg ring-2 ring-blue-500/30">
                     {(user.lastName || user.email).charAt(0).toUpperCase()}
                   </div>
                 )}

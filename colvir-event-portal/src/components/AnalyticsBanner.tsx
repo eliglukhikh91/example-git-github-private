@@ -24,15 +24,15 @@ export const AnalyticsBanner: React.FC = () => {
   ];
 
   return (
-    <div className="bg-gradient-to-b from-[#f0f6fc]/80 to-slate-50 border-b border-slate-200/80 pt-6 pb-6">
+    <div className="bg-gradient-to-b from-accent-light/80 to-slate-50 border-b border-slate-200/80 pt-6 pb-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         
         {/* Top Hero Heading & Metrics Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
           
           <div className="lg:col-span-7 space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1560AA]/10 text-[#1560AA] text-xs font-bold uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5 text-[#1560AA]" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 text-accent text-xs font-bold uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5 text-accent" />
               Colvir Event Hub
             </div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">
@@ -47,10 +47,10 @@ export const AnalyticsBanner: React.FC = () => {
           <div className="lg:col-span-5 grid grid-cols-3 gap-2 sm:gap-3 min-w-0">
             
             {/* Total Registered Employees */}
-            <div className="bg-white p-2.5 sm:p-3.5 md:p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:border-[#1560AA]/40 transition-all flex flex-col justify-between min-w-0 overflow-hidden">
-              <div className="flex items-center justify-between gap-1 text-[#1560AA] mb-1 min-w-0">
+            <div className="bg-white p-2.5 sm:p-3.5 md:p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:border-accent/40 transition-all flex flex-col justify-between min-w-0 overflow-hidden">
+              <div className="flex items-center justify-between gap-1 text-accent mb-1 min-w-0">
                 <Users className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-                <span className="text-[9px] sm:text-[10px] font-bold uppercase bg-[#f0f6fc] px-1.5 py-0.5 rounded-sm truncate shrink-0 max-w-full">
+                <span className="text-[9px] sm:text-[10px] font-bold uppercase bg-accent-light px-1.5 py-0.5 rounded-sm truncate shrink-0 max-w-full">
                   Всего
                 </span>
               </div>
@@ -63,7 +63,7 @@ export const AnalyticsBanner: React.FC = () => {
             </div>
 
             {/* Formed Teams Counter */}
-            <div className="bg-white p-2.5 sm:p-3.5 md:p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:border-[#1560AA]/40 transition-all flex flex-col justify-between min-w-0 overflow-hidden">
+            <div className="bg-white p-2.5 sm:p-3.5 md:p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:border-accent/40 transition-all flex flex-col justify-between min-w-0 overflow-hidden">
               <div className="flex items-center justify-between gap-1 text-indigo-600 mb-1 min-w-0">
                 <Trophy className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
                 <span className="text-[9px] sm:text-[10px] font-bold uppercase bg-indigo-50 px-1.5 py-0.5 rounded-sm truncate shrink-0 max-w-full">
@@ -79,7 +79,7 @@ export const AnalyticsBanner: React.FC = () => {
             </div>
 
             {/* Active Events */}
-            <div className="bg-white p-2.5 sm:p-3.5 md:p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:border-[#1560AA]/40 transition-all flex flex-col justify-between min-w-0 overflow-hidden">
+            <div className="bg-white p-2.5 sm:p-3.5 md:p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:border-accent/40 transition-all flex flex-col justify-between min-w-0 overflow-hidden">
               <div className="flex items-center justify-between gap-1 text-emerald-600 mb-1 min-w-0">
                 <Calendar className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
                 <span className="text-[9px] sm:text-[10px] font-bold uppercase bg-emerald-50 px-1.5 py-0.5 rounded-sm truncate shrink-0 max-w-full">
@@ -108,7 +108,7 @@ export const AnalyticsBanner: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Поиск по названию события, темам или ключевым словам..."
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:outline-hidden focus:border-[#1560AA] focus:ring-2 focus:ring-[#1560AA]/20 transition-all shadow-xs"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:outline-hidden focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all shadow-xs"
             />
             {searchQuery && (
               <button
@@ -130,7 +130,7 @@ export const AnalyticsBanner: React.FC = () => {
                   onClick={() => setSelectedCategory(cat.id)}
                   className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl whitespace-nowrap transition-all ${
                     isActive
-                      ? 'bg-[#1560AA] text-white shadow-xs'
+                      ? 'bg-accent text-white shadow-xs'
                       : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 hover:text-slate-900'
                   }`}
                 >

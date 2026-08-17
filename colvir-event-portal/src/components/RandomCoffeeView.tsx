@@ -255,7 +255,7 @@ export const RandomCoffeeView: React.FC = () => {
       {/* Toast Notification Alert */}
       {toastMessage && (
         <div className="fixed top-5 right-5 z-50 max-w-md bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-slate-700 animate-fadeIn flex items-start gap-3">
-          <div className="w-8 h-8 rounded-xl bg-[#1560AA] flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-accent flex items-center justify-center shrink-0">
             <CheckCircle2 className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1 text-xs space-y-1">
@@ -283,7 +283,7 @@ export const RandomCoffeeView: React.FC = () => {
         />
 
         {/* Semi-transparent dark blue overlay for harmonious legibility */}
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-[#0a2342]/85 to-[#1560AA]/80 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-[#0a2342]/85 to-accent/80 backdrop-blur-[2px]" />
 
         <div className="relative z-10 p-6 sm:p-10 space-y-5 max-w-3xl text-white">
           
@@ -327,7 +327,7 @@ export const RandomCoffeeView: React.FC = () => {
           <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-5">
             <div>
               <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-[#1560AA]" />
+                <Calendar className="w-5 h-5 text-accent" />
                 <span>Шаг 1: Выберите 15-мин слот</span>
               </h2>
               <p className="text-xs text-slate-500 mt-1">
@@ -336,8 +336,8 @@ export const RandomCoffeeView: React.FC = () => {
             </div>
 
             {feedbackMsg && (
-              <div className="p-3.5 bg-blue-50 border border-blue-200 text-[#1560AA] text-xs font-bold rounded-2xl flex items-center gap-2 animate-fadeIn">
-                <CheckCircle2 className="w-4 h-4 text-[#1560AA] shrink-0" />
+              <div className="p-3.5 bg-blue-50 border border-blue-200 text-accent text-xs font-bold rounded-2xl flex items-center gap-2 animate-fadeIn">
+                <CheckCircle2 className="w-4 h-4 text-accent shrink-0" />
                 <span>{feedbackMsg}</span>
               </div>
             )}
@@ -353,7 +353,7 @@ export const RandomCoffeeView: React.FC = () => {
                     onClick={() => setSelectedSlot(slot)}
                     className={`w-full p-3.5 rounded-2xl border transition-all flex items-center justify-between text-left ${
                       isSelected
-                        ? 'bg-[#f0f6fc] border-[#1560AA] ring-2 ring-[#1560AA]/20 shadow-xs'
+                        ? 'bg-accent-light border-accent ring-2 ring-accent/20 shadow-xs'
                         : 'bg-slate-50 hover:bg-slate-100 border-slate-200'
                     }`}
                   >
@@ -361,7 +361,7 @@ export const RandomCoffeeView: React.FC = () => {
                       <div
                         className={`w-8 h-8 rounded-xl flex items-center justify-center ${
                           isSelected
-                            ? 'bg-[#1560AA] text-white font-bold'
+                            ? 'bg-accent text-white font-bold'
                             : 'bg-slate-200 text-slate-600'
                         }`}
                       >
@@ -374,7 +374,7 @@ export const RandomCoffeeView: React.FC = () => {
                         <div className="text-[11px] text-slate-500 flex items-center gap-1">
                           <span>Слот открыт для записи</span>
                           {isRegistered && (
-                            <span className="ml-1 px-1.5 py-0.2 bg-[#1560AA] text-white font-bold rounded text-[10px]">
+                            <span className="ml-1 px-1.5 py-0.2 bg-accent text-white font-bold rounded text-[10px]">
                               Ваша запись
                             </span>
                           )}
@@ -386,7 +386,7 @@ export const RandomCoffeeView: React.FC = () => {
                       <div
                         className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
                           isSelected
-                            ? 'border-[#1560AA] bg-[#1560AA]'
+                            ? 'border-accent bg-accent'
                             : 'border-slate-300'
                         }`}
                       >
@@ -402,7 +402,7 @@ export const RandomCoffeeView: React.FC = () => {
             <div className="pt-2">
               <button
                 onClick={handleRegisterSlot}
-                className="w-full py-3.5 px-4 rounded-2xl font-bold text-sm bg-[#1560AA] hover:bg-[#104d88] text-white shadow-xs transition-all flex items-center justify-center gap-2 active:scale-95"
+                className="w-full py-3.5 px-4 rounded-2xl font-bold text-sm bg-accent hover:bg-accent-hover text-white shadow-xs transition-all flex items-center justify-center gap-2 active:scale-95"
               >
                 {isRegisteredForSlot ? (
                   <>
@@ -427,18 +427,18 @@ export const RandomCoffeeView: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
               <div>
                 <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                  <Shuffle className="w-5 h-5 text-[#1560AA]" />
+                  <Shuffle className="w-5 h-5 text-accent" />
                   <span>Шаг 2: Поиск собеседника</span>
                 </h2>
                 <p className="text-xs text-slate-500">
-                  Выбранный слот: <strong className="text-[#1560AA]">{selectedSlot}</strong>
+                  Выбранный слот: <strong className="text-accent">{selectedSlot}</strong>
                 </p>
               </div>
 
               <button
                 onClick={handleRunRandomizer}
                 disabled={isShuffling}
-                className="px-5 py-3 bg-[#1560AA] hover:bg-[#104d88] text-white font-extrabold text-xs rounded-2xl shadow-md transition-all transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+                className="px-5 py-3 bg-accent hover:bg-accent-hover text-white font-extrabold text-xs rounded-2xl shadow-md transition-all transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <Shuffle className={`w-4 h-4 text-white ${isShuffling ? 'animate-spin' : ''}`} />
                 <span>{isShuffling ? 'Подбираем коллегу...' : '🎲 Запустить Рандомайзер'}</span>
@@ -448,7 +448,7 @@ export const RandomCoffeeView: React.FC = () => {
             {/* Randomizer Visual Area */}
             {isShuffling && (
               <div className="py-16 text-center space-y-4 bg-blue-50/50 rounded-2xl border border-blue-200/60 animate-pulse">
-                <div className="w-16 h-16 bg-[#1560AA] text-white rounded-3xl mx-auto flex items-center justify-center text-2xl font-black shadow-md">
+                <div className="w-16 h-16 bg-accent text-white rounded-3xl mx-auto flex items-center justify-center text-2xl font-black shadow-md">
                   ☕
                 </div>
                 <div>
@@ -464,7 +464,7 @@ export const RandomCoffeeView: React.FC = () => {
 
             {!isShuffling && !matchedParticipant && (
               <div className="py-12 text-center space-y-4 bg-slate-50 rounded-2xl border border-slate-200/80 p-6">
-                <div className="w-14 h-14 bg-[#1560AA] text-white rounded-2xl mx-auto flex items-center justify-center shadow-md">
+                <div className="w-14 h-14 bg-accent text-white rounded-2xl mx-auto flex items-center justify-center shadow-md">
                   <Coffee className="w-7 h-7 text-white" />
                 </div>
                 <div className="max-w-md mx-auto space-y-2">
@@ -478,7 +478,7 @@ export const RandomCoffeeView: React.FC = () => {
                 </div>
                 <button
                   onClick={handleRunRandomizer}
-                  className="px-6 py-2.5 bg-[#1560AA] hover:bg-[#104d88] text-white text-xs font-bold rounded-xl shadow-xs transition-all"
+                  className="px-6 py-2.5 bg-accent hover:bg-accent-hover text-white text-xs font-bold rounded-xl shadow-xs transition-all"
                 >
                   Найти собеседника прямо сейчас
                 </button>
@@ -486,17 +486,17 @@ export const RandomCoffeeView: React.FC = () => {
             )}
 
             {!isShuffling && matchedParticipant && (
-              <div className="bg-gradient-to-br from-blue-50/90 via-white to-slate-50/60 rounded-3xl p-6 border-2 border-[#1560AA]/30 shadow-md space-y-5 relative animate-fadeIn">
+              <div className="bg-gradient-to-br from-blue-50/90 via-white to-slate-50/60 rounded-3xl p-6 border-2 border-accent/30 shadow-md space-y-5 relative animate-fadeIn">
                 
                 {/* Matched Pill Title */}
                 <div className="flex items-center justify-between border-b border-blue-100 pb-3">
                   <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-[#1560AA] animate-ping" />
-                    <h3 className="text-base sm:text-lg font-black text-[#1560AA]">
+                    <span className="w-3 h-3 rounded-full bg-accent animate-ping" />
+                    <h3 className="text-base sm:text-lg font-black text-accent">
                       Коллега для кофе-брейка найден!
                     </h3>
                   </div>
-                  <span className="px-3 py-1 bg-[#1560AA] text-white font-black text-[10px] rounded-full uppercase tracking-wider shadow-2xs">
+                  <span className="px-3 py-1 bg-accent text-white font-black text-[10px] rounded-full uppercase tracking-wider shadow-2xs">
                     Слот: {selectedSlot}
                   </span>
                 </div>
@@ -506,15 +506,15 @@ export const RandomCoffeeView: React.FC = () => {
                     <img
                       src={`https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80`}
                       alt={matchedParticipant.firstName}
-                      className="w-20 h-20 rounded-2xl object-cover ring-4 ring-[#1560AA]/30 shadow-md"
+                      className="w-20 h-20 rounded-2xl object-cover ring-4 ring-accent/30 shadow-md"
                     />
-                    <div className="absolute -bottom-2 -right-2 bg-[#1560AA] text-white p-1 rounded-full ring-2 ring-white">
+                    <div className="absolute -bottom-2 -right-2 bg-accent text-white p-1 rounded-full ring-2 ring-white">
                       <CheckCircle2 className="w-4 h-4 text-white" />
                     </div>
                   </div>
 
                   <div className="space-y-1 text-center sm:text-left flex-1">
-                    <span className="text-[11px] font-bold text-[#1560AA] uppercase tracking-wider block">
+                    <span className="text-[11px] font-bold text-accent uppercase tracking-wider block">
                       Ваш собеседник в Colvir
                     </span>
                     <h4 className="text-xl font-black text-slate-900">
@@ -526,13 +526,13 @@ export const RandomCoffeeView: React.FC = () => {
                     </div>
 
                     <div className="pt-2 flex flex-wrap gap-1.5 justify-center sm:justify-start">
-                      <span className="px-2.5 py-0.5 bg-blue-100/80 text-[#1560AA] text-[11px] font-bold rounded-lg">
+                      <span className="px-2.5 py-0.5 bg-blue-100/80 text-accent text-[11px] font-bold rounded-lg">
                         ☕ Любитель кофе
                       </span>
-                      <span className="px-2.5 py-0.5 bg-blue-100/80 text-[#1560AA] text-[11px] font-bold rounded-lg">
+                      <span className="px-2.5 py-0.5 bg-blue-100/80 text-accent text-[11px] font-bold rounded-lg">
                         💬 Готов к общению
                       </span>
-                      <span className="px-2.5 py-0.5 bg-blue-100/80 text-[#1560AA] text-[11px] font-bold rounded-lg">
+                      <span className="px-2.5 py-0.5 bg-blue-100/80 text-accent text-[11px] font-bold rounded-lg">
                         🚀 {matchedParticipant.email}
                       </span>
                     </div>
@@ -545,7 +545,7 @@ export const RandomCoffeeView: React.FC = () => {
                   {/* Action 1: Invite to Zoom */}
                   <button
                     onClick={() => setIsZoomModalOpen(true)}
-                    className="flex items-center justify-center gap-2 py-3 px-4 bg-[#1560AA] hover:bg-[#104d88] text-white text-xs font-bold rounded-2xl shadow-xs transition-all active:scale-95"
+                    className="flex items-center justify-center gap-2 py-3 px-4 bg-accent hover:bg-accent-hover text-white text-xs font-bold rounded-2xl shadow-xs transition-all active:scale-95"
                   >
                     <Video className="w-4 h-4 text-white" />
                     <span>Пригласить в Zoom</span>
@@ -565,7 +565,7 @@ export const RandomCoffeeView: React.FC = () => {
                 <div className="text-center pt-1">
                   <button
                     onClick={handleRunRandomizer}
-                    className="text-xs text-slate-500 hover:text-[#1560AA] font-bold underline inline-flex items-center gap-1"
+                    className="text-xs text-slate-500 hover:text-accent font-bold underline inline-flex items-center gap-1"
                   >
                     <Shuffle className="w-3.5 h-3.5" />
                     <span>Подобрать другого собеседника</span>
@@ -577,8 +577,8 @@ export const RandomCoffeeView: React.FC = () => {
 
             {/* Icebreakers Box */}
             <div className="bg-blue-50/60 border border-blue-200/80 rounded-2xl p-4 space-y-2">
-              <div className="flex items-center gap-2 text-xs font-extrabold text-[#1560AA]">
-                <HelpCircle className="w-4 h-4 text-[#1560AA]" />
+              <div className="flex items-center gap-2 text-xs font-extrabold text-accent">
+                <HelpCircle className="w-4 h-4 text-accent" />
                 <span>Идеи для 15-минутной беседы (Icebreakers):</span>
               </div>
               <ul className="text-xs text-slate-700 space-y-1.5 pl-5 list-disc">
@@ -599,7 +599,7 @@ export const RandomCoffeeView: React.FC = () => {
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-lg p-6 space-y-5">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-[#1560AA] flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl bg-accent flex items-center justify-center">
                   <Video className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -621,7 +621,7 @@ export const RandomCoffeeView: React.FC = () => {
                 Мы сгенерировали уникальную ссылку Zoom для вашего 15-минутного кофе-брейка на слот <strong>{selectedSlot}</strong>.
               </p>
               
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between gap-2 font-mono text-[11px] text-[#1560AA]">
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between gap-2 font-mono text-[11px] text-accent">
                 <span className="truncate">https://zoom.us/j/colvir-coffee-break-2026</span>
                 <button
                   onClick={() => {
@@ -637,7 +637,7 @@ export const RandomCoffeeView: React.FC = () => {
               </div>
 
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-2 text-blue-900 text-[11px]">
-                <Mail className="w-4 h-4 text-[#1560AA] shrink-0 mt-0.5" />
+                <Mail className="w-4 h-4 text-accent shrink-0 mt-0.5" />
                 <span>
                   При нажатии на кнопку ниже ссылка с приглашением будет отправлена на вашу рабочую почту ({userProfile.email}) и коллеге ({matchedParticipant.email}), а также появится в Центре Уведомлений на платформе!
                 </span>
@@ -653,7 +653,7 @@ export const RandomCoffeeView: React.FC = () => {
               </button>
               <button
                 onClick={handleSendZoomInvite}
-                className="flex-1 py-3 bg-[#1560AA] hover:bg-[#104d88] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2"
+                className="flex-1 py-3 bg-accent hover:bg-accent-hover text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2"
               >
                 <Send className="w-4 h-4 text-white" />
                 <span>Отправить приглашение Zoom</span>
@@ -696,13 +696,13 @@ export const RandomCoffeeView: React.FC = () => {
                   value={directMessageText}
                   onChange={(e) => setDirectMessageText(e.target.value)}
                   placeholder="Привет! Рад знакомству на Random Coffee. Буду рад обсудить текущие задачи и выпить кофе на Zoom..."
-                  className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium focus:bg-white focus:border-[#1560AA] outline-hidden resize-none"
+                  className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium focus:bg-white focus:border-accent outline-hidden resize-none"
                   required
                 />
               </div>
 
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-2 text-blue-900 text-[11px]">
-                <Mail className="w-4 h-4 text-[#1560AA] shrink-0 mt-0.5" />
+                <Mail className="w-4 h-4 text-accent shrink-0 mt-0.5" />
                 <span>
                   Сообщение мгновенно отобразится в Центре Уведомлений Colvir Event Hub и будет отправлено на почту {matchedParticipant.email}.
                 </span>
@@ -718,7 +718,7 @@ export const RandomCoffeeView: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-3 bg-[#1560AA] hover:bg-[#104d88] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-3 bg-accent hover:bg-accent-hover text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2"
                 >
                   <Send className="w-4 h-4 text-white" />
                   <span>Отправить сообщение</span>

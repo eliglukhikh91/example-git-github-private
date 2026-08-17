@@ -22,11 +22,11 @@ export const MoscowClock: React.FC<MoscowClockProps> = ({ variant = 'compact', c
 
   if (variant === 'badge') {
     return (
-      <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 border border-blue-200/80 rounded-xl text-xs font-bold text-[#1560AA] shadow-2xs ${className}`}>
+      <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 border border-blue-200/80 rounded-xl text-xs font-bold text-accent shadow-2xs ${className}`}>
         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <Clock className="w-3.5 h-3.5 text-[#1560AA]" />
+        <Clock className="w-3.5 h-3.5 text-accent" />
         <span className="font-mono tracking-tight">{timeStr}</span>
-        <span className="text-[10px] px-1.5 py-0.2 bg-[#1560AA] text-white rounded font-black uppercase">МСК</span>
+        <span className="text-[10px] px-1.5 py-0.2 bg-accent text-white rounded font-black uppercase">МСК</span>
       </div>
     );
   }
@@ -83,9 +83,9 @@ export const MoscowClock: React.FC<MoscowClockProps> = ({ variant = 'compact', c
   // Compact default variant
   return (
     <div className={`flex items-center gap-2 px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-200/80 transition-colors ${className}`}>
-      <Clock className="w-3.5 h-3.5 text-[#1560AA]" />
+      <Clock className="w-3.5 h-3.5 text-accent" />
       <span className="font-mono tracking-tight text-slate-900">{timeStr}</span>
-      <span className="text-[10px] font-black text-[#1560AA] bg-blue-100 px-1.5 py-0.2 rounded uppercase">
+      <span className="text-[10px] font-black text-accent bg-blue-100 px-1.5 py-0.2 rounded uppercase">
         МСК
       </span>
     </div>

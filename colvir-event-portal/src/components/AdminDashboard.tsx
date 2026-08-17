@@ -96,8 +96,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   if (!isAdmin) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 text-center space-y-6">
-        <div className="w-16 h-16 bg-blue-100 text-[#1560AA] rounded-3xl mx-auto flex items-center justify-center shadow-lg">
-          <Lock className="w-8 h-8 text-[#1560AA]" />
+        <div className="w-16 h-16 bg-blue-100 text-accent rounded-3xl mx-auto flex items-center justify-center shadow-lg">
+          <Lock className="w-8 h-8 text-accent" />
         </div>
         <div className="space-y-2">
           <h2 className="text-2xl font-black text-slate-900">
@@ -110,7 +110,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <div>
           <button
             onClick={onOpenAccessSettings}
-            className="px-6 py-3 bg-[#1560AA] hover:bg-[#104d88] text-white font-bold text-xs rounded-xl shadow-md transition-all inline-flex items-center gap-2"
+            className="px-6 py-3 bg-accent hover:bg-accent-hover text-white font-bold text-xs rounded-xl shadow-md transition-all inline-flex items-center gap-2"
           >
             <ShieldAlert className="w-4 h-4" />
             <span>Посмотреть права доступа</span>
@@ -188,7 +188,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       <div className="bg-white border-b border-slate-200 rounded-2xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="min-w-0">
           <h1 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-            <ShieldAlert className="w-5 h-5 text-[#1560AA] shrink-0" />
+            <ShieldAlert className="w-5 h-5 text-accent shrink-0" />
             Панель администратора
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -199,7 +199,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
         <button
           onClick={onOpenCreateEvent}
-          className="shrink-0 px-4 py-2 bg-[#1560AA] hover:bg-[#104d88] text-white font-bold text-xs rounded-xl transition-colors flex items-center gap-2"
+          className="shrink-0 px-4 py-2 bg-accent hover:bg-accent-hover text-white font-bold text-xs rounded-xl transition-colors flex items-center gap-2"
         >
           <PlusCircle className="w-4 h-4" />
           <span>Создать событие</span>
@@ -217,7 +217,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-3 text-xs font-bold whitespace-nowrap border-b-2 -mb-px transition-colors flex items-center gap-2 ${
                 isActive
-                  ? 'border-[#1560AA] text-[#1560AA]'
+                  ? 'border-accent text-accent'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -236,7 +236,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-[#1560AA]" />
+                <Calendar className="w-4 h-4 text-accent" />
                 <span>Мероприятия ({events.length})</span>
               </h2>
             </div>
@@ -251,7 +251,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     onClick={() => setSelectedEventId(evt.id)}
                     className={`w-full text-left p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
                       isSelected
-                        ? 'bg-blue-50/80 border-[#1560AA] text-[#1560AA] shadow-2xs'
+                        ? 'bg-blue-50/80 border-accent text-accent shadow-2xs'
                         : 'bg-white border-slate-200/80 hover:bg-slate-50 text-slate-800'
                     }`}
                   >
@@ -260,7 +260,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <p className="text-[11px] text-slate-500">{evt.date}</p>
                     </div>
                     <div className="shrink-0 text-right">
-                      <span className="inline-flex items-center px-2.5 py-1 bg-white border border-slate-200 rounded-xl text-xs font-black text-[#1560AA]">
+                      <span className="inline-flex items-center px-2.5 py-1 bg-white border border-slate-200 rounded-xl text-xs font-black text-accent">
                         {count} / {evt.maxParticipants}
                       </span>
                     </div>
@@ -278,7 +278,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {/* Event Title & Quick Actions */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
                   <div className="space-y-1">
-                    <span className="px-2.5 py-0.5 bg-[#f0f6fc] text-[#1560AA] text-[10px] font-black rounded-md">
+                    <span className="px-2.5 py-0.5 bg-accent-light text-accent text-[10px] font-black rounded-md">
                       {selectedEvent.isTeamGame ? 'Командное соревнование' : 'Клубная встреча'}
                     </span>
                     <h2 className="text-xl font-black text-slate-900">{selectedEvent.title}</h2>
@@ -290,7 +290,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       onClick={() => setEditingEvent(selectedEvent)}
                       className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5"
                     >
-                      <Edit3 className="w-3.5 h-3.5 text-[#1560AA]" />
+                      <Edit3 className="w-3.5 h-3.5 text-accent" />
                       <span>Редактировать</span>
                     </button>
                     <button
@@ -318,7 +318,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                   <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-1">
                     <span className="text-[11px] font-bold text-slate-400">Заполненность</span>
-                    <div className="text-lg font-black text-[#1560AA]">
+                    <div className="text-lg font-black text-accent">
                       {Math.round((eventParticipants.length / selectedEvent.maxParticipants) * 100)}%
                     </div>
                   </div>
@@ -342,7 +342,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div className="space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                      <Users className="w-4 h-4 text-[#1560AA]" />
+                      <Users className="w-4 h-4 text-accent" />
                       <span>Записанные сотрудники ({eventParticipants.length})</span>
                     </h3>
 
@@ -354,7 +354,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                           placeholder="Поиск по имени..."
-                          className="pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-[#1560AA] outline-hidden w-48 sm:w-60"
+                          className="pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-accent outline-hidden w-48 sm:w-60"
                         />
                       </div>
 
@@ -400,7 +400,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 {p.department || '—'}
                               </td>
                               <td className="p-3">
-                                <div className="font-semibold text-[#1560AA]">
+                                <div className="font-semibold text-accent">
                                   {p.timeSlot || selectedEvent.timeSlots[0]}
                                 </div>
                                 {p.teamName && (
@@ -443,7 +443,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div>
               <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-[#1560AA]" />
+                <FileText className="w-5 h-5 text-accent" />
                 <span>Редактор текстов и слоганов платформы</span>
               </h2>
               <p className="text-xs text-slate-500 mt-1">
@@ -453,7 +453,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
             <button
               type="submit"
-              className="px-6 py-3 bg-[#1560AA] hover:bg-[#104d88] text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center gap-2"
+              className="px-6 py-3 bg-accent hover:bg-accent-hover text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center gap-2"
             >
               <Save className="w-4 h-4 text-white" />
               <span>Сохранить тексты</span>
@@ -461,16 +461,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
 
           {cmsSavedSuccess && (
-            <div className="p-4 bg-blue-50 border border-blue-200 text-[#1560AA] font-bold text-xs rounded-2xl flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#1560AA]" />
+            <div className="p-4 bg-blue-50 border border-blue-200 text-accent font-bold text-xs rounded-2xl flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-accent" />
               <span>Все тексты платформы успешно сохранены и обновлены!</span>
             </div>
           )}
 
           {/* Section A: Holiday Banner Slogans */}
           <div className="space-y-4">
-            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2 text-[#1560AA]">
-              <Sparkles className="w-4 h-4 text-[#1560AA]" />
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2 text-accent">
+              <Sparkles className="w-4 h-4 text-accent" />
               <span>Праздничная плашка (Темы оформления)</span>
             </h3>
 
@@ -483,7 +483,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   type="text"
                   value={cmsForm.holidayBannerSpringText}
                   onChange={(e) => setCmsForm({ ...cmsForm, holidayBannerSpringText: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-[#1560AA] outline-hidden"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-accent outline-hidden"
                 />
               </div>
 
@@ -495,7 +495,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   type="text"
                   value={cmsForm.holidayBannerBirthdayText}
                   onChange={(e) => setCmsForm({ ...cmsForm, holidayBannerBirthdayText: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-[#1560AA] outline-hidden"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-accent outline-hidden"
                 />
               </div>
 
@@ -507,7 +507,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   type="text"
                   value={cmsForm.holidayBannerNewYearText}
                   onChange={(e) => setCmsForm({ ...cmsForm, holidayBannerNewYearText: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-[#1560AA] outline-hidden"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-accent outline-hidden"
                 />
               </div>
             </div>
@@ -515,8 +515,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           {/* Section B: Random Coffee Texts */}
           <div className="space-y-4 pt-4 border-t border-slate-100">
-            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2 text-[#1560AA]">
-              <Coffee className="w-4 h-4 text-[#1560AA]" />
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2 text-accent">
+              <Coffee className="w-4 h-4 text-accent" />
               <span>Страница Random Coffee</span>
             </h3>
 
@@ -529,7 +529,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   type="text"
                   value={cmsForm.randomCoffeeTitle}
                   onChange={(e) => setCmsForm({ ...cmsForm, randomCoffeeTitle: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-[#1560AA] outline-hidden"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-accent outline-hidden"
                 />
               </div>
 
@@ -541,7 +541,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   type="text"
                   value={cmsForm.randomCoffeeFormat}
                   onChange={(e) => setCmsForm({ ...cmsForm, randomCoffeeFormat: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-[#1560AA] outline-hidden"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-accent outline-hidden"
                 />
               </div>
             </div>
@@ -554,7 +554,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 rows={3}
                 value={cmsForm.randomCoffeeDescription}
                 onChange={(e) => setCmsForm({ ...cmsForm, randomCoffeeDescription: e.target.value })}
-                className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-[#1560AA] outline-hidden resize-none"
+                className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-accent outline-hidden resize-none"
               />
             </div>
           </div>
@@ -562,7 +562,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <div className="pt-2 flex justify-end">
             <button
               type="submit"
-              className="px-6 py-3 bg-[#1560AA] hover:bg-[#104d88] text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center gap-2"
+              className="px-6 py-3 bg-accent hover:bg-accent-hover text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center gap-2"
             >
               <Save className="w-4 h-4 text-white" />
               <span>Сохранить изменения CMS</span>
@@ -580,7 +580,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-[#1560AA]" />
+                  <Clock className="w-5 h-5 text-accent" />
                   <span>Управление слотами времени Random Coffee</span>
                 </h2>
                 <p className="text-xs text-slate-500 mt-1">
@@ -596,12 +596,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 value={newSlotInput}
                 onChange={(e) => setNewSlotInput(e.target.value)}
                 placeholder="E.g. 17:00 - 17:15 (МСК)"
-                className="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-[#1560AA] outline-hidden"
+                className="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-accent outline-hidden"
               />
               <button
                 type="button"
                 onClick={handleAddSlot}
-                className="px-4 py-2 bg-[#1560AA] hover:bg-[#104d88] text-white text-xs font-bold rounded-xl flex items-center gap-1"
+                className="px-4 py-2 bg-accent hover:bg-accent-hover text-white text-xs font-bold rounded-xl flex items-center gap-1"
               >
                 <Plus className="w-4 h-4 text-white" />
                 <span>Добавить слот</span>
@@ -615,7 +615,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   key={slot}
                   className="px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 flex items-center gap-2 shadow-2xs"
                 >
-                  <Clock className="w-3.5 h-3.5 text-[#1560AA]" />
+                  <Clock className="w-3.5 h-3.5 text-accent" />
                   <span>{slot}</span>
                   <button
                     onClick={() => deleteCoffeeSlot(slot)}
@@ -634,7 +634,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
                 <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
-                  <Users className="w-5 h-5 text-[#1560AA]" />
+                  <Users className="w-5 h-5 text-accent" />
                   <span>Реестр записанных сотрудников на Random Coffee ({coffeeRegistrations.length})</span>
                 </h2>
                 <p className="text-xs text-slate-500 mt-1">
@@ -669,7 +669,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <td className="p-3 text-slate-600 font-medium">
                           {p.department || '—'}
                         </td>
-                        <td className="p-3 font-extrabold text-[#1560AA]">
+                        <td className="p-3 font-extrabold text-accent">
                           {p.timeSlot || '—'}
                         </td>
                         <td className="p-3 text-slate-500 font-medium">
@@ -706,8 +706,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                   Посещаемость платформы
                 </span>
-                <div className="p-2 bg-blue-50 text-[#1560AA] rounded-xl">
-                  <Activity className="w-5 h-5 text-[#1560AA]" />
+                <div className="p-2 bg-blue-50 text-accent rounded-xl">
+                  <Activity className="w-5 h-5 text-accent" />
                 </div>
               </div>
               <div className="flex items-baseline gap-2">
@@ -727,13 +727,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                   Посещаемость мероприятий
                 </span>
-                <div className="p-2 bg-blue-50 text-[#1560AA] rounded-xl">
-                  <Users className="w-5 h-5 text-[#1560AA]" />
+                <div className="p-2 bg-blue-50 text-accent rounded-xl">
+                  <Users className="w-5 h-5 text-accent" />
                 </div>
               </div>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-black text-slate-900">{participants.length}</span>
-                <span className="text-xs font-bold text-[#1560AA]">
+                <span className="text-xs font-bold text-accent">
                   Явка: 91.5%
                 </span>
               </div>
@@ -747,12 +747,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                   Средняя оценка (1-10)
                 </span>
-                <div className="p-2 bg-blue-50 text-[#1560AA] rounded-xl">
-                  <Star className="w-5 h-5 text-[#1560AA]" />
+                <div className="p-2 bg-blue-50 text-accent rounded-xl">
+                  <Star className="w-5 h-5 text-accent" />
                 </div>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black text-[#1560AA]">
+                <span className="text-2xl font-black text-accent">
                   {ratings.length > 0
                     ? (ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length).toFixed(1)
                     : '9.4'}
@@ -791,7 +791,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-[#1560AA]" />
+                  <BarChart3 className="w-5 h-5 text-accent" />
                   <span>Посещаемость и заполняемость по мероприятиям</span>
                 </h3>
                 <p className="text-xs text-slate-500">
@@ -823,7 +823,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <tr key={evt.id} className="hover:bg-slate-50/80 transition-colors">
                         <td className="p-3 font-bold text-slate-900">
                           <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-[#1560AA]" />
+                            <span className="w-2 h-2 rounded-full bg-accent" />
                             <span>{evt.title}</span>
                           </div>
                         </td>
@@ -839,7 +839,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <div className="flex items-center gap-2">
                             <div className="w-24 bg-slate-100 h-2 rounded-full overflow-hidden">
                               <div
-                                className="bg-[#1560AA] h-full rounded-full transition-all duration-500"
+                                className="bg-accent h-full rounded-full transition-all duration-500"
                                 style={{ width: `${Math.min(occupancy, 100)}%` }}
                               />
                             </div>
@@ -850,8 +850,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </td>
                         <td className="p-3">
                           <div className="flex items-center gap-1">
-                            <Star className="w-3.5 h-3.5 text-[#1560AA] fill-[#1560AA]" />
-                            <span className="font-black text-[#1560AA] text-xs">
+                            <Star className="w-3.5 h-3.5 text-accent fill-accent" />
+                            <span className="font-black text-accent text-xs">
                               {avgRating > 0 ? `${avgRating} / 10` : '—'}
                             </span>
                             <span className="text-[10px] text-slate-400">({evtRatingsCount})</span>
@@ -881,14 +881,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5 text-[#1560AA]" />
+                  <MessageSquare className="w-5 h-5 text-accent" />
                   <span>Оценки и отзывы сотрудников (Шкала от 1 до 10)</span>
                 </h3>
                 <p className="text-xs text-slate-500">
                   Обратная связь от участников мероприятий в реальном времени
                 </p>
               </div>
-              <span className="px-3 py-1 bg-blue-50 text-[#1560AA] font-extrabold text-xs rounded-xl border border-blue-100">
+              <span className="px-3 py-1 bg-blue-50 text-accent font-extrabold text-xs rounded-xl border border-blue-100">
                 Всего отзывов: {ratings.length}
               </span>
             </div>
@@ -909,14 +909,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <h4 className="font-bold text-slate-900 text-xs">{r.userName}</h4>
                         <p className="text-[10px] text-slate-500">{r.userEmail}</p>
                       </div>
-                      <div className="px-2.5 py-1 bg-[#1560AA] text-white font-black text-xs rounded-lg shadow-2xs flex items-center gap-1">
+                      <div className="px-2.5 py-1 bg-accent text-white font-black text-xs rounded-lg shadow-2xs flex items-center gap-1">
                         <Star className="w-3 h-3 text-white fill-white" />
                         <span>{r.rating} / 10</span>
                       </div>
                     </div>
 
                     <div className="text-xs text-slate-800 font-semibold flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5 text-[#1560AA]" />
+                      <Calendar className="w-3.5 h-3.5 text-accent" />
                       <span>{r.eventTitle}</span>
                     </div>
 

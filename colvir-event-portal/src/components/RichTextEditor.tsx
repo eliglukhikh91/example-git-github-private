@@ -85,7 +85,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   };
 
   return (
-    <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-2xs focus-within:border-[#1560AA] transition-all">
+    <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-2xs focus-within:border-accent transition-all">
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-1 p-2 bg-slate-50 border-b border-slate-200 text-slate-700 text-xs">
         

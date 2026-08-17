@@ -48,12 +48,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const stats = getTotalStats();
 
   const navItems: { id: ViewMode; label: string; icon: (active: boolean) => React.ReactNode }[] = [
-    { id: 'digest', label: 'Дайджест мероприятий', icon: (active) => <Calendar className={`w-5 h-5 ${active ? 'text-white' : 'text-[#1560AA]'}`} /> },
-    { id: 'random-coffee', label: 'Random Coffee', icon: (active) => <Coffee className={`w-5 h-5 ${active ? 'text-white' : 'text-[#1560AA]'}`} /> },
-    { id: 'holiday-chat', label: 'Праздничный чат', icon: (active) => <MessageSquare className={`w-5 h-5 ${active ? 'text-white' : 'text-[#1560AA]'}`} /> },
-    ...(isAdmin ? [{ id: 'teams' as ViewMode, label: 'Сформированные группы', icon: (active: boolean) => <Users className={`w-5 h-5 ${active ? 'text-white' : 'text-[#1560AA]'}`} /> }] : []),
-    { id: 'my-events', label: 'Мои записи', icon: (active) => <UserCheck className={`w-5 h-5 ${active ? 'text-white' : 'text-[#1560AA]'}`} /> },
-    ...(isAdmin ? [{ id: 'admin-manage' as ViewMode, label: 'Панель администратора', icon: (active: boolean) => <ShieldCheck className={`w-5 h-5 ${active ? 'text-white' : 'text-[#1560AA]'}`} /> }] : [])
+    { id: 'digest', label: 'Дайджест мероприятий', icon: (active) => <Calendar className={`w-5 h-5 ${active ? 'text-white' : 'text-accent'}`} /> },
+    { id: 'random-coffee', label: 'Random Coffee', icon: (active) => <Coffee className={`w-5 h-5 ${active ? 'text-white' : 'text-accent'}`} /> },
+    { id: 'holiday-chat', label: 'Праздничный чат', icon: (active) => <MessageSquare className={`w-5 h-5 ${active ? 'text-white' : 'text-accent'}`} /> },
+    ...(isAdmin ? [{ id: 'teams' as ViewMode, label: 'Сформированные группы', icon: (active: boolean) => <Users className={`w-5 h-5 ${active ? 'text-white' : 'text-accent'}`} /> }] : []),
+    { id: 'my-events', label: 'Мои записи', icon: (active) => <UserCheck className={`w-5 h-5 ${active ? 'text-white' : 'text-accent'}`} /> },
+    ...(isAdmin ? [{ id: 'admin-manage' as ViewMode, label: 'Панель администратора', icon: (active: boolean) => <ShieldCheck className={`w-5 h-5 ${active ? 'text-white' : 'text-accent'}`} /> }] : [])
   ];
 
   /**
@@ -101,7 +101,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className="w-10 h-10 rounded-xl object-cover shrink-0"
             />
           ) : (
-            <div className="w-10 h-10 rounded-xl bg-[#1560AA] text-white flex items-center justify-center font-black text-sm shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-accent text-white flex items-center justify-center font-black text-sm shrink-0">
               {(userProfile.lastName || userProfile.email).charAt(0).toUpperCase()}
             </div>
           )}
@@ -134,7 +134,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }}
               className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
             >
-              <User className="w-4 h-4 text-[#1560AA]" />
+              <User className="w-4 h-4 text-accent" />
               <span>Профиль</span>
             </button>
 
@@ -188,12 +188,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onToggleNotifications();
               setMobileMenuOpen(false);
             }}
-            className="relative p-2 rounded-xl text-slate-600 hover:text-[#1560AA] hover:bg-slate-100 transition-colors shrink-0"
+            className="relative p-2 rounded-xl text-slate-600 hover:text-accent hover:bg-slate-100 transition-colors shrink-0"
             title="Уведомления"
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[16px] h-[16px] px-0.5 bg-[#1560AA] text-white text-[9px] font-black rounded-full ring-2 ring-white">
+              <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[16px] h-[16px] px-0.5 bg-accent text-white text-[9px] font-black rounded-full ring-2 ring-white">
                 {unreadCount}
               </span>
             )}
@@ -220,7 +220,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   }}
                   className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl font-bold text-xs transition-all ${
                     isActive
-                      ? 'bg-[#1560AA] text-white shadow-xs'
+                      ? 'bg-accent text-white shadow-xs'
                       : 'text-slate-700 hover:bg-slate-100/80'
                   }`}
                 >
@@ -231,7 +231,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   {item.id === 'teams' && (
                     <span
                       className={`text-[10px] px-2 py-0.5 rounded-full font-black ${
-                        isActive ? 'bg-white/20 text-white' : 'bg-[#1560AA]/10 text-[#1560AA]'
+                        isActive ? 'bg-white/20 text-white' : 'bg-accent/10 text-accent'
                       }`}
                     >
                       {stats.totalTeams}
@@ -253,7 +253,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 onOpenCreateEvent();
                 setMobileMenuOpen(false);
               }}
-              className="w-full flex items-center gap-2.5 px-3.5 py-2.5 bg-[#1560AA] hover:bg-[#104d88] text-white text-xs font-bold rounded-xl shadow-xs transition-all active:scale-98"
+              className="w-full flex items-center gap-2.5 px-3.5 py-2.5 bg-accent hover:bg-accent-hover text-white text-xs font-bold rounded-xl shadow-xs transition-all active:scale-98"
             >
               <PlusCircle className="w-4 h-4" />
               <span>Создать событие</span>
@@ -263,7 +263,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       <div className="p-4 border-t border-slate-100 bg-slate-50/70 space-y-3">
-        <div className="flex items-center gap-2 px-3 py-2 bg-[#f0f6fc] border border-[#1560AA]/20 rounded-xl text-[11px] font-semibold text-[#1560AA]">
+        <div className="flex items-center gap-2 px-3 py-2 bg-accent-light border border-accent/20 rounded-xl text-[11px] font-semibold text-accent">
           <Activity className="w-3.5 h-3.5 shrink-0" />
           <span className="truncate">{stats.totalParticipants} участников в системе</span>
         </div>
@@ -294,7 +294,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[16px] h-[16px] px-0.5 bg-[#1560AA] text-white text-[9px] font-black rounded-full ring-2 ring-white">
+              <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[16px] h-[16px] px-0.5 bg-accent text-white text-[9px] font-black rounded-full ring-2 ring-white">
                 {unreadCount}
               </span>
             )}

@@ -59,7 +59,7 @@ const MainApp: React.FC = () => {
   const userRegs = getUserRegistrations().filter((r) => r.status !== 'cancelled');
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans text-slate-900 antialiased selection:bg-[#1560AA]/20 selection:text-[#1560AA]">
+    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans text-slate-900 antialiased selection:bg-accent/20 selection:text-accent">
       
       {/* Side Navigation Bar */}
       <Sidebar
@@ -90,7 +90,7 @@ const MainApp: React.FC = () => {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                      <Calendar className="w-5 h-5 text-[#1560AA]" />
+                      <Calendar className="w-5 h-5 text-accent" />
                       Дайджест корпоративных мероприятий
                     </h2>
                     <p className="text-xs text-slate-500">
@@ -101,7 +101,7 @@ const MainApp: React.FC = () => {
                   {isAdmin && (
                     <button
                       onClick={() => setIsCreateEventOpen(true)}
-                      className="flex items-center gap-2 px-4 py-2 bg-[#1560AA] hover:bg-[#104d88] text-white text-xs font-bold rounded-xl shadow-xs transition-all active:scale-95"
+                      className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent-hover text-white text-xs font-bold rounded-xl shadow-xs transition-all active:scale-95"
                     >
                       <PlusCircle className="w-4 h-4" />
                       <span>Создать новое мероприятие</span>
@@ -169,7 +169,7 @@ const MainApp: React.FC = () => {
 
               <button
                 onClick={() => setIsProfileOpen(true)}
-                className="px-4 py-2 bg-[#1560AA] hover:bg-[#104d88] text-white text-xs font-bold rounded-xl shadow-xs self-start sm:self-auto"
+                className="px-4 py-2 bg-accent hover:bg-accent-hover text-white text-xs font-bold rounded-xl shadow-xs self-start sm:self-auto"
               >
                 Редактировать профиль
               </button>
@@ -177,16 +177,16 @@ const MainApp: React.FC = () => {
 
             {/* Quick Summary Card */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-[#f0f6fc] border border-[#1560AA]/20 p-5 rounded-2xl flex items-center justify-between">
+              <div className="bg-accent-light border border-accent/20 p-5 rounded-2xl flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-bold text-[#1560AA] uppercase block">
+                  <span className="text-xs font-bold text-accent uppercase block">
                     Активные записи:
                   </span>
                   <span className="text-3xl font-black text-slate-900">
                     {userRegs.length}
                   </span>
                 </div>
-                <Calendar className="w-10 h-10 text-[#1560AA] opacity-80" />
+                <Calendar className="w-10 h-10 text-accent opacity-80" />
               </div>
 
               <div className="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl flex items-center justify-between">
@@ -213,7 +213,7 @@ const MainApp: React.FC = () => {
                   Вы пока не записались ни на одно мероприятие. Загляните в{' '}
                   <button
                     onClick={() => setActiveView('digest')}
-                    className="text-[#1560AA] font-bold underline"
+                    className="text-accent font-bold underline"
                   >
                     Дайджест
                   </button>
@@ -238,7 +238,7 @@ const MainApp: React.FC = () => {
                             {[evt?.date, reg.timeSlot || '10:00', evt?.location].filter(Boolean).join(' · ')}
                           </div>
                           {reg.isTeamGame && (
-                            <div className="text-xs text-[#1560AA] font-bold">
+                            <div className="text-xs text-accent font-bold">
                               Команда: {reg.teamName} ({reg.role === 'captain' ? 'Капитан' : 'Игрок'})
                             </div>
                           )}
@@ -332,7 +332,7 @@ const AuthenticatedApp: React.FC = () => {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3 text-slate-400">
-          <div className="w-10 h-10 border-3 border-slate-200 border-t-[#1560AA] rounded-full animate-spin" />
+          <div className="w-10 h-10 border-3 border-slate-200 border-t-accent rounded-full animate-spin" />
           <p className="text-xs font-semibold">Проверка сессии Active Directory…</p>
         </div>
       </div>

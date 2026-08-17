@@ -207,10 +207,10 @@ export const ImageUploadAndEditor: React.FC<ImageUploadAndEditorProps> = ({
       {/* Title & Badge */}
       <div className="flex items-center justify-between">
         <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-          <ImageIcon className="w-4 h-4 text-[#1560AA]" />
+          <ImageIcon className="w-4 h-4 text-accent" />
           Обложка мероприятия (до 20 МБ)
         </label>
-        <span className="px-2.5 py-0.5 bg-blue-100 text-[#1560AA] text-[10px] font-black rounded-md uppercase">
+        <span className="px-2.5 py-0.5 bg-blue-100 text-accent text-[10px] font-black rounded-md uppercase">
           Макс. 20 МБ
         </span>
       </div>
@@ -226,7 +226,7 @@ export const ImageUploadAndEditor: React.FC<ImageUploadAndEditorProps> = ({
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Upload className="w-3.5 h-3.5 text-[#1560AA]" />
+          <Upload className="w-3.5 h-3.5 text-accent" />
           <span>Загрузить файл</span>
         </button>
 
@@ -264,7 +264,7 @@ export const ImageUploadAndEditor: React.FC<ImageUploadAndEditorProps> = ({
             onDragOver={handleDragOver}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-slate-300 hover:border-[#1560AA] bg-white p-5 rounded-2xl cursor-pointer text-center transition-all group hover:bg-blue-50/30"
+            className="border-2 border-dashed border-slate-300 hover:border-accent bg-white p-5 rounded-2xl cursor-pointer text-center transition-all group hover:bg-blue-50/30"
           >
             <input
               type="file"
@@ -278,7 +278,7 @@ export const ImageUploadAndEditor: React.FC<ImageUploadAndEditorProps> = ({
               className="hidden"
             />
 
-            <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-blue-50 group-hover:bg-[#1560AA] text-[#1560AA] group-hover:text-white flex items-center justify-center transition-colors">
+            <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-blue-50 group-hover:bg-accent text-accent group-hover:text-white flex items-center justify-center transition-colors">
               <Upload className="w-5 h-5" />
             </div>
 
@@ -321,7 +321,7 @@ export const ImageUploadAndEditor: React.FC<ImageUploadAndEditorProps> = ({
               onClick={() => handleSelectPreset(preset.url)}
               className={`relative h-20 rounded-xl overflow-hidden border-2 transition-all text-left group ${
                 currentImageUrl === preset.url
-                  ? 'border-[#1560AA] ring-2 ring-[#1560AA]/30'
+                  ? 'border-accent ring-2 ring-accent/30'
                   : 'border-slate-200 hover:border-slate-400'
               }`}
             >
@@ -343,12 +343,12 @@ export const ImageUploadAndEditor: React.FC<ImageUploadAndEditorProps> = ({
             value={urlInput}
             onChange={(e) => setUrlInput(e.target.value)}
             placeholder="https://images.unsplash.com/photo-..."
-            className="flex-1 px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:border-[#1560AA] outline-hidden"
+            className="flex-1 px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:border-accent outline-hidden"
           />
           <button
             type="button"
             onClick={handleApplyUrl}
-            className="px-3.5 py-2 bg-[#1560AA] text-white text-xs font-bold rounded-xl hover:bg-[#104d88]"
+            className="px-3.5 py-2 bg-accent text-white text-xs font-bold rounded-xl hover:bg-accent-hover"
           >
             Применить
           </button>
@@ -367,7 +367,7 @@ export const ImageUploadAndEditor: React.FC<ImageUploadAndEditorProps> = ({
             <button
               type="button"
               onClick={() => setIsEditingOpen(!isEditingOpen)}
-              className="text-xs font-bold text-[#1560AA] hover:underline flex items-center gap-1"
+              className="text-xs font-bold text-accent hover:underline flex items-center gap-1"
             >
               <Sliders className="w-3.5 h-3.5" />
               <span>{isEditingOpen ? 'Скрыть редактор' : 'Редактировать фильтры'}</span>
@@ -414,7 +414,7 @@ export const ImageUploadAndEditor: React.FC<ImageUploadAndEditorProps> = ({
                       onClick={() => setSelectedFilter(f.id as any)}
                       className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                         selectedFilter === f.id
-                          ? 'bg-[#1560AA] text-white shadow-xs'
+                          ? 'bg-accent text-white shadow-xs'
                           : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                       }`}
                     >
@@ -437,7 +437,7 @@ export const ImageUploadAndEditor: React.FC<ImageUploadAndEditorProps> = ({
                     max={150}
                     value={brightness}
                     onChange={(e) => setBrightness(Number(e.target.value))}
-                    className="w-full accent-[#1560AA]"
+                    className="w-full accent-accent"
                   />
                 </div>
 
@@ -452,7 +452,7 @@ export const ImageUploadAndEditor: React.FC<ImageUploadAndEditorProps> = ({
                     max={150}
                     value={contrast}
                     onChange={(e) => setContrast(Number(e.target.value))}
-                    className="w-full accent-[#1560AA]"
+                    className="w-full accent-accent"
                   />
                 </div>
 
@@ -467,7 +467,7 @@ export const ImageUploadAndEditor: React.FC<ImageUploadAndEditorProps> = ({
                     max={200}
                     value={saturate}
                     onChange={(e) => setSaturate(Number(e.target.value))}
-                    className="w-full accent-[#1560AA]"
+                    className="w-full accent-accent"
                   />
                 </div>
               </div>
@@ -487,7 +487,7 @@ export const ImageUploadAndEditor: React.FC<ImageUploadAndEditorProps> = ({
                   type="button"
                   onClick={handleBakeEditedImage}
                   disabled={isProcessing}
-                  className="px-3.5 py-1.5 bg-[#1560AA] hover:bg-[#104d88] text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-xs"
+                  className="px-3.5 py-1.5 bg-accent hover:bg-accent-hover text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-xs"
                 >
                   <Check className="w-3.5 h-3.5" />
                   <span>{isProcessing ? 'Запекаем...' : 'Сохранить обработку'}</span>

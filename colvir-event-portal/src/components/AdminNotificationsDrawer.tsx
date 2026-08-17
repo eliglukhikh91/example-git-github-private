@@ -21,7 +21,7 @@ export const AdminNotificationsDrawer: React.FC<AdminNotificationsDrawerProps> =
         <div className="w-screen max-w-md bg-white shadow-2xl border-l border-slate-200 flex flex-col">
           
           {/* Drawer Header */}
-          <div className="p-5 bg-gradient-to-r from-[#1560AA] to-indigo-900 text-white flex items-center justify-between">
+          <div className="p-5 bg-gradient-to-r from-accent to-indigo-900 text-white flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="p-2 bg-white/10 rounded-xl">
                 <Bell className="w-5 h-5 text-amber-300" />
@@ -51,7 +51,7 @@ export const AdminNotificationsDrawer: React.FC<AdminNotificationsDrawerProps> =
               {unreadCount > 0 && (
                 <button
                   onClick={markAllNotificationsAsRead}
-                  className="text-[#1560AA] hover:underline flex items-center gap-1 font-bold"
+                  className="text-accent hover:underline flex items-center gap-1 font-bold"
                 >
                   <CheckCheck className="w-4 h-4" />
                   <span>Прочитать все</span>
@@ -74,16 +74,16 @@ export const AdminNotificationsDrawer: React.FC<AdminNotificationsDrawerProps> =
                   onClick={() => markNotificationAsRead(notif.id)}
                   className={`p-4 rounded-2xl border transition-all cursor-pointer relative space-y-2 ${
                     !notif.read
-                      ? 'bg-[#f0f6fc] border-[#1560AA]/40 shadow-2xs'
+                      ? 'bg-accent-light border-accent/40 shadow-2xs'
                       : 'bg-white border-slate-200/80 hover:border-slate-300'
                   }`}
                 >
                   {!notif.read && (
-                    <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-[#1560AA] rounded-full ring-2 ring-white" />
+                    <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-accent rounded-full ring-2 ring-white" />
                   )}
 
                   <div className="flex items-start gap-2.5">
-                    <div className="p-2 bg-white rounded-xl border border-slate-200 text-[#1560AA] shrink-0 mt-0.5">
+                    <div className="p-2 bg-white rounded-xl border border-slate-200 text-accent shrink-0 mt-0.5">
                       <UserPlus className="w-4 h-4" />
                     </div>
 
@@ -96,7 +96,7 @@ export const AdminNotificationsDrawer: React.FC<AdminNotificationsDrawerProps> =
                         {notif.participantName}
                       </div>
 
-                      <div className="text-xs font-semibold text-[#1560AA] line-clamp-1">
+                      <div className="text-xs font-semibold text-accent line-clamp-1">
                         {notif.eventTitle}
                       </div>
 
@@ -110,7 +110,7 @@ export const AdminNotificationsDrawer: React.FC<AdminNotificationsDrawerProps> =
                       ) : (
                         notif.timeSlot && (
                           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-800 text-[11px] font-bold rounded-lg mt-1">
-                            <Clock className="w-3.5 h-3.5 text-[#1560AA]" />
+                            <Clock className="w-3.5 h-3.5 text-accent" />
                             <span>Слот: {notif.timeSlot}</span>
                           </div>
                         )

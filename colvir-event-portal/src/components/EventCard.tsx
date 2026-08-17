@@ -52,10 +52,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onRegister, onViewD
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
         {/* Единственный бейдж на карточке. Размер команды показывается в деталях. */}
-        <span
-          style={{ backgroundColor: '#c8dcfc', color: '#1560AA' }}
-          className="absolute top-3 left-3 px-3 py-1 text-xs font-bold rounded-lg shadow-xs"
-        >
+        <span className="absolute top-3 left-3 px-3 py-1 bg-accent-soft text-accent text-xs font-bold rounded-lg shadow-xs">
           {getCategoryLabel(event.category)}
         </span>
 
@@ -69,7 +66,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onRegister, onViewD
           <div className="flex items-start gap-2">
             <h3
               onClick={() => onViewDetails(event)}
-              className="flex-1 min-w-0 text-lg font-bold text-slate-900 hover:text-[#1560AA] transition-colors cursor-pointer line-clamp-2 leading-snug"
+              className="flex-1 min-w-0 text-lg font-bold text-slate-900 hover:text-accent transition-colors cursor-pointer line-clamp-2 leading-snug"
             >
               {event.title}
             </h3>
@@ -92,7 +89,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onRegister, onViewD
               href={event.meetingUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="shrink-0 p-1 -m-1 text-[#1560AA] hover:text-[#104d88] transition-colors"
+              className="shrink-0 p-1 -m-1 text-accent hover:text-accent-hover transition-colors"
               title="Подключиться к встрече"
               aria-label="Подключиться к встрече"
             >
@@ -103,14 +100,14 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onRegister, onViewD
 
         <div className="space-y-1.5">
           <div className="flex justify-end text-xs font-bold">
-            <span className={isFull ? 'text-amber-600' : 'text-[#1560AA]'}>
+            <span className={isFull ? 'text-amber-600' : 'text-accent'}>
               {currentCount} / {event.maxParticipants}
             </span>
           </div>
           <div className="w-full bg-slate-100 h-1 rounded-full overflow-hidden">
             <div
               className={`h-full transition-all duration-500 rounded-full ${
-                isFull ? 'bg-amber-500' : 'bg-[#1560AA]'
+                isFull ? 'bg-amber-500' : 'bg-accent'
               }`}
               style={{ width: `${progressPercent}%` }}
             />
@@ -121,7 +118,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onRegister, onViewD
           {isUserRegistered ? (
             <button
               onClick={() => onViewDetails(event)}
-              className="w-full py-2.5 px-4 bg-[#f0f6fc] border border-[#1560AA]/30 text-[#1560AA] text-xs font-bold rounded-xl hover:bg-[#1560AA] hover:text-white transition-all flex items-center justify-center gap-1.5"
+              className="w-full py-2.5 px-4 bg-accent-light border border-accent/30 text-accent text-xs font-bold rounded-xl hover:bg-accent hover:text-white transition-all flex items-center justify-center gap-1.5"
             >
               <span>Посмотреть детали</span>
               <ChevronRight className="w-4 h-4" />
@@ -136,7 +133,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onRegister, onViewD
           ) : (
             <button
               onClick={() => onRegister(event)}
-              className="w-full py-2.5 px-4 bg-[#1560AA] hover:bg-[#104d88] text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 active:scale-95"
+              className="w-full py-2.5 px-4 bg-accent hover:bg-accent-hover text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 active:scale-95"
             >
               <span>Записаться</span>
               <ChevronRight className="w-4 h-4" />

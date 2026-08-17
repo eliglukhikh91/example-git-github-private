@@ -33,7 +33,7 @@ export const ThemedEventStrip: React.FC<ThemedEventStripProps> = ({ onViewDetail
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex items-center gap-2 mb-3">
-        <Icon className="w-4 h-4 shrink-0" style={{ color: 'var(--theme-accent)' }} />
+        <Icon className="w-4 h-4 shrink-0 text-accent" />
         <h3 className="text-sm font-black text-slate-900 tracking-tight">
           Подборка: {themeInfo.label}
         </h3>
@@ -44,7 +44,7 @@ export const ThemedEventStrip: React.FC<ThemedEventStripProps> = ({ onViewDetail
           <button
             key={event.id}
             onClick={() => onViewDetails(event)}
-            className="text-left bg-white border border-slate-200 rounded-2xl p-4 hover:border-[#1560AA]/40 transition-colors group"
+            className="text-left bg-white border border-slate-200 rounded-2xl p-4 hover:border-accent/40 transition-colors group"
           >
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
               {getCategoryLabel(event.category)}
@@ -54,7 +54,7 @@ export const ThemedEventStrip: React.FC<ThemedEventStripProps> = ({ onViewDetail
             </h4>
             <p className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
               <span className="truncate">{event.date}</span>
-              <ArrowRight className="w-3.5 h-3.5 shrink-0 text-[#1560AA] opacity-0 group-hover:opacity-100 transition-opacity" />
+              <ArrowRight className="w-3.5 h-3.5 shrink-0 text-accent opacity-0 group-hover:opacity-100 transition-opacity" />
             </p>
           </button>
         ))}

@@ -94,7 +94,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
               {isAdmin && (
                 <button
                   onClick={() => setIsEditModalOpen(true)}
-                  className="px-3 py-1.5 bg-white/95 hover:bg-white text-[#1560AA] rounded-xl font-bold text-xs shadow-md transition-all flex items-center gap-1"
+                  className="px-3 py-1.5 bg-white/95 hover:bg-white text-accent rounded-xl font-bold text-xs shadow-md transition-all flex items-center gap-1"
                   title="Редактировать событие"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
@@ -110,7 +110,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
             </div>
 
             <div className="absolute bottom-4 left-6 right-6 text-white space-y-1">
-              <span className="px-3 py-1 bg-[#1560AA] text-white text-xs font-extrabold rounded-lg inline-block">
+              <span className="px-3 py-1 bg-accent text-white text-xs font-extrabold rounded-lg inline-block">
                 {event.isTeamGame ? 'Командное соревнование' : 'Клубная встреча'}
               </span>
               <h2 className="text-2xl font-black leading-tight drop-shadow-sm">
@@ -126,7 +126,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200/80 text-xs">
               <div className="space-y-0.5">
                 <span className="text-slate-400 font-semibold block flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-[#1560AA]" />
+                  <Calendar className="w-3.5 h-3.5 text-accent" />
                   Дата:
                 </span>
                 <strong className="text-slate-900 text-sm">{event.date}</strong>
@@ -134,7 +134,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
               <div className="space-y-0.5">
                 <span className="text-slate-400 font-semibold block flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-[#1560AA]" />
+                  <Clock className="w-3.5 h-3.5 text-accent" />
                   Слоты времени (МСК):
                 </span>
                 <strong className="text-slate-900 text-xs block">
@@ -144,7 +144,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
               <div className="space-y-0.5">
                 <span className="text-slate-400 font-semibold block flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-[#1560AA]" />
+                  <MapPin className="w-3.5 h-3.5 text-accent" />
                   Локация:
                 </span>
                 <strong className="text-slate-900 text-xs block truncate">{event.location}</strong>
@@ -155,7 +155,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
               {event.isTeamGame && (
                 <div className="space-y-0.5">
                   <span className="text-slate-400 font-semibold block flex items-center gap-1">
-                    <Users className="w-3.5 h-3.5 text-[#1560AA]" />
+                    <Users className="w-3.5 h-3.5 text-accent" />
                     Формат:
                   </span>
                   <strong className="text-slate-900 text-xs block">
@@ -169,7 +169,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
             {event.meetingUrl && (
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl flex items-center justify-between gap-4">
                 <div className="space-y-0.5">
-                  <div className="text-xs font-bold text-[#1560AA] uppercase tracking-wider">
+                  <div className="text-xs font-bold text-accent uppercase tracking-wider">
                     Онлайн-трансляция / Встреча
                   </div>
                   <div className="text-xs text-slate-600 truncate max-w-sm">
@@ -180,7 +180,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                   href={event.meetingUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-2.5 bg-[#1560AA] hover:bg-[#104d88] text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5 shrink-0"
+                  className="px-4 py-2.5 bg-accent hover:bg-accent-hover text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5 shrink-0"
                 >
                   <span>Подключиться</span>
                 </a>
@@ -218,13 +218,13 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
             <div className="p-5 bg-gradient-to-br from-slate-50 to-blue-50/40 rounded-2xl border border-slate-200/80 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Star className="w-5 h-5 text-[#1560AA] fill-[#1560AA]" />
+                  <Star className="w-5 h-5 text-accent fill-accent" />
                   <h3 className="text-sm font-bold text-slate-900">
                     Оценка мероприятия
                   </h3>
                 </div>
                 {isAdmin && avgRating > 0 && (
-                  <div className="px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-xl text-[11px] font-bold text-[#1560AA]">
+                  <div className="px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-xl text-[11px] font-bold text-accent">
                     Админ: средняя оценка {avgRating}/10 ({eventRatings.length})
                   </div>
                 )}
@@ -233,7 +233,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
               {(myExistingRating && !isEditingRating) || ratingSuccessMsg ? (
                 <div className="p-4 bg-[#EBF3FE] border border-blue-200 rounded-2xl text-slate-800 font-bold text-xs flex items-center justify-between shadow-2xs">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-2xl bg-[#1560AA] text-white flex items-center justify-center font-black shrink-0 shadow-xs">
+                    <div className="w-9 h-9 rounded-2xl bg-accent text-white flex items-center justify-center font-black shrink-0 shadow-xs">
                       <CheckCircle2 className="w-5 h-5 text-white" />
                     </div>
                     <div>
@@ -248,7 +248,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsEditingRating(true)}
-                    className="text-[11px] text-[#1560AA] hover:underline font-extrabold px-3 py-1.5 bg-white rounded-xl border border-slate-200 cursor-pointer shadow-2xs"
+                    className="text-[11px] text-accent hover:underline font-extrabold px-3 py-1.5 bg-white rounded-xl border border-slate-200 cursor-pointer shadow-2xs"
                   >
                     Изменить
                   </button>
@@ -261,7 +261,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
                       <span>Выберите оценку от 1 до 10:</span>
-                      <span className="text-sm font-black text-[#1560AA]">{userRatingScore} / 10</span>
+                      <span className="text-sm font-black text-accent">{userRatingScore} / 10</span>
                     </label>
                     
                     {/* 1 to 10 scale buttons */}
@@ -273,7 +273,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                           onClick={() => setUserRatingScore(score)}
                           className={`py-2 rounded-lg text-xs font-extrabold transition-all border cursor-pointer ${
                             userRatingScore === score
-                              ? 'bg-[#1560AA] text-white border-[#1560AA] shadow-xs scale-105'
+                              ? 'bg-accent text-white border-accent shadow-xs scale-105'
                               : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                           }`}
                         >
@@ -293,7 +293,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                       onChange={(e) => setRatingComment(e.target.value)}
                       placeholder="Что вам особенно понравилось или что стоит улучшить?"
                       rows={2}
-                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1560AA]/30 focus:border-[#1560AA]"
+                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
                     />
                   </div>
 
@@ -309,7 +309,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                     )}
                     <button
                       type="submit"
-                      className="w-full py-2.5 bg-[#1560AA] hover:bg-[#104d88] text-white text-xs font-bold rounded-xl transition-all shadow-2xs cursor-pointer"
+                      className="w-full py-2.5 bg-accent hover:bg-accent-hover text-white text-xs font-bold rounded-xl transition-all shadow-2xs cursor-pointer"
                     >
                       {myExistingRating ? 'Сохранить изменения' : 'Отправить оценку'}
                     </button>
@@ -322,10 +322,10 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
             <div className="space-y-3 pt-2 border-t border-slate-100">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <Users className="w-4 h-4 text-[#1560AA]" />
+                  <Users className="w-4 h-4 text-accent" />
                   {event.isTeamGame ? `Сформированные команды (${teams.length})` : `Зарегистрированные сотрудники (${participants.length})`}
                 </h3>
-                <span className="text-xs font-bold text-[#1560AA]">
+                <span className="text-xs font-bold text-accent">
                   {participants.length} / {event.maxParticipants} мест
                 </span>
               </div>
@@ -363,7 +363,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                     </span>
                   ))}
                   {participants.length > 10 && (
-                    <span className="px-2.5 py-1 bg-[#f0f6fc] text-[#1560AA] font-bold text-xs rounded-lg">
+                    <span className="px-2.5 py-1 bg-accent-light text-accent font-bold text-xs rounded-lg">
                       +{participants.length - 10} еще
                     </span>
                   )}
@@ -383,7 +383,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                   className={`w-full py-3.5 px-4 rounded-xl font-bold text-sm shadow-xs transition-all flex items-center justify-center gap-2 ${
                     isFull
                       ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
-                      : 'bg-[#1560AA] hover:bg-[#104d88] text-white active:scale-98'
+                      : 'bg-accent hover:bg-accent-hover text-white active:scale-98'
                   }`}
                 >
                   <span>{isFull ? 'Мест нет (Группа заполнена)' : 'Записаться на мероприятие'}</span>
