@@ -68,12 +68,23 @@ const NOTIFICATION_COLUMNS = `
 `;
 
 /** Административная лента: события по всем сотрудникам. */
-export async function listAdminNotifications(limit = 200): Promise<NotificationDto[]> {
+/**
+ * Лента администратора: записи на мероприятия плюс его собственные личные
+ * уведомления.
+ *
+ * Личные раньше сюда не попадали, и упоминание администратора в чате или его
+ * пара по Random Coffee просто не доходили: в его ленте показывались только
+ * записи с audience = 'admin'.
+ */
+export async function listAdminNotifications(
+  adminUserId: string,
+  limit = 200
+): Promise<NotificationDto[]> {
   const { rows } = await query<NotificationRow>(
     `SELECT ${NOTIFICATION_COLUMNS} FROM notifications
-     WHERE audience = 'admin'
-     ORDER BY created_at DESC LIMIT $1`,
-    [limit]
+     WHERE audience = 'admin' OR (audience = 'user' AND user_id = $1)
+     ORDER BY created_at DESC LIMIT $2`,
+    [adminUserId, limit]
   );
   return rows.map(toNotification);
 }
@@ -388,6 +399,11 @@ export async function archiveChatChannel(channelId: string): Promise<void> {
   }
 }
 
+export interface ChatMentionDto {
+  userId: string;
+  displayName: string;
+}
+
 export interface ChatMessageDto {
   id: string;
   channelId: string;
@@ -396,6 +412,7 @@ export interface ChatMessageDto {
   text: string;
   time: string;
   attachment?: AttachmentDto | null;
+  mentions?: ChatMentionDto[];
 }
 
 interface ChatMessageRow {
@@ -439,14 +456,102 @@ export async function listChatMessages(
   );
 
   const messages = rows.map(toChatMessage);
+  const ids = messages.map((message) => message.id);
 
-  // Вложения подтягиваются одним запросом на всю страницу сообщений, а не по
-  // запросу на сообщение.
-  const attachments = await listAttachmentsForMessages(messages.map((message) => message.id));
+  // Вложения и упоминания подтягиваются одним запросом на всю страницу
+  // сообщений, а не по запросу на сообщение.
+  const [attachments, mentions] = await Promise.all([
+    listAttachmentsForMessages(ids),
+    listMentionsForMessages(ids)
+  ]);
+
   return messages.map((message) => ({
     ...message,
-    attachment: attachments.get(message.id) ?? null
+    attachment: attachments.get(message.id) ?? null,
+    mentions: mentions.get(message.id) ?? []
   }));
+}
+
+async function listMentionsForMessages(
+  messageIds: readonly string[]
+): Promise<Map<string, ChatMentionDto[]>> {
+  if (messageIds.length === 0) return new Map();
+
+  const { rows } = await query<{ message_id: string; user_id: string; display_name: string }>(
+    `SELECT message_id, user_id, display_name
+     FROM chat_mentions
+     WHERE message_id = ANY($1::text[])`,
+    [messageIds as string[]]
+  );
+
+  const byMessage = new Map<string, ChatMentionDto[]>();
+  for (const row of rows) {
+    const list = byMessage.get(row.message_id) ?? [];
+    list.push({ userId: row.user_id, displayName: row.display_name });
+    byMessage.set(row.message_id, list);
+  }
+  return byMessage;
+}
+
+/**
+ * Записывает упоминания и рассылает уведомления упомянутым.
+ *
+ * Возвращает только тех, кого удалось связать с учетной записью: неизвестные
+ * идентификаторы молча отбрасываются, чтобы подделанный запрос не создавал
+ * записей и не порождал уведомлений в никуда.
+ */
+export async function saveChatMentions(input: {
+  messageId: string;
+  userIds: readonly string[];
+  channelId: string;
+  authorUserId: string;
+  authorName: string;
+  messageText: string;
+}): Promise<ChatMentionDto[]> {
+  // Себя упоминать незачем, повторы схлопываем — иначе одному человеку пришло
+  // бы несколько одинаковых уведомлений об одном сообщении.
+  const unique = Array.from(new Set(input.userIds)).filter((id) => id !== input.authorUserId);
+  if (unique.length === 0) return [];
+
+  const { rows: known } = await query<{ id: string; display_name: string }>(
+    'SELECT id, display_name FROM users WHERE id = ANY($1::uuid[])',
+    [unique]
+  );
+  if (known.length === 0) return [];
+
+  const { rows: channel } = await query<{ name: string }>(
+    'SELECT name FROM chat_channels WHERE id = $1',
+    [input.channelId]
+  );
+  const channelName = channel[0]?.name ?? 'Чат';
+
+  const mentions: ChatMentionDto[] = [];
+
+  for (const user of known) {
+    await query(
+      `INSERT INTO chat_mentions (message_id, user_id, display_name)
+       VALUES ($1,$2,$3)
+       ON CONFLICT (message_id, user_id) DO NOTHING`,
+      [input.messageId, user.id, user.display_name]
+    );
+
+    await createNotification({
+      audience: 'user',
+      userId: user.id,
+      eventTitle: channelName,
+      participantName: input.authorName,
+      type: 'chat_mention',
+      // Формулировка без рода: имя автора выводится отдельным полем, поэтому
+      // «упомянул/упомянула» здесь не нужно.
+      messageText: input.messageText
+        ? `Вас упомянули в «${channelName}»: ${input.messageText}`
+        : `Вас упомянули в «${channelName}» в сообщении с картинкой`
+    });
+
+    mentions.push({ userId: user.id, displayName: user.display_name });
+  }
+
+  return mentions;
 }
 
 export async function sendChatMessage(input: {

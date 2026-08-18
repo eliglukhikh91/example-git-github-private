@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { getConfig } from '../config/env.js';
 import { requireAuth, requireAdmin } from '../auth/middleware.js';
 import { toPublicUser } from '../auth/routes.js';
-import { updateEditableProfile } from '../services/users.js';
+import { updateEditableProfile, searchColleagues } from '../services/users.js';
 import {
   listEvents,
   createEvent,
@@ -39,6 +39,7 @@ import {
   archiveChatChannel,
   ChatChannelError,
   sendChatMessage,
+  saveChatMentions,
   DEFAULT_CHAT_CHANNEL
 } from '../services/engagement.js';
 import {
@@ -111,7 +112,10 @@ const chatMessageSchema = z.object({
   // Текст необязателен: сообщение может состоять из одной картинки. Пустое
   // сообщение без вложения отсекается в самом маршруте.
   text: z.string().trim().max(2000).optional(),
-  channelId: z.string().trim().max(60).optional()
+  channelId: z.string().trim().max(60).optional(),
+  // Упоминания приходят идентификаторами, а не именами: имя ненадежно из-за
+  // тезок и смены фамилии. Неизвестные идентификаторы сервер молча отбрасывает.
+  mentions: z.array(z.string().uuid()).max(20).optional()
 });
 
 const chatChannelSchema = z.object({
@@ -198,7 +202,7 @@ export function createApiRouter(): Router {
       listCoffeeSlots(),
       listOrganizerTags(),
       listRatings(),
-      isAdmin ? listAdminNotifications() : listUserNotifications(user.id),
+      isAdmin ? listAdminNotifications(user.id) : listUserNotifications(user.id),
       getTheme(),
       listChatChannels()
     ]);
@@ -330,7 +334,9 @@ export function createApiRouter(): Router {
   router.get('/notifications', async (req, res) => {
     const user = req.user!;
     const notifications =
-      user.role === 'admin' ? await listAdminNotifications() : await listUserNotifications(user.id);
+      user.role === 'admin'
+        ? await listAdminNotifications(user.id)
+        : await listUserNotifications(user.id);
     res.json({ success: true, notifications });
   });
 
@@ -427,6 +433,22 @@ export function createApiRouter(): Router {
     res.json({ success: true, channels: await listChatChannels() });
   });
 
+  /**
+   * Подсказка коллег для упоминания в чате.
+   *
+   * Ищем среди тех, кто хотя бы раз входил в портал: остальных упоминать
+   * бессмысленно, уведомление им прийти некуда. Маршрут под общей
+   * аутентификацией — список сотрудников не должен быть открыт наружу.
+   */
+  router.get('/colleagues', async (req, res) => {
+    const colleagues = await searchColleagues({
+      query: String(req.query.q ?? '').slice(0, 100),
+      excludeUserId: req.user!.id,
+      limit: 8
+    });
+    res.json({ success: true, colleagues });
+  });
+
   // Каналы открытые: читать и писать может любой сотрудник, создавать — только
   // администратор, поэтому ограничение стоит здесь, а не в списке участников.
   router.post('/chat/channels', requireAdmin, async (req, res) => {
@@ -483,10 +505,21 @@ export function createApiRouter(): Router {
    */
   router.post('/chat/messages', acceptImage, async (req, res) => {
     const file = req.file;
+    // В multipart все поля приходят строками, поэтому список упоминаний
+    // передается как JSON-строка и разбирается здесь.
+    let mentions: unknown = req.body?.mentions;
+    if (typeof mentions === 'string') {
+      try {
+        mentions = JSON.parse(mentions);
+      } catch {
+        mentions = undefined;
+      }
+    }
+
     const parsed = chatMessageSchema.safeParse({
-      // В multipart все поля приходят строками, пустое поле текста допустимо.
       text: typeof req.body?.text === 'string' ? req.body.text : req.body?.text,
-      channelId: req.body?.channelId
+      channelId: req.body?.channelId,
+      mentions: Array.isArray(mentions) ? mentions : undefined
     });
 
     if (!parsed.success) {
@@ -525,7 +558,20 @@ export function createApiRouter(): Router {
         await attachToMessage(attachment.id, message.id);
       }
 
-      res.status(201).json({ success: true, message: { ...message, attachment } });
+      const mentioned = parsed.data.mentions?.length
+        ? await saveChatMentions({
+            messageId: message.id,
+            userIds: parsed.data.mentions,
+            channelId: parsed.data.channelId ?? DEFAULT_CHAT_CHANNEL,
+            authorUserId: user.id,
+            authorName: message.author,
+            messageText: text
+          })
+        : [];
+
+      res
+        .status(201)
+        .json({ success: true, message: { ...message, attachment, mentions: mentioned } });
     } catch (error) {
       // Картинка уже сохранена, а сообщение записать не вышло — например,
       // канал закрыли, пока файл загружался. Убираем файл, чтобы в хранилище

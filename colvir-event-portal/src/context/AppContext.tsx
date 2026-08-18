@@ -105,7 +105,9 @@ interface AppContextType {
   /** Отправка сообщения. Картинка необязательна, текст при ней может быть пустым. */
   sendChatMessage: (
     text: string,
-    image?: File | null
+    image?: File | null,
+    /** Идентификаторы упомянутых коллег: они получат личное уведомление. */
+    mentions?: string[]
   ) => Promise<{ success: boolean; message: string }>;
 
   /** Отметить свои удобные слоты в текущем цикле Random Coffee. */
@@ -544,7 +546,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // только администратор — это проверяет сервер, интерфейс лишь прячет кнопки.
   // ---------------------------------------------------------------------------
   const sendChatMessage = useCallback(
-    async (text: string, image?: File | null) => {
+    async (text: string, image?: File | null, mentions?: string[]) => {
       try {
         // С картинкой уходит multipart, без нее — обычный JSON: гонять пустую
         // форму ради текстового сообщения незачем.
@@ -554,9 +556,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           form.append('text', text);
           form.append('channelId', activeChannelId);
           form.append('image', image, image.name);
+          // В multipart нет вложенных структур, поэтому список уходит строкой.
+          if (mentions?.length) form.append('mentions', JSON.stringify(mentions));
           body = form;
         } else {
-          body = { text, channelId: activeChannelId };
+          body = { text, channelId: activeChannelId, mentions };
         }
 
         const response = await api.post<{ message: ChatMessage }>('/api/chat/messages', body);

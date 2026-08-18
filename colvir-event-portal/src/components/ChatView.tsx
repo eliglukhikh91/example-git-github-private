@@ -11,6 +11,8 @@ import {
   ImagePlus
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { api } from '../api/client';
+import type { ChatMention, Colleague } from '../types';
 
 /**
  * Чат компании с тематическими группами.
@@ -40,6 +42,68 @@ function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} Б`;
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} КБ`;
   return `${(bytes / 1024 / 1024).toFixed(1)} МБ`;
+}
+
+/**
+ * Ищет упоминание, которое сотрудник набирает прямо сейчас.
+ *
+ * Подсказка нужна только когда «собачка» стоит в начале слова: в адресе почты
+ * она в середине, и там подсказка была бы помехой. Имя может состоять из
+ * нескольких слов, поэтому в запрос берем до трех слов после «@».
+ */
+function findMentionQuery(text: string, caret: number): { start: number; query: string } | null {
+  const before = text.slice(0, caret);
+  const at = before.lastIndexOf('@');
+  if (at === -1) return null;
+
+  const charBefore = at > 0 ? before[at - 1] : ' ';
+  if (!/\s/.test(charBefore)) return null;
+
+  const query = before.slice(at + 1);
+  if (query.includes('\n') || query.split(/\s+/).length > 3) return null;
+
+  return { start: at, query };
+}
+
+/** Разбивает текст на куски, подсвечивая имена упомянутых. */
+function splitByMentions(
+  text: string,
+  mentions: readonly ChatMention[]
+): { text: string; mention: ChatMention | null }[] {
+  if (mentions.length === 0) return [{ text, mention: null }];
+
+  // Длинные имена сначала: иначе «Иван» съел бы начало «Иванов Иван».
+  const sorted = [...mentions].sort((a, b) => b.displayName.length - a.displayName.length);
+  const parts: { text: string; mention: ChatMention | null }[] = [];
+
+  let rest = text;
+  outer: while (rest.length > 0) {
+    for (const mention of sorted) {
+      const token = `@${mention.displayName}`;
+      const index = rest.indexOf(token);
+      if (index === 0) {
+        parts.push({ text: token, mention });
+        rest = rest.slice(token.length);
+        continue outer;
+      }
+    }
+
+    // Ближайшее вхождение любого имени — до него текст идет как есть.
+    const next = sorted
+      .map((mention) => rest.indexOf(`@${mention.displayName}`))
+      .filter((index) => index > 0)
+      .sort((a, b) => a - b)[0];
+
+    if (next === undefined) {
+      parts.push({ text: rest, mention: null });
+      break;
+    }
+
+    parts.push({ text: rest.slice(0, next), mention: null });
+    rest = rest.slice(next);
+  }
+
+  return parts;
 }
 
 function pluralizeMessages(count: number): string {
@@ -74,8 +138,15 @@ export const ChatView: React.FC = () => {
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ url: string; name: string } | null>(null);
+  const [suggestions, setSuggestions] = useState<Colleague[]>([]);
+  const [suggestionIndex, setSuggestionIndex] = useState(0);
+  const [mentionStart, setMentionStart] = useState<number | null>(null);
+  // Кого выбрали из подсказки: имена в тексте могут поменяться при правке,
+  // поэтому связь с учетной записью держим отдельно и перед отправкой сверяем.
+  const [pickedMentions, setPickedMentions] = useState<ChatMention[]>([]);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const textInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: 'end' });
@@ -102,6 +173,74 @@ export const ChatView: React.FC = () => {
     setImagePreview(url);
     return () => URL.revokeObjectURL(url);
   }, [image]);
+
+  /** Реагирует на ввод: показывает подсказку, если набирается упоминание. */
+  const handleTextChange = async (value: string, caret: number) => {
+    setText(value);
+
+    const found = findMentionQuery(value, caret);
+    if (!found) {
+      setSuggestions([]);
+      setMentionStart(null);
+      return;
+    }
+
+    setMentionStart(found.start);
+    setSuggestionIndex(0);
+    try {
+      const response = await api.get<{ colleagues: Colleague[] }>(
+        `/api/colleagues?q=${encodeURIComponent(found.query)}`
+      );
+      setSuggestions(response.colleagues);
+    } catch {
+      // Подсказка необязательна: без нее сообщение все равно отправится.
+      setSuggestions([]);
+    }
+  };
+
+  const applySuggestion = (colleague: Colleague) => {
+    if (mentionStart === null) return;
+
+    const caret = textInputRef.current?.selectionStart ?? text.length;
+    const inserted = `@${colleague.displayName} `;
+    const next = text.slice(0, mentionStart) + inserted + text.slice(caret);
+
+    setText(next);
+    setPickedMentions((prev) =>
+      prev.some((mention) => mention.userId === colleague.id)
+        ? prev
+        : [...prev, { userId: colleague.id, displayName: colleague.displayName }]
+    );
+    setSuggestions([]);
+    setMentionStart(null);
+
+    // Возвращаем курсор сразу за подставленным именем.
+    requestAnimationFrame(() => {
+      const position = mentionStart + inserted.length;
+      textInputRef.current?.focus();
+      textInputRef.current?.setSelectionRange(position, position);
+    });
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (suggestions.length === 0) return;
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setSuggestionIndex((prev) => (prev + 1) % suggestions.length);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setSuggestionIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
+    } else if (event.key === 'Enter' || event.key === 'Tab') {
+      // Enter при открытой подсказке выбирает коллегу, а не отправляет
+      // сообщение — иначе половина упоминаний уходила бы недописанными.
+      event.preventDefault();
+      applySuggestion(suggestions[suggestionIndex]);
+    } else if (event.key === 'Escape') {
+      setSuggestions([]);
+      setMentionStart(null);
+    }
+  };
 
   const pickImage = (file: File | null) => {
     if (!file) return;
@@ -131,12 +270,24 @@ export const ChatView: React.FC = () => {
 
     setIsSending(true);
     setShowEmojiPicker(false);
+    setSuggestions([]);
 
-    const result = await sendChatMessage(trimmed, image);
+    // Отправляем только тех, чье имя осталось в тексте: если человек стер
+    // упоминание, уведомление ему приходить не должно.
+    const stillMentioned = pickedMentions.filter((mention) =>
+      trimmed.includes(`@${mention.displayName}`)
+    );
+
+    const result = await sendChatMessage(
+      trimmed,
+      image,
+      stillMentioned.map((mention) => mention.userId)
+    );
     setIsSending(false);
 
     if (result.success) {
       setText('');
+      setPickedMentions([]);
       clearImage();
     } else {
       // Текст и картинку намеренно не стираем: иначе после отказа сервера
@@ -358,7 +509,24 @@ export const ChatView: React.FC = () => {
                   </div>
                   {message.text && (
                     <p className="text-sm text-slate-800 leading-snug mt-1 whitespace-pre-wrap break-words">
-                      {message.text}
+                      {splitByMentions(message.text, message.mentions ?? []).map((part, index) =>
+                        part.mention ? (
+                          <strong
+                            key={index}
+                            // Свое упоминание выделяем сильнее: в длинной ленте
+                            // важно быстро увидеть, что обратились именно к вам.
+                            className={
+                              part.mention.userId === userProfile.id
+                                ? 'px-1 rounded bg-amber-100 text-amber-900 font-bold'
+                                : 'text-accent font-bold'
+                            }
+                          >
+                            {part.text}
+                          </strong>
+                        ) : (
+                          <React.Fragment key={index}>{part.text}</React.Fragment>
+                        )
+                      )}
                     </p>
                   )}
 
@@ -382,6 +550,10 @@ export const ChatView: React.FC = () => {
                         // тянуло бы их все разом.
                         loading="lazy"
                         decoding="async"
+                        // Картинка занимает место уже после загрузки и сдвигает
+                        // ленту вниз: без повторной прокрутки последнее
+                        // сообщение оказывалось за пределами видимой части.
+                        onLoad={() => bottomRef.current?.scrollIntoView({ block: 'end' })}
                         className="max-h-72 w-auto max-w-full object-contain"
                       />
                     </button>
@@ -448,6 +620,54 @@ export const ChatView: React.FC = () => {
           </div>
         )}
 
+        {/* Подсказка коллег при вводе «@» */}
+        {suggestions.length > 0 && (
+          <div className="px-4 sm:px-5 pb-3">
+            <ul
+              className="border border-slate-200 rounded-xl bg-white overflow-hidden shadow-sm"
+              role="listbox"
+              aria-label="Коллеги"
+            >
+              {suggestions.map((colleague, index) => (
+                <li key={colleague.id}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={index === suggestionIndex}
+                    onMouseEnter={() => setSuggestionIndex(index)}
+                    onClick={() => applySuggestion(colleague)}
+                    className={`w-full text-left px-3.5 py-2.5 flex items-center gap-3 transition-colors ${
+                      index === suggestionIndex ? 'bg-accent-soft' : 'hover:bg-slate-50'
+                    }`}
+                  >
+                    {colleague.avatarUrl ? (
+                      <img
+                        src={colleague.avatarUrl}
+                        alt=""
+                        className="w-7 h-7 rounded-lg object-cover shrink-0"
+                      />
+                    ) : (
+                      <span className="w-7 h-7 rounded-lg bg-accent text-white text-xs font-black flex items-center justify-center shrink-0">
+                        {colleague.displayName.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                    <span className="min-w-0">
+                      <span className="block text-xs font-bold text-slate-900 truncate">
+                        {colleague.displayName}
+                      </span>
+                      {colleague.department && (
+                        <span className="block text-[11px] text-slate-500 truncate">
+                          {colleague.department}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <form
           onSubmit={handleSubmit}
           className="border-t border-slate-200 p-3 sm:p-4 flex items-center gap-2"
@@ -479,11 +699,16 @@ export const ChatView: React.FC = () => {
           </button>
 
           <input
+            ref={textInputRef}
             type="text"
             value={text}
-            onChange={(event) => setText(event.target.value)}
-            placeholder={image ? 'Подпись, необязательно…' : 'Написать сообщение…'}
+            onChange={(event) =>
+              void handleTextChange(event.target.value, event.target.selectionStart ?? 0)
+            }
+            onKeyDown={handleKeyDown}
+            placeholder={image ? 'Подпись, необязательно…' : 'Сообщение, «@» — упомянуть коллегу'}
             maxLength={2000}
+            autoComplete="off"
             className="flex-1 min-w-0 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-accent focus:ring-2 focus:ring-accent/20 outline-hidden"
           />
 

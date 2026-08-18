@@ -135,6 +135,58 @@ export async function findUserByUpn(upn: string): Promise<UserRecord | null> {
   return rows[0] ? toUser(rows[0]) : null;
 }
 
+export interface ColleagueDto {
+  id: string;
+  displayName: string;
+  department: string;
+  email: string;
+  avatarUrl: string | null;
+}
+
+/**
+ * Поиск коллег для подсказки при упоминании в чате.
+ *
+ * Ищем среди тех, кто хотя бы раз входил в портал: остальных упоминать
+ * бессмысленно — уведомление им прийти некуда, они его просто не увидят.
+ * Поэтому источником служит таблица users, а не каталог домена целиком.
+ *
+ * Себя из выдачи исключаем: упоминать самого себя незачем.
+ */
+export async function searchColleagues(
+  input: { query: string; excludeUserId?: string; limit?: number } = { query: '' }
+): Promise<ColleagueDto[]> {
+  const search = input.query.trim().toLowerCase();
+  const limit = Math.min(Math.max(input.limit ?? 8, 1), 25);
+
+  const { rows } = await query<{
+    id: string;
+    display_name: string;
+    department: string;
+    email: string;
+    avatar_url: string | null;
+  }>(
+    `SELECT id, display_name, department, email, avatar_url
+     FROM users
+     WHERE ($1 = '' OR lower(display_name) LIKE '%' || $1 || '%' OR lower(email) LIKE '%' || $1 || '%')
+       AND ($2::uuid IS NULL OR id <> $2::uuid)
+     ORDER BY
+       -- Совпадения с начала имени показываем первыми: набирая «Ив», ожидаешь
+       -- увидеть Иванова, а не тех, у кого «ив» встретилось в середине.
+       CASE WHEN lower(display_name) LIKE $1 || '%' THEN 0 ELSE 1 END,
+       display_name
+     LIMIT $3`,
+    [search, input.excludeUserId ?? null, limit]
+  );
+
+  return rows.map((row) => ({
+    id: row.id,
+    displayName: row.display_name,
+    department: row.department,
+    email: row.email,
+    avatarUrl: row.avatar_url
+  }));
+}
+
 export interface EditableProfileFields {
   telegram?: string;
   phone?: string;

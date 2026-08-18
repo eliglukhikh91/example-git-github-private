@@ -458,6 +458,120 @@ describe('Тематические группы чата', () => {
   });
 });
 
+describe('Упоминания в чате', () => {
+  let adminId = '';
+  let employeeId = '';
+
+  test('подсказка коллег не показывает тебя самого', async () => {
+    const response = await employee.request('/api/colleagues?q=');
+    assert.equal(response.status, 200);
+
+    const names = response.body.colleagues.map((c: any) => c.displayName);
+    assert.ok(names.includes('Админова Анна'), 'коллега должен быть в подсказке');
+    assert.ok(!names.includes('Иванов Иван'), 'себя упоминать незачем');
+
+    adminId = response.body.colleagues.find((c: any) => c.displayName === 'Админова Анна').id;
+
+    const fromAdmin = await admin.request('/api/colleagues?q=');
+    employeeId = fromAdmin.body.colleagues.find((c: any) => c.displayName === 'Иванов Иван').id;
+  });
+
+  test('поиск ищет по части имени', async () => {
+    const response = await employee.request('/api/colleagues?q=админ');
+    assert.equal(response.status, 200);
+    assert.equal(response.body.colleagues.length, 1);
+    assert.equal(response.body.colleagues[0].displayName, 'Админова Анна');
+  });
+
+  test('список коллег не отдается без сессии', async () => {
+    const response = await anonymous.request('/api/colleagues?q=');
+    assert.equal(response.status, 401);
+  });
+
+  test('упомянутый получает личное уведомление', async () => {
+    const sent = await employee.request('/api/chat/messages', {
+      method: 'POST',
+      body: { text: '@Админова Анна посмотрите, пожалуйста', mentions: [adminId] }
+    });
+
+    assert.equal(sent.status, 201);
+    assert.equal(sent.body.message.mentions.length, 1);
+    assert.equal(sent.body.message.mentions[0].displayName, 'Админова Анна');
+
+    const notifications = await admin.request('/api/notifications');
+    const mention = notifications.body.notifications.find((n: any) => n.type === 'chat_mention');
+    assert.ok(mention, 'упомянутому должно прийти уведомление');
+    assert.equal(mention.participantName, 'Иванов Иван', 'в уведомлении виден автор');
+    assert.match(mention.messageText, /посмотрите, пожалуйста/);
+  });
+
+  test('упоминание приходит вместе с историей сообщений', async () => {
+    const list = await admin.request('/api/chat/messages');
+    const message = list.body.messages.find((m: any) => m.mentions?.length > 0);
+    assert.ok(message, 'упоминания должны подтягиваться к истории');
+    assert.equal(message.mentions[0].userId, adminId);
+  });
+
+  test('упоминание самого себя уведомления не создает', async () => {
+    const before = await employee.request('/api/notifications');
+    const countBefore = before.body.notifications.filter(
+      (n: any) => n.type === 'chat_mention'
+    ).length;
+
+    const sent = await employee.request('/api/chat/messages', {
+      method: 'POST',
+      body: { text: 'Напоминание себе: @Иванов Иван', mentions: [employeeId] }
+    });
+    assert.equal(sent.status, 201);
+    assert.equal(sent.body.message.mentions.length, 0, 'себя упоминать незачем');
+
+    const after = await employee.request('/api/notifications');
+    const countAfter = after.body.notifications.filter(
+      (n: any) => n.type === 'chat_mention'
+    ).length;
+    assert.equal(countAfter, countBefore);
+  });
+
+  test('несуществующий идентификатор молча отбрасывается', async () => {
+    const sent = await employee.request('/api/chat/messages', {
+      method: 'POST',
+      body: {
+        text: 'Кому-то',
+        mentions: ['00000000-0000-4000-8000-000000000000']
+      }
+    });
+
+    assert.equal(sent.status, 201, 'сообщение должно уйти');
+    assert.equal(sent.body.message.mentions.length, 0, 'связи с учетной записью нет');
+  });
+
+  test('повтор одного человека дает одно уведомление', async () => {
+    const before = await admin.request('/api/notifications');
+    const countBefore = before.body.notifications.filter(
+      (n: any) => n.type === 'chat_mention'
+    ).length;
+
+    await employee.request('/api/chat/messages', {
+      method: 'POST',
+      body: { text: '@Админова Анна и еще раз @Админова Анна', mentions: [adminId, adminId] }
+    });
+
+    const after = await admin.request('/api/notifications');
+    const countAfter = after.body.notifications.filter(
+      (n: any) => n.type === 'chat_mention'
+    ).length;
+    assert.equal(countAfter, countBefore + 1, 'уведомление должно быть одно');
+  });
+
+  test('не-uuid в списке упоминаний отклоняется', async () => {
+    const response = await employee.request('/api/chat/messages', {
+      method: 'POST',
+      body: { text: 'Привет', mentions: ['не-идентификатор'] }
+    });
+    assert.equal(response.status, 400);
+  });
+});
+
 describe('Изображения в чате', () => {
   /** Минимальный настоящий PNG: сигнатура, IHDR и IEND. */
   function pngBytes(): Buffer {

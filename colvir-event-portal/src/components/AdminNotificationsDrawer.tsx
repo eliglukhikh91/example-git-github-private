@@ -9,7 +9,8 @@ import {
   UserPlus,
   Gamepad2,
   Clock,
-  Coffee
+  Coffee,
+  AtSign
 } from 'lucide-react';
 
 /**
@@ -116,6 +117,8 @@ export const AdminNotificationsDrawer: React.FC<AdminNotificationsDrawerProps> =
                       {notif.type === 'random_coffee_match' ||
                       notif.type === 'random_coffee_reminder' ? (
                         <Coffee className="w-4 h-4" />
+                      ) : notif.type === 'chat_mention' ? (
+                        <AtSign className="w-4 h-4" />
                       ) : (
                         <UserPlus className="w-4 h-4" />
                       )}
@@ -133,6 +136,15 @@ export const AdminNotificationsDrawer: React.FC<AdminNotificationsDrawerProps> =
                       <div className="text-xs font-semibold text-accent line-clamp-1">
                         {notif.eventTitle}
                       </div>
+
+                      {/* Раньше текст уведомления никуда не выводился, и о чем
+                          оно — по упоминанию или паре на кофе — приходилось
+                          догадываться по имени и заголовку. */}
+                      {notif.messageText && (
+                        <p className="text-xs text-slate-600 leading-snug line-clamp-3">
+                          {notif.messageText}
+                        </p>
+                      )}
 
                       {/* Team Game Details */}
                       {notif.isTeamGame ? (

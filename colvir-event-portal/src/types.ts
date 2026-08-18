@@ -100,6 +100,7 @@ export interface AdminNotification {
     | 'random_coffee_match'
     | 'random_coffee_reminder'
     | 'direct_message'
+    | 'chat_mention'
     | string;
   messageText?: string;
 }
@@ -134,6 +135,19 @@ export interface ChatAttachment {
   url: string;
 }
 
+export interface ChatMention {
+  userId: string;
+  displayName: string;
+}
+
+export interface Colleague {
+  id: string;
+  displayName: string;
+  department: string;
+  email: string;
+  avatarUrl: string | null;
+}
+
 export interface ChatMessage {
   id: string;
   /**
@@ -148,6 +162,7 @@ export interface ChatMessage {
   text: string;
   time: string;
   attachment?: ChatAttachment | null;
+  mentions?: ChatMention[];
 }
 
 export interface ChatChannel {
