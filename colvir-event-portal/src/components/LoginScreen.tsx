@@ -16,7 +16,7 @@ import { ColvirLogo } from './ColvirLogo';
 
 /**
  * Экран входа. Портал не показывает никаких данных, пока сервер не подтвердил
- * учётную запись Active Directory — раньше приложение считало пользователя
+ * учетную запись Active Directory — раньше приложение считало пользователя
  * авторизованным по умолчанию.
  */
 export const LoginScreen: React.FC = () => {
@@ -33,7 +33,7 @@ export const LoginScreen: React.FC = () => {
     setError(null);
 
     const result = await login(email, password);
-    // Пароль не остаётся ни в состоянии компонента, ни в хранилище браузера.
+    // Пароль не остается ни в состоянии компонента, ни в хранилище браузера.
     setPassword('');
     if (!result.success) setError(result.message);
     setIsLoading(false);
@@ -59,7 +59,7 @@ export const LoginScreen: React.FC = () => {
               Портал корпоративных мероприятий
             </h1>
             <p className="text-xs text-slate-500 font-medium">
-              Вход по учётной записи Active Directory
+              Вход по учетной записи Active Directory
             </p>
           </div>
         </div>
@@ -105,7 +105,7 @@ export const LoginScreen: React.FC = () => {
                 <div className="p-4 bg-blue-50/70 border border-blue-200/80 rounded-2xl space-y-1.5">
                   <div className="flex items-center gap-2 text-xs font-black text-accent">
                     <Sparkles className="w-4 h-4" />
-                    <span>Сквозной вход по доменной учётной записи</span>
+                    <span>Сквозной вход по доменной учетной записи</span>
                   </div>
                   <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
                     Работает в корпоративной сети и через VPN: шлюз проверяет билет
@@ -155,7 +155,7 @@ export const LoginScreen: React.FC = () => {
                 </div>
                 {allowedDomains && (
                   <span className="text-[10px] text-slate-400">
-                    Разрешённые домены: {allowedDomains}
+                    Разрешенные домены: {allowedDomains}
                   </span>
                 )}
               </div>

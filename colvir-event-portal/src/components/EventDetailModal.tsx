@@ -150,7 +150,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                 <strong className="text-slate-900 text-xs block truncate">{event.location}</strong>
               </div>
 
-              {/* Размер команды перенесён сюда с карточки события, чтобы не
+              {/* Размер команды перенесен сюда с карточки события, чтобы не
                   держать на ней второй бейдж. */}
               {event.isTeamGame && (
                 <div className="space-y-0.5">

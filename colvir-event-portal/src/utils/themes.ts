@@ -9,10 +9,10 @@ export interface ThemeDescriptor {
    *
    * В брифе указаны имена из Tabler (`ti-flower`, `ti-gift`, `ti-snowflake`) —
    * здесь взяты эквиваленты из lucide-react, которая уже подключена в проекте;
-   * вторую иконочную библиотеку ради трёх глифов тянуть не стали.
+   * вторую иконочную библиотеку ради трех глифов тянуть не стали.
    */
   icon: LucideIcon;
-  /** Утверждённый цвет темы: используется для свотчей и декоративных иконок. */
+  /** Утвержденный цвет темы: используется для свотчей и декоративных иконок. */
   decor: string;
   /** CSS-класс анимации декоративной иконки (см. index.css). */
   animation: string;
@@ -59,7 +59,7 @@ export function getTheme(theme: ThemeType): ThemeDescriptor {
   return THEMES.find((item) => item.id === theme) ?? THEMES[0];
 }
 
-/** Текст баннера берётся из CMS, редактируемой администратором. */
+/** Текст баннера берется из CMS, редактируемой администратором. */
 export function getThemeBannerText(theme: ThemeType, cms: CMSContent): string {
   switch (theme) {
     case 'spring':

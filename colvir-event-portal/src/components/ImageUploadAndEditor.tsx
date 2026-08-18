@@ -403,7 +403,7 @@ export const ImageUploadAndEditor: React.FC<ImageUploadAndEditorProps> = ({
                     { id: 'normal', label: 'Оригинал' },
                     { id: 'colvir', label: 'Colvir Blue' },
                     { id: 'vibrant', label: 'Сочный' },
-                    { id: 'warm', label: 'Тёплый' },
+                    { id: 'warm', label: 'Теплый' },
                     { id: 'cool', label: 'Холодный' },
                     { id: 'contrast', label: 'Четкий' },
                     { id: 'grayscale', label: 'Монохром' }

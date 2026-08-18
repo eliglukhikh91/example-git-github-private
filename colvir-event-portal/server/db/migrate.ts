@@ -43,7 +43,7 @@ export async function runMigrations(): Promise<string[]> {
   const dir = await resolveMigrationsDir();
   const pool = getPool();
 
-  // Блокировка живёт на одном соединении, поэтому берём клиента явно
+  // Блокировка живет на одном соединении, поэтому берем клиента явно
   // и держим его до конца прогона миграций.
   const lockClient = await pool.connect();
   const applied: string[] = [];

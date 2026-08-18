@@ -4,7 +4,7 @@ import { sanitizePlainText } from '../utils/sanitize.js';
 /**
  * Random Coffee.
  *
- * Логика работает циклами, как в Slack-ботах вроде Donut:
+ * Логика работает циклами:
  *
  *   1. Администратор открывает цикл: дата встреч и дедлайн записи.
  *   2. До дедлайна сотрудники отмечают ВСЕ удобные им слоты — не один.
@@ -163,7 +163,7 @@ export async function setMyAvailability(
     throw new CoffeeError('Подбор по этому циклу уже выполнен, доступность изменить нельзя', 409);
   }
   if (new Date(cycle.registrationEndsAt).getTime() <= Date.now()) {
-    throw new CoffeeError('Срок записи в этот цикл истёк', 409);
+    throw new CoffeeError('Срок записи в этот цикл истек', 409);
   }
 
   // Принимаем только слоты из справочника, чтобы в паре не оказалось времени,
@@ -317,17 +317,17 @@ export interface MatchPlanEntry {
 /**
  * Разбивает участников на пары.
  *
- * Порядок такой: сначала берём сотрудника с наименьшим числом возможных
- * партнёров (у кого меньше всего вариантов — тому сложнее всего найти пару), и
- * подбираем ему партнёра, который тоже стеснён в вариантах. Это простой
- * «greedy by fewest options» — он не даёт математически оптимального
+ * Порядок такой: сначала берем сотрудника с наименьшим числом возможных
+ * партнеров (у кого меньше всего вариантов — тому сложнее всего найти пару), и
+ * подбираем ему партнера, который тоже стеснен в вариантах. Это простой
+ * «greedy by fewest options» — он не дает математически оптимального
  * паросочетания, но на десятках участников работает предсказуемо и не оставляет
  * без пары тех, у кого отмечен один слот.
  *
  * Ранее встречавшиеся пары исключаются, пока есть альтернативы; если
  * альтернатив нет, повтор допускается — лучше повторная встреча, чем никакой.
  *
- * При нечётном числе участников последний присоединяется к уже собранной
+ * При нечетном числе участников последний присоединяется к уже собранной
  * встрече с подходящим слотом, образуя тройку.
  */
 export function buildMatchPlan(
@@ -350,7 +350,7 @@ export function buildMatchPlan(
     );
 
   while (remaining.size > 1) {
-    // Самый «стеснённый» участник идёт первым.
+    // Самый «стесненный» участник идет первым.
     const ordered = [...remaining.values()].sort(
       (a, b) => optionsFor(a).length - optionsFor(b).length
     );
@@ -369,7 +369,7 @@ export function buildMatchPlan(
     );
     const shortlist = fresh.length > 0 ? fresh : options;
 
-    // Среди допустимых берём того, у кого тоже меньше всего вариантов.
+    // Среди допустимых берем того, у кого тоже меньше всего вариантов.
     const partner = shortlist.sort(
       (a, b) => optionsFor(a).length - optionsFor(b).length
     )[0];
@@ -380,7 +380,7 @@ export function buildMatchPlan(
     remaining.delete(partner.userId);
   }
 
-  // Нечётный участник — третьим в подходящую встречу.
+  // Нечетный участник — третьим в подходящую встречу.
   for (const leftover of [...remaining.values()]) {
     const target = plan.find((entry) => leftover.slots.has(entry.slot) && entry.members.length < 3);
     if (target) {
@@ -428,7 +428,7 @@ export interface MatchResult {
 
 /**
  * Выполняет подбор по циклу и переводит его в статус matched.
- * Идемпотентен: повторный вызов на уже сматченном цикле вернёт ошибку.
+ * Идемпотентен: повторный вызов на уже сматченном цикле вернет ошибку.
  */
 export async function runMatching(cycleId: number): Promise<MatchResult> {
   const cycle = await getCycleById(cycleId);
@@ -480,7 +480,7 @@ export async function runMatching(cycleId: number): Promise<MatchResult> {
   };
 }
 
-/** Место встречи по умолчанию берём из редактируемого администратором контента. */
+/** Место встречи по умолчанию берем из редактируемого администратором контента. */
 async function getDefaultLocation(): Promise<string> {
   const { rows } = await query<{ value: string }>(
     `SELECT value FROM cms_content WHERE key = 'randomCoffeeFormat'`
@@ -488,7 +488,7 @@ async function getDefaultLocation(): Promise<string> {
   return rows[0]?.value ?? '';
 }
 
-/** Циклы, у которых истёк дедлайн записи, — для планировщика. */
+/** Циклы, у которых истек дедлайн записи, — для планировщика. */
 export async function findCyclesDueForMatching(): Promise<CoffeeCycle[]> {
   const { rows } = await query<CycleRow>(
     `SELECT ${CYCLE_COLUMNS} FROM coffee_cycles
@@ -504,7 +504,7 @@ export async function findCyclesDueForMatching(): Promise<CoffeeCycle[]> {
 /**
  * Разбирает слот вида «10:00 - 10:15 (МСК)» и возвращает московское время начала
  * на дату встречи. Нужно, чтобы напомнить участникам ровно перед кофе-брейком.
- * Если формат неожиданный — вернём null, напоминание просто не отправится.
+ * Если формат неожиданный — вернем null, напоминание просто не отправится.
  */
 export function parseSlotStart(slot: string, meetingDate: string): Date | null {
   const match = /(\d{1,2}):(\d{2})/.exec(slot);
@@ -528,7 +528,7 @@ function describePartners(match: CoffeeMatch, forUserId: string): string {
     .join(', ');
 }
 
-/** Личные уведомления обоим (или всем трём) участникам встречи. */
+/** Личные уведомления обоим (или всем трем) участникам встречи. */
 export async function notifyMatchMembers(
   matches: readonly CoffeeMatch[],
   createNotification: (input: {
@@ -568,7 +568,7 @@ export async function notifyMatchMembers(
 
 /**
  * Встречи, которым пора отправить напоминание: слот начинается в пределах
- * ближайших `withinMinutes` минут, а напоминание ещё не уходило.
+ * ближайших `withinMinutes` минут, а напоминание еще не уходило.
  */
 export async function findMatchesDueForReminder(withinMinutes = 15): Promise<CoffeeMatch[]> {
   const { rows } = await query<{ id: number; slot: string; meeting_date: Date }>(
@@ -586,8 +586,8 @@ export async function findMatchesDueForReminder(withinMinutes = 15): Promise<Cof
       const start = parseSlotStart(row.slot, row.meeting_date.toISOString().slice(0, 10));
       if (!start) return false;
       const diffMinutes = (start.getTime() - now) / 60_000;
-      // Напоминаем незадолго до начала и ещё немного после — если планировщик
-      // проснулся с задержкой, участники всё равно получат сообщение.
+      // Напоминаем незадолго до начала и еще немного после — если планировщик
+      // проснулся с задержкой, участники все равно получат сообщение.
       return diffMinutes <= withinMinutes && diffMinutes >= -withinMinutes;
     })
     .map((row) => row.id);
@@ -631,7 +631,7 @@ export async function sendDueReminders(
         timeSlot: match.slot,
         type: 'random_coffee_reminder',
         messageText:
-          `Пора на кофе-брейк! Вас ждёт ${partners}` +
+          `Пора на кофе-брейк! Вас ждет ${partners}` +
           `${match.location ? `, формат: ${match.location}` : ''}.`
       });
       sent += 1;

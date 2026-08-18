@@ -85,7 +85,7 @@ describe('Права администратора', () => {
     assert.equal(response.status, 403);
   });
 
-  test('администратор создаёт, редактирует и удаляет мероприятие', async () => {
+  test('администратор создает, редактирует и удаляет мероприятие', async () => {
     const created = await admin.request('/api/events', {
       method: 'POST',
       body: {
@@ -114,7 +114,7 @@ describe('Права администратора', () => {
     assert.equal(updated.status, 200);
     assert.equal(updated.body.event.title, 'Квиз Colvir 2026');
 
-    // Мероприятие остаётся для следующих тестов — удаляем отдельное, временное.
+    // Мероприятие остается для следующих тестов — удаляем отдельное, временное.
     const temporary = await admin.request('/api/events', {
       method: 'POST',
       body: { title: 'Временное', maxParticipants: 1 }
@@ -170,7 +170,7 @@ describe('Запись на мероприятие', () => {
     eventId = events.body.events.find((e: any) => e.title === 'Квиз Colvir 2026').id;
   });
 
-  test('email участника берётся из сессии, а не из тела запроса', async () => {
+  test('email участника берется из сессии, а не из тела запроса', async () => {
     const response = await employee.request('/api/participants', {
       method: 'POST',
       body: {
@@ -209,13 +209,13 @@ describe('Запись на мероприятие', () => {
     const third = await startTestServer(createApp());
     try {
       await login(third, 'i.ivanov@colvir.com', 'UserPass123!');
-      // Тот же сотрудник уже записан — проверяем счётчик через прямой запрос.
+      // Тот же сотрудник уже записан — проверяем счетчик через прямой запрос.
       const counts = await query<{ count: number }>(
         `SELECT count(*)::bigint AS count FROM participants
          WHERE event_id = $1 AND status = 'confirmed'`,
         [eventId]
       );
-      assert.equal(counts.rows[0].count, 2, 'подтверждённых записей должно быть ровно 2');
+      assert.equal(counts.rows[0].count, 2, 'подтвержденных записей должно быть ровно 2');
     } finally {
       await third.close();
     }
@@ -242,7 +242,7 @@ describe('Запись на мероприятие', () => {
 });
 
 describe('Оценки мероприятий', () => {
-  test('автор оценки берётся из сессии, повторная отправка обновляет прежнюю', async () => {
+  test('автор оценки берется из сессии, повторная отправка обновляет прежнюю', async () => {
     const events = await employee.request('/api/events');
     const eventId = events.body.events[0].id;
 
@@ -279,7 +279,7 @@ describe('Оценки мероприятий', () => {
 });
 
 describe('Чат', () => {
-  test('сообщение сохраняется и автор берётся из сессии', async () => {
+  test('сообщение сохраняется и автор берется из сессии', async () => {
     const response = await employee.request('/api/chat/messages', {
       method: 'POST',
       body: { text: 'Всем отличного дня!' }
@@ -316,11 +316,11 @@ describe('Чат', () => {
         method,
         body: method === 'POST' ? { title: 'Трек' } : undefined
       });
-      assert.equal(response.status, 404, `${method} /api/holiday/tracks должен быть удалён`);
+      assert.equal(response.status, 404, `${method} /api/holiday/tracks должен быть удален`);
     }
   });
 
-  test('канал по умолчанию заведён', async () => {
+  test('канал по умолчанию заведен', async () => {
     const response = await employee.request('/api/chat/channels');
     assert.equal(response.status, 200);
     assert.ok(

@@ -21,7 +21,7 @@ function readAccessToken(req: Request): string | undefined {
 }
 
 /**
- * Требует действующую сессию. Роль берётся из базы, а не из токена, чтобы
+ * Требует действующую сессию. Роль берется из базы, а не из токена, чтобы
  * отзыв прав администратора в AD применялся при следующем же запросе.
  */
 export async function requireAuth(
@@ -39,7 +39,7 @@ export async function requireAuth(
     const claims = verifyToken(token, 'access');
     const user = await findUserById(claims.sub);
     if (!user) {
-      res.status(401).json({ success: false, message: 'Учётная запись больше не существует' });
+      res.status(401).json({ success: false, message: 'Учетная запись больше не существует' });
       return;
     }
     req.user = user;
@@ -94,7 +94,7 @@ export async function optionalAuth(
       const user = await findUserById(claims.sub);
       if (user) req.user = user;
     } catch {
-      // анонимный запрос — просто идём дальше
+      // анонимный запрос — просто идем дальше
     }
   }
   next();

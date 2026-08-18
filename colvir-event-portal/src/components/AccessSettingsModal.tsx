@@ -23,7 +23,7 @@ interface AccessSettingsModalProps {
  * которые хранились в localStorage браузера — то есть любой сотрудник мог
  * назначить себя администратором через DevTools. Теперь права определяются
  * членством в группах Active Directory и меняются только в самом домене;
- * портал их показывает, но не выдаёт.
+ * портал их показывает, но не выдает.
  */
 export const AccessSettingsModal: React.FC<AccessSettingsModalProps> = ({ isOpen, onClose }) => {
   const { user, isAdmin, directoryStatus, logout, syncWithDirectory } = useAuth();
@@ -65,7 +65,7 @@ export const AccessSettingsModal: React.FC<AccessSettingsModalProps> = ({ isOpen
         </div>
 
         <div className="p-6 space-y-5">
-          {/* Текущая учётная запись */}
+          {/* Текущая учетная запись */}
           <div className="p-5 bg-gradient-to-br from-blue-50/80 to-indigo-50/50 border border-blue-200/80 rounded-2xl space-y-3">
             <div className="flex items-start justify-between gap-3">
               <div>

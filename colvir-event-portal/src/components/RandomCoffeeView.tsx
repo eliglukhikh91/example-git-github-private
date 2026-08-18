@@ -12,11 +12,12 @@ import {
   Building
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { RandomCoffeeIllustration } from './RandomCoffeeIllustration';
 
 /**
  * Random Coffee.
  *
- * Работает циклами, как Slack-боты вроде Donut:
+ * Работает циклами:
  *
  *   1. Администратор открывает цикл — дату встреч и дедлайн записи.
  *   2. Сотрудник отмечает ВСЕ удобные ему слоты, а не один.
@@ -93,28 +94,40 @@ export const RandomCoffeeView: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      {/* Заголовок */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6">
-        <div className="flex items-start gap-3">
-          <div className="w-11 h-11 rounded-xl bg-accent-soft flex items-center justify-center shrink-0">
-            <Coffee className="w-5 h-5 text-accent" />
-          </div>
+      {/* Заголовок с иллюстрацией */}
+      <div
+        className="rounded-2xl border border-slate-200 overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #EEF4FB 0%, #E1EBF7 100%)' }}
+      >
+        <div className="flex items-center justify-between gap-4 p-6 sm:p-8">
           <div className="min-w-0">
-            <h2 className="text-xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
               {cmsContent.randomCoffeeTitle || 'Random Coffee'}
             </h2>
-            <p className="text-xs text-slate-500 mt-1 leading-relaxed max-w-2xl">
+            <p className="text-xs text-slate-600 mt-2 leading-relaxed max-w-md">
               {cmsContent.randomCoffeeDescription ||
-                'Отметьте удобные слоты — система подберёт вам случайного коллегу на короткий кофе-брейк.'}
+                'Отметьте удобные слоты — система подберет вам случайного коллегу на короткий кофе-брейк.'}
             </p>
+
+            <span className="inline-flex items-start gap-2 mt-4 px-3 py-2 bg-white/80 border border-accent/20 rounded-xl text-[11px] font-bold text-accent leading-snug">
+              <Coffee className="w-3.5 h-3.5 shrink-0 mt-px" />
+              <span>
+                15-минутный
+                <br />
+                перерыв для общения
+              </span>
+            </span>
+
             {(cmsContent.randomCoffeeFormat || cmsContent.randomCoffeeDuration) && (
-              <p className="text-[11px] text-slate-400 mt-2">
+              <p className="text-[11px] text-slate-500 mt-3">
                 {[cmsContent.randomCoffeeFormat, cmsContent.randomCoffeeDuration]
                   .filter(Boolean)
                   .join(' · ')}
               </p>
             )}
           </div>
+
+          <RandomCoffeeIllustration className="hidden sm:block w-56 lg:w-72 shrink-0" />
         </div>
       </div>
 
@@ -124,7 +137,7 @@ export const RandomCoffeeView: React.FC = () => {
           <CalendarClock className="w-10 h-10 text-slate-300 mx-auto" />
           <p className="text-sm font-bold text-slate-700">Запись пока не открыта</p>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
-            Организатор ещё не объявил следующий раунд Random Coffee. Как только он появится,
+            Организатор еще не объявил следующий раунд Random Coffee. Как только он появится,
             здесь можно будет отметить удобное время.
           </p>
         </div>
@@ -204,7 +217,7 @@ export const RandomCoffeeView: React.FC = () => {
             {partners.length > 1 && (
               <p className="text-[11px] text-slate-500 flex items-start gap-1.5">
                 <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                Участников оказалось нечётное число, поэтому в этот раз встреча на трёх человек.
+                Участников оказалось нечетное число, поэтому в этот раз встреча на трех человек.
               </p>
             )}
           </div>
@@ -251,13 +264,13 @@ export const RandomCoffeeView: React.FC = () => {
             <Users className="w-3.5 h-3.5 shrink-0" />
             <span>
               Уже участвуют: {participants}
-              {participants < 2 ? ' — нужен минимум ещё один коллега' : ''}
+              {participants < 2 ? ' — нужен минимум еще один коллега' : ''}
             </span>
           </div>
 
           {slots.length === 0 ? (
             <p className="text-xs text-slate-500">
-              Организатор ещё не завёл слоты времени для Random Coffee.
+              Организатор еще не завел слоты времени для Random Coffee.
             </p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

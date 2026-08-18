@@ -186,7 +186,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fadeIn">
       
       {/* Заголовок: обычный светлый хедер, как на остальных страницах.
-          Прежний тёмный градиент визуально «давил» на экране, которым
+          Прежний темный градиент визуально «давил» на экране, которым
           администратор пользуется каждый день. */}
       <div className="bg-white border-b border-slate-200 rounded-2xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="min-w-0">
@@ -209,7 +209,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </button>
       </div>
 
-      {/* Вкладки подчёркиванием: тише при частом использовании, чем таблетки. */}
+      {/* Вкладки подчеркиванием: тише при частом использовании, чем таблетки. */}
       <div className="flex gap-1 border-b border-slate-200 overflow-x-auto">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
@@ -950,7 +950,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       )}
 
       {/* Оформление: единственное место в приложении, где переключается тема.
-          Сотрудники её не выбирают — только видят результат. */}
+          Сотрудники ее не выбирают — только видят результат. */}
       {activeTab === 'appearance' && (
         <div className="bg-white border border-slate-200 rounded-2xl p-5">
           <ThemeSwatches />

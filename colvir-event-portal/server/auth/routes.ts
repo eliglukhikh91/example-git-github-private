@@ -124,7 +124,7 @@ export function createAuthRouter(): Router {
         reason: error.reason,
         ...context
       });
-      // Наружу не раскрываем, существует ли учётная запись, — иначе эндпоинт
+      // Наружу не раскрываем, существует ли учетная запись, — иначе эндпоинт
       // превращается в средство перебора логинов домена.
       const message =
         error.status === 403
@@ -224,7 +224,7 @@ export function createAuthRouter(): Router {
     }
 
     // Ключевая проверка: заголовку доверяем только если запрос действительно
-    // пришёл от корпоративного reverse-proxy, который выполнил Kerberos-негошиэйшн.
+    // пришел от корпоративного reverse-proxy, который выполнил Kerberos-негошиэйшн.
     // req.socket.remoteAddress — реальный отправитель пакета, его подделать нельзя.
     if (!trustedProxies.isTrusted(req.socket.remoteAddress)) {
       await recordAuthEvent({
@@ -293,7 +293,7 @@ export function createAuthRouter(): Router {
       const user = await findUserById(claims.sub);
       if (!user) {
         clearSessionCookies(res);
-        res.status(401).json({ success: false, message: 'Учётная запись больше не существует' });
+        res.status(401).json({ success: false, message: 'Учетная запись больше не существует' });
         return;
       }
 
@@ -378,7 +378,7 @@ export function createAuthRouter(): Router {
       try {
         upn = verifyToken(token, 'access').upn;
       } catch {
-        // токен уже недействителен — всё равно чистим cookie
+        // токен уже недействителен — все равно чистим cookie
       }
     }
 

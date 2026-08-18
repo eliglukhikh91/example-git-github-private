@@ -16,7 +16,7 @@ INSERT INTO app_settings (key, value) VALUES ('theme', 'classic')
 ON CONFLICT (key) DO NOTHING;
 
 -- ---------------------------------------------------------------------------
--- 2. Чат: перестаёт быть «праздничным», получает каналы
+-- 2. Чат: перестает быть «праздничным», получает каналы
 --
 -- Каналы вводятся сразу, хотя в интерфейсе пока один общий: иначе при переходе
 -- к группам по интересам пришлось бы переписывать структуру и переносить данные.
@@ -88,7 +88,7 @@ CREATE INDEX IF NOT EXISTS coffee_availability_cycle_slot_idx
 CREATE TABLE IF NOT EXISTS coffee_matches (
   id          bigserial PRIMARY KEY,
   cycle_id    bigint NOT NULL REFERENCES coffee_cycles (id) ON DELETE CASCADE,
-  /* Слот, который подошёл всем участникам пары. */
+  /* Слот, который подошел всем участникам пары. */
   slot        text NOT NULL,
   location    text NOT NULL DEFAULT '',
   status      text NOT NULL DEFAULT 'scheduled'
@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS coffee_matches (
   created_at  timestamptz NOT NULL DEFAULT now()
 );
 
--- Участники пары вынесены в отдельную таблицу, чтобы при нечётном количестве
+-- Участники пары вынесены в отдельную таблицу, чтобы при нечетном количестве
 -- сотрудников можно было собрать тройку, а не отбрасывать «лишнего».
 --
 -- cycle_id здесь денормализован намеренно: он позволяет одним уникальным

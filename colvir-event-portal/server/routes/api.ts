@@ -120,7 +120,7 @@ function validationError(error: z.ZodError): { success: false; message: string }
 export function createApiRouter(): Router {
   const router = Router();
 
-  // Всё за пределами /api/auth требует активной сессии Active Directory.
+  // Все за пределами /api/auth требует активной сессии Active Directory.
   router.use(requireAuth);
 
   // -------------------------------------------------------------------------
@@ -221,7 +221,7 @@ export function createApiRouter(): Router {
     }
 
     try {
-      // Email берётся из сессии, а не из формы: иначе можно записать кого угодно.
+      // Email берется из сессии, а не из формы: иначе можно записать кого угодно.
       const { participant } = await registerForEvent(
         { ...parsed.data, email: req.user!.email },
         req.user!.id
@@ -400,7 +400,7 @@ export function createApiRouter(): Router {
   // -------------------------------------------------------------------------
   // Оформление
   //
-  // Тема общая для компании: сотрудники её только получают, меняет администратор.
+  // Тема общая для компании: сотрудники ее только получают, меняет администратор.
   // -------------------------------------------------------------------------
   router.get('/theme', async (_req, res) => {
     res.json({ success: true, ...(await getTheme()) });
@@ -419,7 +419,7 @@ export function createApiRouter(): Router {
   // Random Coffee
   // -------------------------------------------------------------------------
 
-  /** Всё, что нужно экрану: текущий цикл, моя доступность и моя пара. */
+  /** Все, что нужно экрану: текущий цикл, моя доступность и моя пара. */
   router.get('/coffee/state', async (req, res) => {
     const user = req.user!;
     const openCycle = await getOpenCycle();

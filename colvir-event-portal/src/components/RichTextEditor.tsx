@@ -156,7 +156,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             { label: 'Красный', color: '#DC2626' },
             { label: 'Зеленый', color: '#059669' },
             { label: 'Фиолетовый', color: '#7C3AED' },
-            { label: 'Тёмный', color: '#0F172A' }
+            { label: 'Темный', color: '#0F172A' }
           ].map((c) => (
             <button
               key={c.color}

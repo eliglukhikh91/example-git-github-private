@@ -89,7 +89,7 @@ export const AdminCoffeeCycles: React.FC = () => {
       await api.post('/api/coffee/cycles', {
         title: title.trim() || undefined,
         meetingDate: form.meetingDate,
-        // datetime-local отдаёт время без зоны — переводим в ISO по локали браузера.
+        // datetime-local отдает время без зоны — переводим в ISO по локали браузера.
         registrationEndsAt: new Date(form.registrationEndsAt).toISOString()
       });
       setTitle('');
@@ -130,7 +130,7 @@ export const AdminCoffeeCycles: React.FC = () => {
       await api.post(`/api/coffee/cycles/${cycleId}/cancel`);
       await load();
       await refreshCoffee();
-      report(true, 'Цикл отменён');
+      report(true, 'Цикл отменен');
     } catch (error) {
       report(false, error instanceof ApiError ? error.message : 'Не удалось отменить цикл');
     } finally {
@@ -266,7 +266,7 @@ export const AdminCoffeeCycles: React.FC = () => {
                           ? 'запись открыта'
                           : cycle.status === 'matched'
                             ? 'пары собраны'
-                            : 'отменён'}
+                            : 'отменен'}
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-1.5">

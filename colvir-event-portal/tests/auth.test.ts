@@ -43,7 +43,7 @@ describe('Аутентификация Active Directory', () => {
     assert.match(response.body.message, /Неверный доменный логин или пароль/);
   });
 
-  test('несуществующая учётная запись даёт тот же ответ, что и неверный пароль', async () => {
+  test('несуществующая учетная запись дает тот же ответ, что и неверный пароль', async () => {
     const response = await client.request('/api/auth/ad/login', {
       method: 'POST',
       body: { email: 'nobody@colvir.com', password: 'ЛюбойПароль' }
@@ -54,7 +54,7 @@ describe('Аутентификация Active Directory', () => {
     assert.match(response.body.message, /Неверный доменный логин или пароль/);
   });
 
-  test('учётная запись вне разрешённых доменов не пускается', async () => {
+  test('учетная запись вне разрешенных доменов не пускается', async () => {
     const response = await client.request('/api/auth/ad/login', {
       method: 'POST',
       body: { email: 'e.external@partner.org', password: 'ExternalPass123!' }
@@ -63,7 +63,7 @@ describe('Аутентификация Active Directory', () => {
     assert.match(response.body.message, /корпоративной почтой/);
   });
 
-  test('верный пароль выдаёт сессию в httpOnly-cookie', async () => {
+  test('верный пароль выдает сессию в httpOnly-cookie', async () => {
     const response = await client.request('/api/auth/ad/login', {
       method: 'POST',
       body: { email: 'i.ivanov@colvir.com', password: 'UserPass123!' }
@@ -86,7 +86,7 @@ describe('Аутентификация Active Directory', () => {
     assert.equal(response.body.user.isAdmin, false);
   });
 
-  test('роль администратора выдаётся по группе AD, а не по PIN', async () => {
+  test('роль администратора выдается по группе AD, а не по PIN', async () => {
     const anonymous = await startTestServer(createApp());
     try {
       const response = await anonymous.request('/api/auth/ad/login', {

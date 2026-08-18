@@ -144,7 +144,7 @@ export interface ChatChannel {
   name: string;
 }
 
-/** Состояние подключения к контроллеру домена, отдаётся /api/auth/ad/status. */
+/** Состояние подключения к контроллеру домена, отдается /api/auth/ad/status. */
 export interface DirectoryStatus {
   status: string;
   domain: string;
@@ -190,7 +190,7 @@ export interface CoffeeMatch {
   members: CoffeeMatchMember[];
 }
 
-/** Всё состояние экрана Random Coffee, приходит одним запросом. */
+/** Все состояние экрана Random Coffee, приходит одним запросом. */
 export interface CoffeeState {
   cycle: CoffeeCycle | null;
   slots: string[];

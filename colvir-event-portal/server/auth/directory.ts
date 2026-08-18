@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 import { getConfig, type AppConfig } from '../config/env.js';
 
-/** Профиль сотрудника, каким его отдаёт каталог. */
+/** Профиль сотрудника, каким его отдает каталог. */
 export interface DirectoryProfile {
   upn: string;
   samAccountName: string;
@@ -128,7 +128,7 @@ export class LdapDirectory implements Directory {
       .replaceAll('{{sam}}', sam);
   }
 
-  /** Находит запись пользователя, подключаясь сервисной учётной записью. */
+  /** Находит запись пользователя, подключаясь сервисной учетной записью. */
   private async findEntry(username: string): Promise<Entry> {
     const client = this.createClient();
     try {
@@ -136,7 +136,7 @@ export class LdapDirectory implements Directory {
         await client.bind(this.config.ldap.bindDn, this.config.ldap.bindPassword);
       } catch (error) {
         throw new DirectoryUnavailableError(
-          'Не удалось подключиться к контроллеру домена сервисной учётной записью',
+          'Не удалось подключиться к контроллеру домена сервисной учетной записью',
           `service_bind_failed: ${(error as Error).message}`
         );
       }
@@ -150,13 +150,13 @@ export class LdapDirectory implements Directory {
 
       if (searchEntries.length === 0) {
         throw new AuthenticationError(
-          'Учётная запись не найдена в Active Directory',
+          'Учетная запись не найдена в Active Directory',
           'user_not_found'
         );
       }
       if (searchEntries.length > 1) {
         throw new AuthenticationError(
-          'Логину соответствует несколько учётных записей Active Directory',
+          'Логину соответствует несколько учетных записей Active Directory',
           'ambiguous_user'
         );
       }
@@ -190,7 +190,7 @@ export class LdapDirectory implements Directory {
     const uac = Number.parseInt(firstValue(entry, 'userAccountControl'), 10);
     if (Number.isFinite(uac) && (uac & UAC_ACCOUNT_DISABLED) !== 0) {
       throw new AuthenticationError(
-        'Учётная запись отключена администратором домена',
+        'Учетная запись отключена администратором домена',
         'account_disabled',
         403
       );
@@ -219,7 +219,7 @@ export class LdapDirectory implements Directory {
         );
       }
       throw new DirectoryUnavailableError(
-        'Контроллер домена отклонил проверку учётных данных',
+        'Контроллер домена отклонил проверку учетных данных',
         `user_bind_error: ${(error as Error).message}`
       );
     } finally {
@@ -255,7 +255,7 @@ interface FileDirectoryUser {
 /**
  * Каталог из JSON-файла для локальной разработки и автотестов, когда доменного
  * контроллера нет. Пароли хранятся в виде scrypt-хешей — открытых паролей в
- * файле нет. В production такой каталог запрещён (см. проверку в config/env.ts).
+ * файле нет. В production такой каталог запрещен (см. проверку в config/env.ts).
  */
 export class FileDirectory implements Directory {
   readonly kind = 'file' as const;
@@ -299,10 +299,10 @@ export class FileDirectory implements Directory {
         user.samAccountName?.toLowerCase() === needle
     );
     if (!found) {
-      throw new AuthenticationError('Учётная запись не найдена в каталоге', 'user_not_found');
+      throw new AuthenticationError('Учетная запись не найдена в каталоге', 'user_not_found');
     }
     if (found.disabled) {
-      throw new AuthenticationError('Учётная запись отключена', 'account_disabled', 403);
+      throw new AuthenticationError('Учетная запись отключена', 'account_disabled', 403);
     }
     return found;
   }
@@ -354,7 +354,7 @@ export function getDirectory(config: AppConfig = getConfig()): Directory {
       directory = new FileDirectory(config.devDirectoryFile);
     } else {
       // loadConfig() не пропускает такую конфигурацию, но оставляем явную ошибку.
-      throw new Error('Не сконфигурирован источник учётных записей');
+      throw new Error('Не сконфигурирован источник учетных записей');
     }
   }
   return directory;

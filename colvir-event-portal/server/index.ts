@@ -58,9 +58,9 @@ async function start(): Promise<void> {
 
   const server = app.listen(config.port, '0.0.0.0', () => {
     console.log(`[colvir] Портал запущен на порту ${config.port} (${config.nodeEnv})`);
-    console.log(`[colvir] Каталог учётных записей: ${config.ldap.enabled ? config.ldap.url : 'файловый (разработка)'}`);
+    console.log(`[colvir] Каталог учетных записей: ${config.ldap.enabled ? config.ldap.url : 'файловый (разработка)'}`);
     console.log(`[colvir] Домен Active Directory: ${config.ad.domain}`);
-    console.log(`[colvir] SSO через reverse-proxy: ${config.sso.enabled ? 'включён' : 'выключен'}`);
+    console.log(`[colvir] SSO через reverse-proxy: ${config.sso.enabled ? 'включен' : 'выключен'}`);
     if (!config.cookies.secure) {
       console.warn('[colvir] ВНИМАНИЕ: cookie сессии передаются без флага Secure (только для локальной разработки)');
     }

@@ -87,7 +87,7 @@ export function prepareTestEnv(): { directoryFile: string } {
 
 export interface TestClient {
   baseUrl: string;
-  /** Кука сессии хранится в клиенте так же, как её хранил бы браузер. */
+  /** Кука сессии хранится в клиенте так же, как ее хранил бы браузер. */
   cookies: Map<string, string>;
   request: (
     path: string,

@@ -27,15 +27,15 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onRegister, onViewD
       ? Math.min(100, Math.round((currentCount / event.maxParticipants) * 100))
       : 0;
 
-  // Дата, время и место — одной строкой через разделитель вместо трёх строк
-  // с отдельными иконками. Полный список слотов остаётся в EventDetailModal.
+  // Дата, время и место — одной строкой через разделитель вместо трех строк
+  // с отдельными иконками. Полный список слотов остается в EventDetailModal.
   const firstSlot = event.timeSlots[0];
   const extraSlots = Math.max(0, event.timeSlots.length - 1);
   const metaParts = [
     event.date,
     firstSlot
       ? `${firstSlot.includes('МСК') ? firstSlot : `${firstSlot} (МСК)`}${
-          extraSlots > 0 ? ` и ещё ${extraSlots}` : ''
+          extraSlots > 0 ? ` и еще ${extraSlots}` : ''
         }`
       : null,
     event.location

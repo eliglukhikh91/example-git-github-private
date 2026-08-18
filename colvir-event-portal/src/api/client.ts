@@ -1,7 +1,7 @@
 /**
- * Тонкая обёртка над fetch для работы с API портала.
+ * Тонкая обертка над fetch для работы с API портала.
  *
- * Токен сессии живёт в httpOnly-cookie, поэтому JavaScript его не видит и не
+ * Токен сессии живет в httpOnly-cookie, поэтому JavaScript его не видит и не
  * хранит — достаточно `credentials: 'include'`, браузер приложит cookie сам.
  */
 
@@ -17,7 +17,7 @@ export class ApiError extends Error {
 
 let onUnauthorized: (() => void) | undefined;
 
-/** Регистрирует реакцию на истёкшую сессию (обычно — показать экран входа). */
+/** Регистрирует реакцию на истекшую сессию (обычно — показать экран входа). */
 export function setUnauthorizedHandler(handler: () => void): void {
   onUnauthorized = handler;
 }

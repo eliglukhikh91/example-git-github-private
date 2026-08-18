@@ -1,5 +1,5 @@
 /**
- * CLI-обёртка для заливки демо-данных: `npm run seed [-- --force]`.
+ * CLI-обертка для заливки демо-данных: `npm run seed [-- --force]`.
  * Вынесена отдельно по той же причине, что и cli-migrate.ts.
  */
 import { runMigrations } from './migrate.js';

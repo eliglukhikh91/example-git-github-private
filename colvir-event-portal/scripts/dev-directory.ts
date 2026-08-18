@@ -88,7 +88,7 @@ function main(): void {
 
   fs.writeFileSync(filePath, JSON.stringify(users, null, 2) + '\n', { mode: 0o600 });
   console.log(
-    `Учётная запись ${user.upn} сохранена в ${filePath}` + (admin ? ' (администратор)' : '')
+    `Учетная запись ${user.upn} сохранена в ${filePath}` + (admin ? ' (администратор)' : '')
   );
 }
 

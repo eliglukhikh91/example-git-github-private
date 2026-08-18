@@ -39,7 +39,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   // Form states
   const [lastName, setLastName] = useState(userProfile.lastName || '');
   const [firstName, setFirstName] = useState(userProfile.firstName || '');
-  // Email не редактируется: он приходит из учётной записи Active Directory.
+  // Email не редактируется: он приходит из учетной записи Active Directory.
   const email = userProfile.email;
   const [telegram, setTelegram] = useState(userProfile.telegram || '');
   const [department, setDepartment] = useState(userProfile.department || '');
@@ -92,7 +92,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      // Email не передаётся из формы: сервер берёт его из сессии Active Directory,
+      // Email не передается из формы: сервер берет его из сессии Active Directory,
       // иначе можно было бы записать на мероприятие любого сотрудника.
       const participant = await registerForEvent({
         eventId: event.id,

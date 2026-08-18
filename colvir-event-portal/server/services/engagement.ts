@@ -137,7 +137,7 @@ export async function createNotification(input: NotificationInput): Promise<Noti
 }
 
 /**
- * Отметить прочитанным. Рядовой сотрудник может закрыть только своё уведомление —
+ * Отметить прочитанным. Рядовой сотрудник может закрыть только свое уведомление —
  * иначе по перебору id можно было бы гасить чужие и административные.
  */
 export async function markNotificationRead(
@@ -216,7 +216,7 @@ export async function listRatings(): Promise<RatingDto[]> {
 
 /**
  * Оценка привязана к сотруднику, а не к произвольному email из формы:
- * автор берётся из сессии, повторная отправка обновляет прежнюю оценку.
+ * автор берется из сессии, повторная отправка обновляет прежнюю оценку.
  */
 export async function upsertRating(input: {
   eventId: string;

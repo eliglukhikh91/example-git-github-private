@@ -3,7 +3,7 @@ import net from 'node:net';
 /**
  * Список доверенных reverse-proxy. Заголовок с именем пользователя (Kerberos/NTLM
  * SSO) принимается только от этих адресов — иначе кто угодно, кто может достучаться
- * до Node напрямую, вошёл бы под любой учётной записью, просто выставив заголовок.
+ * до Node напрямую, вошел бы под любой учетной записью, просто выставив заголовок.
  */
 export class TrustedProxyList {
   private readonly blockList = new net.BlockList();

@@ -55,7 +55,7 @@ export function verifyToken(token: string, expectedType: 'access' | 'refresh'): 
 
 /**
  * Токены кладутся только в httpOnly-cookie: JavaScript страницы их не видит,
- * поэтому XSS не даёт возможности угнать сессию.
+ * поэтому XSS не дает возможности угнать сессию.
  */
 export function setSessionCookies(
   res: Response,

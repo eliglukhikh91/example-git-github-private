@@ -159,7 +159,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
 
   if (!ldapEnabled && !devDirectoryFile) {
     errors.push(
-      'Не настроен ни один источник учётных записей: задайте параметры LDAP_* либо AUTH_DEV_DIRECTORY_FILE для локальной разработки.'
+      'Не настроен ни один источник учетных записей: задайте параметры LDAP_* либо AUTH_DEV_DIRECTORY_FILE для локальной разработки.'
     );
   }
 

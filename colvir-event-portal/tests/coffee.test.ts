@@ -20,7 +20,7 @@ async function login(client: TestClient, email: string, password: string): Promi
   assert.equal(response.status, 200, `не удалось войти как ${email}`);
 }
 
-/** Дедлайн, до которого запись ещё открыта. */
+/** Дедлайн, до которого запись еще открыта. */
 function inFuture(minutes = 60): string {
   return new Date(Date.now() + minutes * 60_000).toISOString();
 }
@@ -235,7 +235,7 @@ describe('Random Coffee: цикл и подбор', () => {
 });
 
 describe('Планировщик Random Coffee', () => {
-  test('подбирает пары по истёкшему дедлайну', async () => {
+  test('подбирает пары по истекшему дедлайну', async () => {
     // Открываем цикл и вручную отматываем дедлайн в прошлое.
     const created = await admin.request('/api/coffee/cycles', {
       method: 'POST',

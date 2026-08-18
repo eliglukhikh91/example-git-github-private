@@ -20,10 +20,10 @@ import {
 /**
  * Все данные портала хранятся на сервере в PostgreSQL.
  *
- * Тема оформления тоже переехала на сервер: её выбирает администратор, и она
+ * Тема оформления тоже переехала на сервер: ее выбирает администратор, и она
  * общая для компании. Раньше тема лежала в localStorage каждого браузера,
  * поэтому «единое оформление» было принципиально невозможно. Клиент забирает
- * её при загрузке и периодически опрашивает — так смена темы админом доезжает
+ * ее при загрузке и периодически опрашивает — так смена темы админом доезжает
  * до уже открытых вкладок без перезагрузки.
  */
 const THEME_POLL_INTERVAL_MS = 45_000;
@@ -66,7 +66,7 @@ interface AppContextType {
   activeChannelId: string;
   coffee: CoffeeState;
 
-  /** true, пока идёт первичная загрузка данных с сервера. */
+  /** true, пока идет первичная загрузка данных с сервера. */
   isLoading: boolean;
   /** Текст последней ошибки обращения к API, если она была. */
   lastError: string | null;
@@ -336,7 +336,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setParticipants((prev) => [participant, ...prev]);
 
       if (isAdmin) {
-        // Уведомление создаётся сервером; администратору подтягиваем свежий список.
+        // Уведомление создается сервером; администратору подтягиваем свежий список.
         api
           .get<{ notifications: AdminNotification[] }>('/api/notifications')
           .then((response) => setNotifications(response.notifications))
@@ -573,7 +573,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           success: true,
           message:
             slots.length > 0
-              ? `Сохранено слотов: ${slots.length}. Пару подберём после закрытия записи.`
+              ? `Сохранено слотов: ${slots.length}. Пару подберем после закрытия записи.`
               : 'Вы отказались от участия в этом цикле'
         };
       } catch (error) {

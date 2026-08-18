@@ -12,7 +12,7 @@ export function createApp(): Express {
   const config = getConfig();
   const app = express();
 
-  // Количество доверенных прокси задаётся явно: `true` заставил бы Express верить
+  // Количество доверенных прокси задается явно: `true` заставил бы Express верить
   // произвольному X-Forwarded-For, что ломает и rate limit, и журнал аудита.
   app.set('trust proxy', config.security.trustProxyHops);
   app.disable('x-powered-by');

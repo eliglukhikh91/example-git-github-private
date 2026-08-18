@@ -6,10 +6,10 @@ import { getTheme, getThemeBannerText, splitBannerText } from '../utils/themes';
 /**
  * Баннер активной праздничной темы.
  *
- * Тему выбирает администратор, сотрудник её только видит — этот баннер и есть
+ * Тему выбирает администратор, сотрудник ее только видит — этот баннер и есть
  * основной способ узнать, что оформление сменилось.
  *
- * Закрытие живёт в sessionStorage, а не в localStorage: баннер должен вернуться
+ * Закрытие живет в sessionStorage, а не в localStorage: баннер должен вернуться
  * в новой сессии, а не исчезнуть навсегда после одного клика.
  */
 const DISMISS_KEY = 'colvir_theme_banner_dismissed';
@@ -46,14 +46,14 @@ export const ThemeBanner: React.FC = () => {
     try {
       sessionStorage.setItem(DISMISS_KEY, theme);
     } catch {
-      // приватный режим — баннер просто вернётся при перезагрузке
+      // приватный режим — баннер просто вернется при перезагрузке
     }
   };
 
   return (
     <div className="relative overflow-hidden bg-accent-soft border-b border-accent/15">
       {/* Декоративные иконки темы: живут в правой части, за текстовым блоком,
-          поэтому читаемость не страдает. Цвет — утверждённый цвет темы. */}
+          поэтому читаемость не страдает. Цвет — утвержденный цвет темы. */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-y-0 right-0 w-1/2 hidden sm:block"

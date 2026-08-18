@@ -49,7 +49,7 @@ export function assertDirectoryProfileAllowed(
     return {
       ok: false,
       reason: 'domain_not_allowed',
-      message: `Доступ разрешён только сотрудникам с корпоративной почтой (${config.ad.allowedEmailDomains
+      message: `Доступ разрешен только сотрудникам с корпоративной почтой (${config.ad.allowedEmailDomains
         .map((d) => '@' + d)
         .join(', ')})`
     };
@@ -60,7 +60,7 @@ export function assertDirectoryProfileAllowed(
       ok: false,
       reason: 'missing_required_group',
       message:
-        'Учётная запись не входит в группу Active Directory, которой разрешён доступ к порталу мероприятий'
+        'Учетная запись не входит в группу Active Directory, которой разрешен доступ к порталу мероприятий'
     };
   }
 
