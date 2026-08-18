@@ -1,3 +1,4 @@
+import path from 'node:path';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -81,6 +82,12 @@ export interface AppConfig {
     trustProxyHops: number;
     forceHttps: boolean;
     loginRateLimitPerMinute: number;
+  };
+
+  uploads: {
+    /** Каталог с вложениями чата. В базе лежат только относительные пути. */
+    dir: string;
+    maxBytes: number;
   };
 }
 
@@ -251,6 +258,12 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       trustProxyHops: parseInteger(env.TRUST_PROXY_HOPS, isProduction ? 1 : 0),
       forceHttps: parseBool(env.FORCE_HTTPS, isProduction),
       loginRateLimitPerMinute: parseInteger(env.LOGIN_RATE_LIMIT_PER_MINUTE, 10)
+    },
+
+    uploads: {
+      dir: path.resolve(env.UPLOADS_DIR?.trim() || './uploads'),
+      // 20 МБ на файл. Лимит проверяет и multer при приеме, и маршрут после.
+      maxBytes: parseInteger(env.UPLOAD_MAX_BYTES, 20 * 1024 * 1024)
     }
   };
 }

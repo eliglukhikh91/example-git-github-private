@@ -60,12 +60,18 @@ async function refreshSession(): Promise<boolean> {
 export async function apiRequest<T = any>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, skipRefresh = false } = options;
 
+  // FormData уходит как есть: заголовок Content-Type с границей проставляет
+  // браузер, и подменять его на application/json нельзя — разбор multipart
+  // на сервере тогда не найдет границу и запрос упадет.
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+
   const send = () =>
     fetch(path, {
       method,
       credentials: 'include',
-      headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
-      body: body === undefined ? undefined : JSON.stringify(body)
+      headers:
+        body === undefined || isFormData ? undefined : { 'Content-Type': 'application/json' },
+      body: body === undefined ? undefined : isFormData ? (body as FormData) : JSON.stringify(body)
     });
 
   let response = await send();

@@ -5,6 +5,7 @@ import { createApp } from './app.js';
 import { runMigrations } from './db/migrate.js';
 import { closePool, query } from './db/pool.js';
 import { startScheduler } from './scheduler.js';
+import { ensureUploadsDir } from './services/attachments.js';
 
 async function start(): Promise<void> {
   let config: ReturnType<typeof getConfig>;
@@ -28,6 +29,21 @@ async function start(): Promise<void> {
   // Отключается через RUN_MIGRATIONS_ON_START=false, если схемой управляет CI.
   if (process.env.RUN_MIGRATIONS_ON_START !== 'false') {
     await runMigrations();
+  }
+
+  // Каталог вложений проверяется на старте, а не при первой загрузке файла:
+  // иначе о том, что он не создан или доступен только на чтение, узнал бы
+  // первый сотрудник, отправивший картинку.
+  try {
+    const uploadsDir = await ensureUploadsDir();
+    console.log(`[colvir] Каталог вложений: ${uploadsDir}`);
+  } catch (error) {
+    console.error(
+      `[colvir] Каталог вложений недоступен для записи (${config.uploads.dir}): ${
+        (error as Error).message
+      }`
+    );
+    process.exit(1);
   }
 
   const app = createApp();

@@ -1,5 +1,8 @@
+import fs from 'node:fs';
 import { Router } from 'express';
+import multer from 'multer';
 import { z } from 'zod';
+import { getConfig } from '../config/env.js';
 import { requireAuth, requireAdmin } from '../auth/middleware.js';
 import { toPublicUser } from '../auth/routes.js';
 import { updateEditableProfile } from '../services/users.js';
@@ -38,6 +41,13 @@ import {
   sendChatMessage,
   DEFAULT_CHAT_CHANNEL
 } from '../services/engagement.js';
+import {
+  saveImageAttachment,
+  attachToMessage,
+  deleteAttachment,
+  getStoredAttachment,
+  AttachmentError
+} from '../services/attachments.js';
 import { getTheme, setTheme, isThemeName } from '../services/settings.js';
 import {
   getOpenCycle,
@@ -98,7 +108,9 @@ const ratingSchema = z.object({
 });
 
 const chatMessageSchema = z.object({
-  text: z.string().trim().min(1, 'Сообщение не может быть пустым').max(2000),
+  // Текст необязателен: сообщение может состоять из одной картинки. Пустое
+  // сообщение без вложения отсекается в самом маршруте.
+  text: z.string().trim().max(2000).optional(),
   channelId: z.string().trim().max(60).optional()
 });
 
@@ -106,6 +118,38 @@ const chatChannelSchema = z.object({
   name: z.string().trim().min(2, 'Название канала слишком короткое').max(60),
   description: z.string().trim().max(200).optional()
 });
+
+/**
+ * Прием картинок для чата.
+ *
+ * Файл держится в памяти: до записи на диск нужно посмотреть его сигнатуру, а
+ * при отказе не хотелось бы подчищать мусор в каталоге загрузок. Лимит стоит
+ * и здесь, и в сервисе — multer обрывает слишком большой поток, не дочитывая
+ * его до конца, а проверка в сервисе страхует остальные пути записи.
+ */
+const uploadImage = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: getConfig().uploads.maxBytes, files: 1 }
+}).single('image');
+
+/** Оборачивает multer, чтобы его ошибки не уходили в общий обработчик как 500. */
+function acceptImage(req: any, res: any, next: () => void): void {
+  uploadImage(req, res, (error: unknown) => {
+    if (error instanceof multer.MulterError) {
+      const message =
+        error.code === 'LIMIT_FILE_SIZE'
+          ? `Файл больше ${Math.round(getConfig().uploads.maxBytes / 1024 / 1024)} МБ`
+          : 'Не удалось загрузить файл';
+      res.status(413).json({ success: false, message });
+      return;
+    }
+    if (error) {
+      res.status(400).json({ success: false, message: 'Не удалось загрузить файл' });
+      return;
+    }
+    next();
+  });
+}
 
 const availabilitySchema = z.object({
   slots: z.array(z.string().max(100)).max(50)
@@ -429,25 +473,112 @@ export function createApiRouter(): Router {
     res.json({ success: true, messages: await listChatMessages(channelId) });
   });
 
-  router.post('/chat/messages', async (req, res) => {
-    const parsed = chatMessageSchema.safeParse(req.body ?? {});
+  /**
+   * Отправка сообщения. Принимает и обычный JSON, и multipart с картинкой —
+   * тогда текст становится подписью и может быть пустым.
+   *
+   * Картинка идет тем же запросом, что и сообщение, а не отдельной загрузкой:
+   * иначе брошенная на полпути отправка оставляла бы в хранилище файлы, к
+   * которым никто не привязан, и их пришлось бы вычищать по расписанию.
+   */
+  router.post('/chat/messages', acceptImage, async (req, res) => {
+    const file = req.file;
+    const parsed = chatMessageSchema.safeParse({
+      // В multipart все поля приходят строками, пустое поле текста допустимо.
+      text: typeof req.body?.text === 'string' ? req.body.text : req.body?.text,
+      channelId: req.body?.channelId
+    });
+
     if (!parsed.success) {
       res.status(400).json(validationError(parsed.error));
       return;
     }
+
+    const text = (parsed.data.text ?? '').trim();
+    if (!text && !file) {
+      res.status(400).json({ success: false, message: 'Сообщение не может быть пустым' });
+      return;
+    }
+
     const user = req.user!;
+    // Сначала файл: если он не пройдет проверку, сообщение не появится в ленте.
+    let attachment: Awaited<ReturnType<typeof saveImageAttachment>> | null = null;
+
     try {
+      if (file) {
+        attachment = await saveImageAttachment({
+          buffer: file.buffer,
+          originalName: file.originalname,
+          uploadedBy: user.id
+        });
+      }
+
       const message = await sendChatMessage({
         userId: user.id,
         author: user.displayName || `${user.lastName} ${user.firstName}`.trim(),
         department: user.department || 'Команда Colvir',
-        text: parsed.data.text,
+        text,
         channelId: parsed.data.channelId
       });
-      res.status(201).json({ success: true, message });
+
+      if (attachment) {
+        await attachToMessage(attachment.id, message.id);
+      }
+
+      res.status(201).json({ success: true, message: { ...message, attachment } });
     } catch (error) {
+      // Картинка уже сохранена, а сообщение записать не вышло — например,
+      // канал закрыли, пока файл загружался. Убираем файл, чтобы в хранилище
+      // не оставалось того, на что никто не ссылается.
+      if (attachment) {
+        await deleteAttachment(attachment.id).catch(() => undefined);
+      }
+      if (error instanceof AttachmentError) {
+        res.status(error.code === 'too_large' ? 413 : 415).json({
+          success: false,
+          message: error.message
+        });
+        return;
+      }
       // Канал могли заархивировать, пока вкладка была открыта.
       if (error instanceof ChatChannelError) {
+        res.status(404).json({ success: false, message: error.message });
+        return;
+      }
+      throw error;
+    }
+  });
+
+  /**
+   * Отдача вложения.
+   *
+   * Маршрут под requireAuth вместе со всем /api: переписка компании не должна
+   * открываться по прямой ссылке без входа. Тип берется из базы, где он
+   * записан по сигнатуре файла, и подкрепляется nosniff — иначе браузер мог бы
+   * додумать тип сам и выполнить содержимое как разметку.
+   */
+  router.get('/chat/attachments/:id', async (req, res) => {
+    try {
+      const attachment = await getStoredAttachment(req.params.id);
+
+      res.setHeader('Content-Type', attachment.mimeType);
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('Content-Disposition', 'inline');
+      res.setHeader('Content-Length', String(attachment.byteSize));
+      // Файл неизменяем: идентификатор новый при каждой загрузке.
+      res.setHeader('Cache-Control', 'private, max-age=86400, immutable');
+
+      const stream = fs.createReadStream(attachment.absolutePath);
+      stream.on('error', () => {
+        if (!res.headersSent) {
+          res.status(404).json({ success: false, message: 'Файл вложения недоступен' });
+          return;
+        }
+        res.destroy();
+      });
+      stream.pipe(res);
+    } catch (error) {
+      if (error instanceof AttachmentError) {
         res.status(404).json({ success: false, message: error.message });
         return;
       }

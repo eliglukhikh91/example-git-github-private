@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import { query } from '../db/pool.js';
 import { sanitizePlainText } from '../utils/sanitize.js';
+import { listAttachmentsForMessages, type AttachmentDto } from './attachments.js';
 
 // ---------------------------------------------------------------------------
 // Уведомления администраторам
@@ -394,6 +395,7 @@ export interface ChatMessageDto {
   department: string;
   text: string;
   time: string;
+  attachment?: AttachmentDto | null;
 }
 
 interface ChatMessageRow {
@@ -435,7 +437,16 @@ export async function listChatMessages(
      ORDER BY created_at ASC`,
     [channelId, limit]
   );
-  return rows.map(toChatMessage);
+
+  const messages = rows.map(toChatMessage);
+
+  // Вложения подтягиваются одним запросом на всю страницу сообщений, а не по
+  // запросу на сообщение.
+  const attachments = await listAttachmentsForMessages(messages.map((message) => message.id));
+  return messages.map((message) => ({
+    ...message,
+    attachment: attachments.get(message.id) ?? null
+  }));
 }
 
 export async function sendChatMessage(input: {

@@ -13,11 +13,11 @@ export const TEST_DATABASE_URL =
  * соединений кешируются при первом обращении, поэтому переменные должны быть
  * выставлены заранее.
  */
-export function prepareTestEnv(): { directoryFile: string } {
-  const directoryFile = path.join(
-    fs.mkdtempSync(path.join(os.tmpdir(), 'colvir-test-')),
-    'directory.json'
-  );
+export function prepareTestEnv(): { directoryFile: string; uploadsDir: string } {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'colvir-test-'));
+  const directoryFile = path.join(tempDir, 'directory.json');
+  // Вложения пишутся во временный каталог, а не в рабочую копию проекта.
+  const uploadsDir = path.join(tempDir, 'uploads');
 
   const users = [
     {
@@ -79,10 +79,11 @@ export function prepareTestEnv(): { directoryFile: string } {
     COOKIE_SECURE: 'false',
     FORCE_HTTPS: 'false',
     LOGIN_RATE_LIMIT_PER_MINUTE: '1000',
-    RUN_MIGRATIONS_ON_START: 'false'
+    RUN_MIGRATIONS_ON_START: 'false',
+    UPLOADS_DIR: uploadsDir
   });
 
-  return { directoryFile };
+  return { directoryFile, uploadsDir };
 }
 
 export interface TestClient {
@@ -93,6 +94,11 @@ export interface TestClient {
     path: string,
     options?: { method?: string; body?: unknown; headers?: Record<string, string> }
   ) => Promise<{ status: number; body: any }>;
+  /** Сырой ответ: нужен там, где проверяются заголовки и байты файла. */
+  raw: (
+    path: string,
+    options?: { method?: string; headers?: Record<string, string> }
+  ) => Promise<{ status: number; headers: Headers; bytes: Buffer }>;
   close: () => Promise<void>;
 }
 
@@ -110,14 +116,21 @@ export async function startTestServer(app: import('express').Express): Promise<T
         .map(([name, value]) => `${name}=${value}`)
         .join('; ');
     }
-    if (options.body !== undefined) {
+    // FormData уходит как есть: заголовок с границей проставит сам fetch.
+    const isFormData = options.body instanceof FormData;
+    if (options.body !== undefined && !isFormData) {
       headers['content-type'] = 'application/json';
     }
 
     const response = await fetch(`${baseUrl}${requestPath}`, {
       method: options.method ?? 'GET',
       headers,
-      body: options.body === undefined ? undefined : JSON.stringify(options.body)
+      body:
+        options.body === undefined
+          ? undefined
+          : isFormData
+            ? (options.body as FormData)
+            : JSON.stringify(options.body)
     });
 
     for (const raw of response.headers.getSetCookie()) {
@@ -145,9 +158,30 @@ export async function startTestServer(app: import('express').Express): Promise<T
     return { status: response.status, body };
   };
 
+  const raw: TestClient['raw'] = async (requestPath, options = {}) => {
+    const headers: Record<string, string> = { ...options.headers };
+    if (cookies.size > 0) {
+      headers.cookie = Array.from(cookies.entries())
+        .map(([name, value]) => `${name}=${value}`)
+        .join('; ');
+    }
+
+    const response = await fetch(`${baseUrl}${requestPath}`, {
+      method: options.method ?? 'GET',
+      headers
+    });
+
+    return {
+      status: response.status,
+      headers: response.headers,
+      bytes: Buffer.from(await response.arrayBuffer())
+    };
+  };
+
   return {
     baseUrl,
     cookies,
+    raw,
     request,
     close: () => new Promise<void>((resolve) => server.close(() => resolve()))
   };

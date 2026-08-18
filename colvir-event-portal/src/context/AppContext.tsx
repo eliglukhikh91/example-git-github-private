@@ -102,7 +102,11 @@ interface AppContextType {
     comment?: string;
   }) => Promise<void>;
   getEventAverageRating: (eventId: string) => number;
-  sendChatMessage: (text: string) => Promise<void>;
+  /** Отправка сообщения. Картинка необязательна, текст при ней может быть пустым. */
+  sendChatMessage: (
+    text: string,
+    image?: File | null
+  ) => Promise<{ success: boolean; message: string }>;
 
   /** Отметить свои удобные слоты в текущем цикле Random Coffee. */
   saveCoffeeAvailability: (slots: string[]) => Promise<{ success: boolean; message: string }>;
@@ -540,12 +544,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // только администратор — это проверяет сервер, интерфейс лишь прячет кнопки.
   // ---------------------------------------------------------------------------
   const sendChatMessage = useCallback(
-    async (text: string) => {
+    async (text: string, image?: File | null) => {
       try {
-        const response = await api.post<{ message: ChatMessage }>('/api/chat/messages', {
-          text,
-          channelId: activeChannelId
-        });
+        // С картинкой уходит multipart, без нее — обычный JSON: гонять пустую
+        // форму ради текстового сообщения незачем.
+        let body: unknown;
+        if (image) {
+          const form = new FormData();
+          form.append('text', text);
+          form.append('channelId', activeChannelId);
+          form.append('image', image, image.name);
+          body = form;
+        } else {
+          body = { text, channelId: activeChannelId };
+        }
+
+        const response = await api.post<{ message: ChatMessage }>('/api/chat/messages', body);
         setChatMessages((prev) => [...prev, response.message]);
         // Счетчик на плашке канала иначе разъезжается с числом в заголовке:
         // список каналов запрашивается только при загрузке приложения.
@@ -556,8 +570,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               : channel
           )
         );
+        return { success: true, message: '' };
       } catch (error) {
-        reportError(error, 'Не удалось отправить сообщение');
+        // Результат возвращается, чтобы форма не стирала неотправленную
+        // картинку: иначе после отказа сервера пришлось бы выбирать файл заново.
+        const message =
+          error instanceof ApiError ? error.message : 'Не удалось отправить сообщение';
+        setLastError(message);
+        return { success: false, message };
       }
     },
     [activeChannelId, reportError]

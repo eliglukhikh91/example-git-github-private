@@ -458,6 +458,142 @@ describe('Тематические группы чата', () => {
   });
 });
 
+describe('Изображения в чате', () => {
+  /** Минимальный настоящий PNG: сигнатура, IHDR и IEND. */
+  function pngBytes(): Buffer {
+    return Buffer.from(
+      '89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489' +
+        '0000000a49444154789c6300010000050001' +
+        '0d0a2db40000000049454e44ae426082',
+      'hex'
+    );
+  }
+
+  function form(file: Buffer, name: string, type: string, extra: Record<string, string> = {}) {
+    const data = new FormData();
+    for (const [key, value] of Object.entries(extra)) data.append(key, value);
+    data.append('image', new Blob([file], { type }), name);
+    return data;
+  }
+
+  let attachmentUrl = '';
+
+  test('картинка сохраняется и приходит вместе с сообщением', async () => {
+    const response = await employee.request('/api/chat/messages', {
+      method: 'POST',
+      body: form(pngBytes(), 'kotik.png', 'image/png', { text: 'Смотрите кто пришел' })
+    });
+
+    assert.equal(response.status, 201);
+    assert.equal(response.body.message.text, 'Смотрите кто пришел');
+    assert.ok(response.body.message.attachment, 'в ответе должно быть вложение');
+    assert.equal(response.body.message.attachment.mimeType, 'image/png');
+    assert.equal(response.body.message.attachment.fileName, 'kotik.png');
+
+    attachmentUrl = response.body.message.attachment.url;
+  });
+
+  test('сообщение может состоять из одной картинки, без текста', async () => {
+    const response = await employee.request('/api/chat/messages', {
+      method: 'POST',
+      body: form(pngBytes(), 'bez-podpisi.png', 'image/png')
+    });
+
+    assert.equal(response.status, 201);
+    assert.equal(response.body.message.text, '');
+    assert.ok(response.body.message.attachment);
+  });
+
+  test('пустое сообщение без картинки по-прежнему отклоняется', async () => {
+    const response = await employee.request('/api/chat/messages', {
+      method: 'POST',
+      body: { text: '   ' }
+    });
+    assert.equal(response.status, 400);
+  });
+
+  test('вложение видно другому сотруднику в истории канала', async () => {
+    const list = await admin.request('/api/chat/messages');
+    const withImage = list.body.messages.find((m: any) => m.text === 'Смотрите кто пришел');
+    assert.ok(withImage?.attachment, 'вложение должно подтягиваться к истории');
+    assert.equal(withImage.attachment.mimeType, 'image/png');
+  });
+
+  test('файл отдается с типом из базы и запретом угадывать тип', async () => {
+    const response = await employee.raw(attachmentUrl);
+
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('content-type'), 'image/png');
+    assert.equal(
+      response.headers.get('x-content-type-options'),
+      'nosniff',
+      'без nosniff браузер может определить тип сам и выполнить содержимое'
+    );
+    assert.deepEqual(response.bytes, pngBytes(), 'должны вернуться те же байты');
+  });
+
+  test('вложение не отдается без сессии', async () => {
+    const response = await anonymous.raw(attachmentUrl);
+    assert.equal(response.status, 401, 'переписка не должна открываться по прямой ссылке');
+  });
+
+  test('подмена расширения не проходит: HTML под видом картинки', async () => {
+    // Классическая попытка залить скрипт: имя и Content-Type говорят «png»,
+    // а внутри разметка. Проверка идет по сигнатуре, поэтому файл отклоняется.
+    const html = Buffer.from('<html><script>alert(document.cookie)</script></html>', 'utf8');
+    const response = await employee.request('/api/chat/messages', {
+      method: 'POST',
+      body: form(html, 'ne-kartinka.png', 'image/png')
+    });
+
+    assert.equal(response.status, 415);
+  });
+
+  test('SVG отклоняется: он умеет исполнять скрипты', async () => {
+    const svg = Buffer.from(
+      '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>',
+      'utf8'
+    );
+    const response = await employee.request('/api/chat/messages', {
+      method: 'POST',
+      body: form(svg, 'logo.svg', 'image/svg+xml')
+    });
+
+    assert.equal(response.status, 415);
+  });
+
+  test('несуществующее вложение отвечает 404, а не ошибкой сервера', async () => {
+    const response = await employee.request(
+      '/api/chat/attachments/00000000-0000-4000-8000-000000000000'
+    );
+    assert.equal(response.status, 404);
+  });
+
+  test('обход каталога через идентификатор не проходит', async () => {
+    const response = await employee.request('/api/chat/attachments/..%2F..%2Fetc%2Fpasswd');
+    assert.equal(response.status, 404);
+  });
+
+  test('картинка не остается в хранилище, если сообщение записать не удалось', async () => {
+    // Канал закрыли, пока файл загружался: сообщение не создается, и файл
+    // тоже не должен остаться — иначе в каталоге копятся ничьи вложения.
+    const before = await query<{ count: string }>(
+      'SELECT count(*)::bigint AS count FROM chat_attachments'
+    );
+
+    const response = await employee.request('/api/chat/messages', {
+      method: 'POST',
+      body: form(pngBytes(), 'v-zakrytuyu.png', 'image/png', { channelId: 'knizhnyy-klub' })
+    });
+    assert.equal(response.status, 404, 'канал закрыт на предыдущем блоке тестов');
+
+    const after = await query<{ count: string }>(
+      'SELECT count(*)::bigint AS count FROM chat_attachments'
+    );
+    assert.equal(after.rows[0].count, before.rows[0].count, 'сирот в хранилище быть не должно');
+  });
+});
+
 describe('Данные общие для всех пользователей', () => {
   test('мероприятие, созданное администратором, видно другому сотруднику', async () => {
     const created = await admin.request('/api/events', {

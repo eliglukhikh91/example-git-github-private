@@ -125,6 +125,15 @@ export type ViewMode =
 
 export type ThemeType = 'classic' | 'spring' | 'birthday' | 'newyear';
 
+export interface ChatAttachment {
+  id: string;
+  fileName: string;
+  mimeType: string;
+  byteSize: number;
+  /** Адрес отдачи файла: маршрут под аутентификацией, не публичная ссылка. */
+  url: string;
+}
+
 export interface ChatMessage {
   id: string;
   /**
@@ -135,8 +144,10 @@ export interface ChatMessage {
   channelId: string;
   author: string;
   department: string;
+  /** Может быть пустым: сообщение бывает состоит из одной картинки. */
   text: string;
   time: string;
+  attachment?: ChatAttachment | null;
 }
 
 export interface ChatChannel {
