@@ -260,13 +260,131 @@ export const DEFAULT_CHAT_CHANNEL = 'general';
 export interface ChatChannelDto {
   id: string;
   name: string;
+  description: string;
+  messageCount: number;
+  /** Общий канал нельзя заархивировать: в него уходят сообщения без канала. */
+  isDefault: boolean;
 }
 
-export async function listChatChannels(): Promise<ChatChannelDto[]> {
-  const { rows } = await query<{ id: string; name: string }>(
-    'SELECT id, name FROM chat_channels ORDER BY created_at, id'
+export class ChatChannelError extends Error {
+  constructor(
+    message: string,
+    readonly code: 'invalid_name' | 'duplicate' | 'not_found' | 'protected'
+  ) {
+    super(message);
+    this.name = 'ChatChannelError';
+  }
+}
+
+const TRANSLIT: Record<string, string> = {
+  а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ж: 'zh', з: 'z', и: 'i',
+  й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's',
+  т: 't', у: 'u', ф: 'f', х: 'h', ц: 'c', ч: 'ch', ш: 'sh', щ: 'sch',
+  ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya'
+};
+
+/**
+ * Идентификатор канала из названия: «Книжный клуб» -> «knizhnyy-klub».
+ *
+ * Идентификатор виден в адресной строке и в запросах, поэтому кириллицу
+ * транслитерируем, а не оставляем в URL-кодировке. Если после очистки ничего
+ * не осталось (название из одних эмодзи или иероглифов), вызывающий код
+ * подставит случайный суффикс.
+ */
+export function channelSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .split('')
+    .map((char) => (char in TRANSLIT ? TRANSLIT[char] : char))
+    .join('')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40);
+}
+
+export async function listChatChannels(
+  options: { includeArchived?: boolean } = {}
+): Promise<ChatChannelDto[]> {
+  const { rows } = await query<{
+    id: string;
+    name: string;
+    description: string;
+    message_count: string;
+  }>(
+    `SELECT c.id, c.name, c.description, count(m.id) AS message_count
+     FROM chat_channels c
+     LEFT JOIN chat_messages m ON m.channel_id = c.id
+     WHERE $1::boolean OR c.archived_at IS NULL
+     GROUP BY c.id, c.name, c.description, c.created_at
+     ORDER BY c.created_at, c.id`,
+    [options.includeArchived ?? false]
   );
-  return rows;
+
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    messageCount: Number(row.message_count),
+    isDefault: row.id === DEFAULT_CHAT_CHANNEL
+  }));
+}
+
+/**
+ * Заводит тематическую группу. Каналы открытые — войти может любой сотрудник,
+ * поэтому списка участников нет; ограничение только на создание, оно проверяется
+ * в маршруте через requireAdmin.
+ */
+export async function createChatChannel(input: {
+  name: string;
+  description?: string;
+  createdBy: string;
+}): Promise<ChatChannelDto> {
+  const name = sanitizePlainText(input.name).trim().slice(0, 60);
+  if (name.length < 2) {
+    throw new ChatChannelError('Название канала слишком короткое', 'invalid_name');
+  }
+
+  const description = sanitizePlainText(input.description ?? '').trim().slice(0, 200);
+  const base = channelSlug(name) || `kanal-${crypto.randomBytes(3).toString('hex')}`;
+
+  // Названия могут повторяться визуально («Бег» и «бег»), поэтому уникальность
+  // проверяем по идентификатору и при совпадении добавляем суффикс.
+  let id = base;
+  for (let attempt = 2; attempt <= 20; attempt += 1) {
+    const { rows } = await query('SELECT 1 FROM chat_channels WHERE id = $1', [id]);
+    if (rows.length === 0) break;
+    if (attempt === 20) {
+      throw new ChatChannelError('Канал с таким названием уже есть', 'duplicate');
+    }
+    id = `${base}-${attempt}`;
+  }
+
+  await query(
+    `INSERT INTO chat_channels (id, name, description, created_by)
+     VALUES ($1, $2, $3, $4)`,
+    [id, name, description, input.createdBy]
+  );
+
+  return { id, name, description, messageCount: 0, isDefault: false };
+}
+
+/**
+ * Убирает канал из списка, не трогая переписку. Полное удаление не делаем
+ * намеренно: внешний ключ стоит с ON DELETE CASCADE и унес бы всю историю.
+ */
+export async function archiveChatChannel(channelId: string): Promise<void> {
+  if (channelId === DEFAULT_CHAT_CHANNEL) {
+    throw new ChatChannelError('Общий канал закрыть нельзя', 'protected');
+  }
+
+  const { rowCount } = await query(
+    'UPDATE chat_channels SET archived_at = now() WHERE id = $1 AND archived_at IS NULL',
+    [channelId]
+  );
+
+  if (!rowCount) {
+    throw new ChatChannelError('Канал не найден или уже в архиве', 'not_found');
+  }
 }
 
 export interface ChatMessageDto {
@@ -330,9 +448,14 @@ export async function sendChatMessage(input: {
   const id = `msg-${Date.now()}-${crypto.randomBytes(3).toString('hex')}`;
   const channelId = input.channelId ?? DEFAULT_CHAT_CHANNEL;
 
-  const { rows: channel } = await query('SELECT 1 FROM chat_channels WHERE id = $1', [channelId]);
+  // В архивный канал писать нельзя: он уже убран из списка, и новое сообщение
+  // туда никто не увидит.
+  const { rows: channel } = await query(
+    'SELECT 1 FROM chat_channels WHERE id = $1 AND archived_at IS NULL',
+    [channelId]
+  );
   if (channel.length === 0) {
-    throw new Error(`Канал ${channelId} не найден`);
+    throw new ChatChannelError(`Канал ${channelId} не найден или закрыт`, 'not_found');
   }
 
   const { rows } = await query<ChatMessageRow>(

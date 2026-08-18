@@ -25,6 +25,12 @@ before(async () => {
   await query('DELETE FROM events');
   await query('DELETE FROM users');
 
+  // Чат чистим отдельно: сообщения и каналы не висят на events и users, поэтому
+  // от прошлого прогона оставались группы, и тесты на идентификаторы каналов
+  // начинали зависеть от порядка запуска.
+  await query('DELETE FROM chat_messages');
+  await query("DELETE FROM chat_channels WHERE id <> 'general'");
+
   const app = createApp();
   anonymous = await startTestServer(app);
   employee = await startTestServer(app);
@@ -323,10 +329,132 @@ describe('Чат', () => {
   test('канал по умолчанию заведен', async () => {
     const response = await employee.request('/api/chat/channels');
     assert.equal(response.status, 200);
+    const general = response.body.channels.find((channel: any) => channel.id === 'general');
+    assert.ok(general, 'общий канал должен существовать');
+    assert.equal(general.isDefault, true, 'общий канал помечен как неудаляемый');
+  });
+});
+
+describe('Тематические группы чата', () => {
+  test('сотрудник не может завести группу', async () => {
+    const response = await employee.request('/api/chat/channels', {
+      method: 'POST',
+      body: { name: 'Тайная группа' }
+    });
+    assert.equal(response.status, 403, 'создание доступно только администратору');
+  });
+
+  test('администратор заводит группу, идентификатор транслитерируется', async () => {
+    const response = await admin.request('/api/chat/channels', {
+      method: 'POST',
+      body: { name: 'Книжный клуб', description: 'Обсуждаем прочитанное' }
+    });
+
+    assert.equal(response.status, 201);
+    assert.equal(response.body.channel.id, 'knizhnyy-klub');
+    assert.equal(response.body.channel.name, 'Книжный клуб');
+    assert.equal(response.body.channel.description, 'Обсуждаем прочитанное');
+    assert.equal(response.body.channel.messageCount, 0);
+    assert.equal(response.body.channel.isDefault, false);
+  });
+
+  test('повторное название получает суффикс, а не ломает создание', async () => {
+    const response = await admin.request('/api/chat/channels', {
+      method: 'POST',
+      body: { name: 'Книжный клуб' }
+    });
+    assert.equal(response.status, 201);
+    assert.equal(response.body.channel.id, 'knizhnyy-klub-2');
+  });
+
+  test('слишком короткое название отклоняется', async () => {
+    const response = await admin.request('/api/chat/channels', {
+      method: 'POST',
+      body: { name: 'К' }
+    });
+    assert.equal(response.status, 400);
+  });
+
+  test('название без латиницы и кириллицы получает запасной идентификатор', async () => {
+    // «🏃‍♀️🏃» транслитерировать не во что, но создание не должно падать
+    // и не должно давать пустой идентификатор.
+    const response = await admin.request('/api/chat/channels', {
+      method: 'POST',
+      body: { name: '🏃 🏃' }
+    });
+
+    assert.equal(response.status, 201);
+    assert.match(response.body.channel.id, /^kanal-[0-9a-f]{6}$/);
+  });
+
+  test('в группу может писать любой сотрудник', async () => {
+    const response = await employee.request('/api/chat/messages', {
+      method: 'POST',
+      body: { text: 'Начнем с Оруэлла', channelId: 'knizhnyy-klub' }
+    });
+
+    assert.equal(response.status, 201);
+    assert.equal(response.body.message.channelId, 'knizhnyy-klub');
+
+    const list = await employee.request('/api/chat/messages?channelId=knizhnyy-klub');
+    assert.equal(list.body.messages.length, 1, 'лента группы не смешивается с общей');
+
+    const general = await employee.request('/api/chat/messages');
     assert.ok(
-      response.body.channels.some((channel: any) => channel.id === 'general'),
-      'общий канал должен существовать'
+      !general.body.messages.some((m: any) => m.text === 'Начнем с Оруэлла'),
+      'сообщение группы не должно попадать в общий канал'
     );
+  });
+
+  test('в списке виден счетчик сообщений группы', async () => {
+    const response = await employee.request('/api/chat/channels');
+    const channel = response.body.channels.find((c: any) => c.id === 'knizhnyy-klub');
+    assert.equal(channel.messageCount, 1);
+  });
+
+  test('сотрудник не может закрыть группу', async () => {
+    const response = await employee.request('/api/chat/channels/knizhnyy-klub-2/archive', {
+      method: 'POST'
+    });
+    assert.equal(response.status, 403);
+  });
+
+  test('общий канал закрыть нельзя', async () => {
+    const response = await admin.request('/api/chat/channels/general/archive', {
+      method: 'POST'
+    });
+    assert.equal(response.status, 400);
+  });
+
+  test('закрытая группа исчезает из списка, но переписка остается', async () => {
+    const archived = await admin.request('/api/chat/channels/knizhnyy-klub/archive', {
+      method: 'POST'
+    });
+    assert.equal(archived.status, 200);
+    assert.ok(
+      !archived.body.channels.some((c: any) => c.id === 'knizhnyy-klub'),
+      'группа должна пропасть из списка'
+    );
+
+    // Архивация не должна уносить историю: внешний ключ стоит с CASCADE,
+    // поэтому удаление канала было бы удалением переписки.
+    const messages = await admin.request('/api/chat/messages?channelId=knizhnyy-klub');
+    assert.equal(messages.body.messages.length, 1, 'переписка закрытой группы сохраняется');
+  });
+
+  test('в закрытую группу больше нельзя писать', async () => {
+    const response = await employee.request('/api/chat/messages', {
+      method: 'POST',
+      body: { text: 'Есть тут кто?', channelId: 'knizhnyy-klub' }
+    });
+    assert.equal(response.status, 404);
+  });
+
+  test('повторное закрытие отвечает 404', async () => {
+    const response = await admin.request('/api/chat/channels/knizhnyy-klub/archive', {
+      method: 'POST'
+    });
+    assert.equal(response.status, 404);
   });
 });
 

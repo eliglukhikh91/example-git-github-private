@@ -77,6 +77,13 @@ interface AppContextType {
   setSearchQuery: (query: string) => void;
   setSelectedCategory: (cat: string) => void;
   setActiveChannelId: (channelId: string) => void;
+  /** Завести тематическую группу. Сервер пускает только администратора. */
+  createChatChannel: (
+    name: string,
+    description?: string
+  ) => Promise<{ success: boolean; message: string }>;
+  /** Убрать группу из списка. Переписка остается в базе. */
+  archiveChatChannel: (channelId: string) => Promise<{ success: boolean; message: string }>;
   /** Сменить тему для всей компании. Доступно только администратору. */
   setTheme: (theme: ThemeType) => Promise<{ success: boolean; message: string }>;
 
@@ -527,7 +534,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   );
 
   // ---------------------------------------------------------------------------
-  // Праздничный чат
+  // Чат и тематические группы
+  //
+  // Каналы открытые: читать и писать может любой сотрудник, создает и закрывает
+  // только администратор — это проверяет сервер, интерфейс лишь прячет кнопки.
   // ---------------------------------------------------------------------------
   const sendChatMessage = useCallback(
     async (text: string) => {
@@ -537,11 +547,62 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           channelId: activeChannelId
         });
         setChatMessages((prev) => [...prev, response.message]);
+        // Счетчик на плашке канала иначе разъезжается с числом в заголовке:
+        // список каналов запрашивается только при загрузке приложения.
+        setChatChannels((prev) =>
+          prev.map((channel) =>
+            channel.id === activeChannelId
+              ? { ...channel, messageCount: channel.messageCount + 1 }
+              : channel
+          )
+        );
       } catch (error) {
         reportError(error, 'Не удалось отправить сообщение');
       }
     },
     [activeChannelId, reportError]
+  );
+
+  const createChatChannel = useCallback(
+    async (name: string, description?: string) => {
+      try {
+        const response = await api.post<{ channel: ChatChannel }>('/api/chat/channels', {
+          name,
+          description
+        });
+        setChatChannels((prev) => [...prev, response.channel]);
+        setActiveChannelId(response.channel.id);
+        return { success: true, message: `Группа «${response.channel.name}» создана` };
+      } catch (error) {
+        const message = error instanceof ApiError ? error.message : 'Не удалось создать группу';
+        setLastError(message);
+        return { success: false, message };
+      }
+    },
+    []
+  );
+
+  /**
+   * Канал убирается из списка, переписка остается в базе. Если закрыли текущий,
+   * возвращаем пользователя в общий, иначе он смотрел бы на пустую ленту.
+   */
+  const archiveChatChannel = useCallback(
+    async (channelId: string) => {
+      try {
+        const response = await api.post<{ channels: ChatChannel[] }>(
+          `/api/chat/channels/${encodeURIComponent(channelId)}/archive`,
+          {}
+        );
+        setChatChannels(response.channels);
+        setActiveChannelId((current) => (current === channelId ? 'general' : current));
+        return { success: true, message: 'Группа закрыта, переписка сохранена' };
+      } catch (error) {
+        const message = error instanceof ApiError ? error.message : 'Не удалось закрыть группу';
+        setLastError(message);
+        return { success: false, message };
+      }
+    },
+    []
   );
 
   /**
@@ -694,6 +755,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addEventRating,
       getEventAverageRating,
       sendChatMessage,
+      createChatChannel,
+      archiveChatChannel,
       saveCoffeeAvailability,
       refreshCoffee,
       registerForEvent,
@@ -742,6 +805,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addEventRating,
       getEventAverageRating,
       sendChatMessage,
+      createChatChannel,
+      archiveChatChannel,
       saveCoffeeAvailability,
       refreshCoffee,
       registerForEvent,

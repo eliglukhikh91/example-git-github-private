@@ -32,6 +32,9 @@ import {
   upsertRating,
   listChatMessages,
   listChatChannels,
+  createChatChannel,
+  archiveChatChannel,
+  ChatChannelError,
   sendChatMessage,
   DEFAULT_CHAT_CHANNEL
 } from '../services/engagement.js';
@@ -97,6 +100,11 @@ const ratingSchema = z.object({
 const chatMessageSchema = z.object({
   text: z.string().trim().min(1, 'Сообщение не может быть пустым').max(2000),
   channelId: z.string().trim().max(60).optional()
+});
+
+const chatChannelSchema = z.object({
+  name: z.string().trim().min(2, 'Название канала слишком короткое').max(60),
+  description: z.string().trim().max(200).optional()
 });
 
 const availabilitySchema = z.object({
@@ -375,6 +383,47 @@ export function createApiRouter(): Router {
     res.json({ success: true, channels: await listChatChannels() });
   });
 
+  // Каналы открытые: читать и писать может любой сотрудник, создавать — только
+  // администратор, поэтому ограничение стоит здесь, а не в списке участников.
+  router.post('/chat/channels', requireAdmin, async (req, res) => {
+    const parsed = chatChannelSchema.safeParse(req.body ?? {});
+    if (!parsed.success) {
+      res.status(400).json(validationError(parsed.error));
+      return;
+    }
+
+    try {
+      const channel = await createChatChannel({
+        name: parsed.data.name,
+        description: parsed.data.description,
+        createdBy: req.user!.id
+      });
+      res.status(201).json({ success: true, channel });
+    } catch (error) {
+      if (error instanceof ChatChannelError) {
+        res.status(400).json({ success: false, message: error.message });
+        return;
+      }
+      throw error;
+    }
+  });
+
+  router.post('/chat/channels/:id/archive', requireAdmin, async (req, res) => {
+    try {
+      await archiveChatChannel(req.params.id);
+      res.json({ success: true, channels: await listChatChannels() });
+    } catch (error) {
+      if (error instanceof ChatChannelError) {
+        res.status(error.code === 'not_found' ? 404 : 400).json({
+          success: false,
+          message: error.message
+        });
+        return;
+      }
+      throw error;
+    }
+  });
+
   router.get('/chat/messages', async (req, res) => {
     const channelId = String(req.query.channelId ?? DEFAULT_CHAT_CHANNEL);
     res.json({ success: true, messages: await listChatMessages(channelId) });
@@ -387,14 +436,23 @@ export function createApiRouter(): Router {
       return;
     }
     const user = req.user!;
-    const message = await sendChatMessage({
-      userId: user.id,
-      author: user.displayName || `${user.lastName} ${user.firstName}`.trim(),
-      department: user.department || 'Команда Colvir',
-      text: parsed.data.text,
-      channelId: parsed.data.channelId
-    });
-    res.status(201).json({ success: true, message });
+    try {
+      const message = await sendChatMessage({
+        userId: user.id,
+        author: user.displayName || `${user.lastName} ${user.firstName}`.trim(),
+        department: user.department || 'Команда Colvir',
+        text: parsed.data.text,
+        channelId: parsed.data.channelId
+      });
+      res.status(201).json({ success: true, message });
+    } catch (error) {
+      // Канал могли заархивировать, пока вкладка была открыта.
+      if (error instanceof ChatChannelError) {
+        res.status(404).json({ success: false, message: error.message });
+        return;
+      }
+      throw error;
+    }
   });
 
   // -------------------------------------------------------------------------

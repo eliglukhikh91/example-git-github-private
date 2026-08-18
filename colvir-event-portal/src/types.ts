@@ -142,6 +142,10 @@ export interface ChatMessage {
 export interface ChatChannel {
   id: string;
   name: string;
+  description: string;
+  messageCount: number;
+  /** Общий канал: его нельзя закрыть, туда уходят сообщения без канала. */
+  isDefault: boolean;
 }
 
 /** Состояние подключения к контроллеру домена, отдается /api/auth/ad/status. */
