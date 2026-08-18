@@ -23,15 +23,36 @@ import {
   addOrganizerTag
 } from '../services/content.js';
 import {
-  listNotifications,
+  listAdminNotifications,
+  listUserNotifications,
   createNotification,
   markNotificationRead,
   markAllNotificationsRead,
   listRatings,
   upsertRating,
-  listHolidayMessages,
-  addHolidayMessage
+  listChatMessages,
+  listChatChannels,
+  sendChatMessage,
+  DEFAULT_CHAT_CHANNEL
 } from '../services/engagement.js';
+import { getTheme, setTheme, isThemeName } from '../services/settings.js';
+import {
+  getOpenCycle,
+  getCycleById,
+  listCycles,
+  createCycle,
+  cancelCycle,
+  getMyAvailability,
+  setMyAvailability,
+  getSlotDemand,
+  countParticipants,
+  getMyMatch,
+  listMatchesForCycle,
+  runMatching,
+  notifyMatchMembers,
+  getLatestCycleForUser,
+  CoffeeError
+} from '../services/coffee.js';
 
 const eventSchema = z.object({
   title: z.string().trim().min(1, 'Укажите название мероприятия').max(300),
@@ -73,8 +94,19 @@ const ratingSchema = z.object({
   comment: z.string().max(2000).optional()
 });
 
-const holidayMessageSchema = z.object({
-  text: z.string().trim().min(1, 'Сообщение не может быть пустым').max(2000)
+const chatMessageSchema = z.object({
+  text: z.string().trim().min(1, 'Сообщение не может быть пустым').max(2000),
+  channelId: z.string().trim().max(60).optional()
+});
+
+const availabilitySchema = z.object({
+  slots: z.array(z.string().max(100)).max(50)
+});
+
+const cycleSchema = z.object({
+  title: z.string().trim().max(200).optional(),
+  meetingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Дата встреч в формате ГГГГ-ММ-ДД'),
+  registrationEndsAt: z.string().min(1, 'Укажите дедлайн записи')
 });
 
 /** Единый ответ на ошибку валидации, чтобы клиент показывал понятный текст. */
@@ -95,28 +127,42 @@ export function createApiRouter(): Router {
   // Начальная загрузка: один запрос вместо десятка при старте приложения
   // -------------------------------------------------------------------------
   router.get('/bootstrap', async (req, res) => {
-    const isAdmin = req.user!.role === 'admin';
-    const [events, participants, cmsContent, coffeeSlots, organizerTags, ratings, notifications] =
-      await Promise.all([
-        listEvents(),
-        listParticipants(),
-        getCmsContent(),
-        listCoffeeSlots(),
-        listOrganizerTags(),
-        listRatings(),
-        isAdmin ? listNotifications() : Promise.resolve([])
-      ]);
-
-    res.json({
-      success: true,
-      user: toPublicUser(req.user!),
+    const user = req.user!;
+    const isAdmin = user.role === 'admin';
+    const [
       events,
       participants,
       cmsContent,
       coffeeSlots,
       organizerTags,
       ratings,
-      notifications
+      notifications,
+      themeState,
+      chatChannels
+    ] = await Promise.all([
+      listEvents(),
+      listParticipants(),
+      getCmsContent(),
+      listCoffeeSlots(),
+      listOrganizerTags(),
+      listRatings(),
+      isAdmin ? listAdminNotifications() : listUserNotifications(user.id),
+      getTheme(),
+      listChatChannels()
+    ]);
+
+    res.json({
+      success: true,
+      user: toPublicUser(user),
+      events,
+      participants,
+      cmsContent,
+      coffeeSlots,
+      organizerTags,
+      ratings,
+      notifications,
+      theme: themeState.theme,
+      chatChannels
     });
   });
 
@@ -224,24 +270,41 @@ export function createApiRouter(): Router {
   });
 
   // -------------------------------------------------------------------------
-  // Уведомления (только администраторы)
+  // Уведомления
+  //
+  // Администратор видит ленту по всем сотрудникам, рядовой сотрудник — только
+  // адресованные ему лично (например, о подобранной паре Random Coffee).
   // -------------------------------------------------------------------------
-  router.get('/notifications', requireAdmin, async (_req, res) => {
-    res.json({ success: true, notifications: await listNotifications() });
+  router.get('/notifications', async (req, res) => {
+    const user = req.user!;
+    const notifications =
+      user.role === 'admin' ? await listAdminNotifications() : await listUserNotifications(user.id);
+    res.json({ success: true, notifications });
   });
 
   router.post('/notifications', requireAdmin, async (req, res) => {
-    const notification = await createNotification(req.body ?? {});
+    // Через API создаются только административные записи: личные уведомления
+    // формирует сам сервер, чтобы никто не мог написать «от имени системы».
+    const notification = await createNotification({ ...(req.body ?? {}), audience: 'admin' });
     res.status(201).json({ success: true, notification });
   });
 
-  router.post('/notifications/:id/read', requireAdmin, async (req, res) => {
-    const updated = await markNotificationRead(req.params.id);
+  router.post('/notifications/:id/read', async (req, res) => {
+    const user = req.user!;
+    const updated = await markNotificationRead(req.params.id, {
+      userId: user.id,
+      isAdmin: user.role === 'admin'
+    });
     res.json({ success: updated });
   });
 
-  router.post('/notifications/read-all', requireAdmin, async (_req, res) => {
-    res.json({ success: true, updated: await markAllNotificationsRead() });
+  router.post('/notifications/read-all', async (req, res) => {
+    const user = req.user!;
+    const updated = await markAllNotificationsRead({
+      userId: user.id,
+      isAdmin: user.role === 'admin'
+    });
+    res.json({ success: true, updated });
   });
 
   // -------------------------------------------------------------------------
@@ -306,26 +369,183 @@ export function createApiRouter(): Router {
   });
 
   // -------------------------------------------------------------------------
-  // Праздничный чат
+  // Чат
   // -------------------------------------------------------------------------
-  router.get('/holiday/messages', async (_req, res) => {
-    res.json({ success: true, messages: await listHolidayMessages() });
+  router.get('/chat/channels', async (_req, res) => {
+    res.json({ success: true, channels: await listChatChannels() });
   });
 
-  router.post('/holiday/messages', async (req, res) => {
-    const parsed = holidayMessageSchema.safeParse(req.body ?? {});
+  router.get('/chat/messages', async (req, res) => {
+    const channelId = String(req.query.channelId ?? DEFAULT_CHAT_CHANNEL);
+    res.json({ success: true, messages: await listChatMessages(channelId) });
+  });
+
+  router.post('/chat/messages', async (req, res) => {
+    const parsed = chatMessageSchema.safeParse(req.body ?? {});
     if (!parsed.success) {
       res.status(400).json(validationError(parsed.error));
       return;
     }
     const user = req.user!;
-    const message = await addHolidayMessage({
+    const message = await sendChatMessage({
       userId: user.id,
       author: user.displayName || `${user.lastName} ${user.firstName}`.trim(),
       department: user.department || 'Команда Colvir',
-      text: parsed.data.text
+      text: parsed.data.text,
+      channelId: parsed.data.channelId
     });
     res.status(201).json({ success: true, message });
+  });
+
+  // -------------------------------------------------------------------------
+  // Оформление
+  //
+  // Тема общая для компании: сотрудники её только получают, меняет администратор.
+  // -------------------------------------------------------------------------
+  router.get('/theme', async (_req, res) => {
+    res.json({ success: true, ...(await getTheme()) });
+  });
+
+  router.post('/theme', requireAdmin, async (req, res) => {
+    const theme = req.body?.theme;
+    if (!isThemeName(theme)) {
+      res.status(400).json({ success: false, message: 'Неизвестная тема оформления' });
+      return;
+    }
+    res.json({ success: true, ...(await setTheme(theme, req.user!.id)) });
+  });
+
+  // -------------------------------------------------------------------------
+  // Random Coffee
+  // -------------------------------------------------------------------------
+
+  /** Всё, что нужно экрану: текущий цикл, моя доступность и моя пара. */
+  router.get('/coffee/state', async (req, res) => {
+    const user = req.user!;
+    const openCycle = await getOpenCycle();
+    const cycle = openCycle ?? (await getLatestCycleForUser(user.id));
+
+    if (!cycle) {
+      res.json({
+        success: true,
+        cycle: null,
+        slots: await listCoffeeSlots(),
+        myAvailability: [],
+        slotDemand: {},
+        participants: 0,
+        myMatch: null
+      });
+      return;
+    }
+
+    const [slots, myAvailability, slotDemand, participants, myMatch] = await Promise.all([
+      listCoffeeSlots(),
+      getMyAvailability(cycle.id, user.id),
+      getSlotDemand(cycle.id),
+      countParticipants(cycle.id),
+      cycle.status === 'matched' ? getMyMatch(cycle.id, user.id) : Promise.resolve(null)
+    ]);
+
+    res.json({
+      success: true,
+      cycle,
+      slots,
+      myAvailability,
+      slotDemand,
+      participants,
+      myMatch
+    });
+  });
+
+  router.put('/coffee/availability', async (req, res) => {
+    const parsed = availabilitySchema.safeParse(req.body ?? {});
+    if (!parsed.success) {
+      res.status(400).json(validationError(parsed.error));
+      return;
+    }
+
+    const cycle = await getOpenCycle();
+    if (!cycle) {
+      res.status(409).json({
+        success: false,
+        message: 'Сейчас нет открытого цикла Random Coffee'
+      });
+      return;
+    }
+
+    try {
+      const slots = await setMyAvailability(cycle.id, req.user!.id, parsed.data.slots);
+      res.json({ success: true, myAvailability: slots });
+    } catch (error) {
+      if (error instanceof CoffeeError) {
+        res.status(error.status).json({ success: false, message: error.message });
+        return;
+      }
+      throw error;
+    }
+  });
+
+  // --- Управление циклами: только администратор ---
+
+  router.get('/coffee/cycles', requireAdmin, async (_req, res) => {
+    res.json({ success: true, cycles: await listCycles() });
+  });
+
+  router.post('/coffee/cycles', requireAdmin, async (req, res) => {
+    const parsed = cycleSchema.safeParse(req.body ?? {});
+    if (!parsed.success) {
+      res.status(400).json(validationError(parsed.error));
+      return;
+    }
+    try {
+      const cycle = await createCycle(parsed.data, req.user!.id);
+      res.status(201).json({ success: true, cycle });
+    } catch (error) {
+      if (error instanceof CoffeeError) {
+        res.status(error.status).json({ success: false, message: error.message });
+        return;
+      }
+      throw error;
+    }
+  });
+
+  router.post('/coffee/cycles/:id/cancel', requireAdmin, async (req, res) => {
+    const cycle = await cancelCycle(Number(req.params.id));
+    if (!cycle) {
+      res.status(404).json({ success: false, message: 'Открытый цикл не найден' });
+      return;
+    }
+    res.json({ success: true, cycle });
+  });
+
+  /** Запустить подбор досрочно, не дожидаясь дедлайна. */
+  router.post('/coffee/cycles/:id/match', requireAdmin, async (req, res) => {
+    try {
+      const result = await runMatching(Number(req.params.id));
+      const notified = await notifyMatchMembers(result.matches, createNotification);
+      res.json({
+        success: true,
+        cycle: result.cycle,
+        matches: result.matches,
+        unmatched: result.unmatched,
+        notified
+      });
+    } catch (error) {
+      if (error instanceof CoffeeError) {
+        res.status(error.status).json({ success: false, message: error.message });
+        return;
+      }
+      throw error;
+    }
+  });
+
+  router.get('/coffee/cycles/:id/matches', requireAdmin, async (req, res) => {
+    const cycle = await getCycleById(Number(req.params.id));
+    if (!cycle) {
+      res.status(404).json({ success: false, message: 'Цикл не найден' });
+      return;
+    }
+    res.json({ success: true, cycle, matches: await listMatchesForCycle(cycle.id) });
   });
 
   return router;

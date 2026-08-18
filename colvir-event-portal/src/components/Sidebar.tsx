@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { ViewMode } from '../types';
 import { ColvirLogo } from './ColvirLogo';
-import { ThemeSwatches } from './ThemeSwatches';
 import {
   Calendar,
   Users,
@@ -50,7 +49,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const navItems: { id: ViewMode; label: string; icon: (active: boolean) => React.ReactNode }[] = [
     { id: 'digest', label: 'Дайджест мероприятий', icon: (active) => <Calendar className={`w-5 h-5 ${active ? 'text-white' : 'text-accent'}`} /> },
     { id: 'random-coffee', label: 'Random Coffee', icon: (active) => <Coffee className={`w-5 h-5 ${active ? 'text-white' : 'text-accent'}`} /> },
-    { id: 'holiday-chat', label: 'Праздничный чат', icon: (active) => <MessageSquare className={`w-5 h-5 ${active ? 'text-white' : 'text-accent'}`} /> },
+    { id: 'chat', label: 'Чат', icon: (active) => <MessageSquare className={`w-5 h-5 ${active ? 'text-white' : 'text-accent'}`} /> },
     ...(isAdmin ? [{ id: 'teams' as ViewMode, label: 'Сформированные группы', icon: (active: boolean) => <Users className={`w-5 h-5 ${active ? 'text-white' : 'text-accent'}`} /> }] : []),
     { id: 'my-events', label: 'Мои записи', icon: (active) => <UserCheck className={`w-5 h-5 ${active ? 'text-white' : 'text-accent'}`} /> },
     ...(isAdmin ? [{ id: 'admin-manage' as ViewMode, label: 'Панель администратора', icon: (active: boolean) => <ShieldCheck className={`w-5 h-5 ${active ? 'text-white' : 'text-accent'}`} /> }] : [])
@@ -63,6 +62,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
    * настройки), а карточка профиля ниже вела туда же, куда и иконка профиля.
    * Теперь редкие действия собраны в одно меню, а на виду остался только
    * колокольчик — он меняется чаще всего.
+   *
+   * Переключателя темы здесь нет намеренно: оформление общее для компании и
+   * меняется только из панели администратора.
    */
   const ProfileMenu: React.FC<{ onNavigate: () => void }> = ({ onNavigate }) => {
     const [open, setOpen] = useState(false);
@@ -159,9 +161,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </span>
             </button>
 
-            <div className="pt-2 border-t border-slate-100 px-2.5 pb-1">
-              <ThemeSwatches />
-            </div>
           </div>
         )}
       </div>

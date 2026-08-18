@@ -1,6 +1,32 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { Bell, CheckCheck, X, ShieldAlert, Sparkles, UserPlus, Gamepad2, Clock } from 'lucide-react';
+import {
+  Bell,
+  CheckCheck,
+  X,
+  ShieldAlert,
+  Sparkles,
+  UserPlus,
+  Gamepad2,
+  Clock,
+  Coffee
+} from 'lucide-react';
+
+/**
+ * Сервер отдаёт время в ISO — приводим к московскому времени для показа.
+ * Раньше в поле лежала уже отформатированная строка, поэтому её выводили как есть.
+ */
+function formatNotificationTime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Europe/Moscow'
+  });
+}
 
 interface AdminNotificationsDrawerProps {
   isOpen: boolean;
@@ -11,7 +37,8 @@ export const AdminNotificationsDrawer: React.FC<AdminNotificationsDrawerProps> =
   isOpen,
   onClose
 }) => {
-  const { notifications, markNotificationAsRead, markAllNotificationsAsRead, unreadCount } = useApp();
+  const { notifications, markNotificationAsRead, markAllNotificationsAsRead, unreadCount, isAdmin } =
+    useApp();
 
   if (!isOpen) return null;
 
@@ -28,10 +55,12 @@ export const AdminNotificationsDrawer: React.FC<AdminNotificationsDrawerProps> =
               </div>
               <div>
                 <h3 className="font-bold text-base leading-tight">
-                  Уведомления администратора
+                  {isAdmin ? 'Уведомления администратора' : 'Мои уведомления'}
                 </h3>
                 <p className="text-xs text-blue-100">
-                  {unreadCount > 0 ? `${unreadCount} новых регистраций` : 'Все уведомления прочитаны'}
+                  {unreadCount > 0
+                    ? `Новых: ${unreadCount}`
+                    : 'Все уведомления прочитаны'}
                 </p>
               </div>
             </div>
@@ -84,12 +113,17 @@ export const AdminNotificationsDrawer: React.FC<AdminNotificationsDrawerProps> =
 
                   <div className="flex items-start gap-2.5">
                     <div className="p-2 bg-white rounded-xl border border-slate-200 text-accent shrink-0 mt-0.5">
-                      <UserPlus className="w-4 h-4" />
+                      {notif.type === 'random_coffee_match' ||
+                      notif.type === 'random_coffee_reminder' ? (
+                        <Coffee className="w-4 h-4" />
+                      ) : (
+                        <UserPlus className="w-4 h-4" />
+                      )}
                     </div>
 
                     <div className="space-y-1 pr-4">
                       <div className="text-xs text-slate-500 font-semibold">
-                        {notif.timestamp}
+                        {formatNotificationTime(notif.timestamp)}
                       </div>
 
                       <div className="text-sm font-bold text-slate-900 leading-snug">

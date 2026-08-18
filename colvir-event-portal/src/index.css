@@ -10,39 +10,52 @@
    компилируются в var(--color-accent), поэтому переопределение переменной
    ниже меняет цвет во всём приложении на лету.
 
-   Значения подобраны так, чтобы проходить WCAG AA:
-     белый текст на accent      ≥ 6.1:1
-     accent-текст на accent-soft ≥ 4.8:1
-     accent-текст на accent-light ≥ 5.5:1
+   ВАЖНО о палитре. Утверждённые цвета тем (#7C9885 шалфейный, #C97B5C
+   терракотовый) — приглушённые и светлые: белый текст на них даёт контраст
+   3.1–3.3:1, то есть кнопка «Записаться» была бы нечитаемой (WCAG AA требует
+   4.5:1). Поэтому утверждённый цвет живёт как --color-accent-decor: свотчи в
+   админке, декоративные иконки баннера — там, где он воспринимается как цвет,
+   а не как фон под текстом. Для --color-accent взят тот же тон, затемнённый до
+   проходящего контраста; для морозного тила и бренд-синего затемнение не
+   потребовалось — они проходят как есть.
+
+   Проверенные соотношения (все ≥ 4.5:1):
+     белый текст на accent        5.1 … 6.4
+     accent-текст на accent-soft  4.5 … 5.7
+     accent-текст на accent-light 4.8 … 6.1
 --------------------------------------------------------------------------- */
 @theme {
   --color-accent: #1560AA;
-  --color-accent-hover: #104D88;
-  --color-accent-light: #F0F6FC;
-  --color-accent-soft: #DCE9F7;
+  --color-accent-hover: #125291;
+  --color-accent-soft: #EBF3FA;
+  --color-accent-light: #F6F9FD;
+  --color-accent-decor: #1560AA;
 }
 
 @layer base {
   /* Тему проставляет AppContext атрибутом data-theme на <html>. */
   :root[data-theme='spring'] {
-    --color-accent: #1B6F49;
-    --color-accent-hover: #14563A;
-    --color-accent-light: #EEF8F2;
-    --color-accent-soft: #D7EFE3;
+    --color-accent: #5B7463;
+    --color-accent-hover: #4E6355;
+    --color-accent-soft: #EAF4EE;
+    --color-accent-light: #F6FAF7;
+    --color-accent-decor: #7C9885;
   }
 
   :root[data-theme='birthday'] {
-    --color-accent: #AE3260;
-    --color-accent-hover: #8E284D;
-    --color-accent-light: #FDF0F5;
-    --color-accent-soft: #FADDE8;
+    --color-accent: #A85738;
+    --color-accent-hover: #904B30;
+    --color-accent-soft: #F9F0EC;
+    --color-accent-light: #FCF8F6;
+    --color-accent-decor: #C97B5C;
   }
 
   :root[data-theme='newyear'] {
-    --color-accent: #17618A;
-    --color-accent-hover: #11496B;
-    --color-accent-light: #EEF6FB;
-    --color-accent-soft: #D8EAF6;
+    --color-accent: #2F6B73;
+    --color-accent-hover: #285C62;
+    --color-accent-soft: #E8F4F6;
+    --color-accent-light: #F3FAFA;
+    --color-accent-decor: #2F6B73;
   }
 
   body {
@@ -127,3 +140,37 @@
 }
 
 
+
+/* ---------------------------------------------------------------------------
+   Анимация декоративных иконок праздничной темы.
+
+   Лёгкая и бесконечная, применяется только к фоновым иконкам баннера — на
+   текст и элементы управления не влияет. Пользователи, попросившие систему
+   уменьшить анимацию, получают статичную картинку.
+--------------------------------------------------------------------------- */
+@keyframes theme-decor-sway {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+@keyframes theme-decor-shimmer {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+
+@keyframes theme-decor-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.theme-decor-sway    { animation: theme-decor-sway 3s ease-in-out infinite; }
+.theme-decor-shimmer { animation: theme-decor-shimmer 2.4s ease-in-out infinite; }
+.theme-decor-spin    { animation: theme-decor-spin 9s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-decor-sway,
+  .theme-decor-shimmer,
+  .theme-decor-spin {
+    animation: none !important;
+  }
+}

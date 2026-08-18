@@ -1,43 +1,93 @@
-import React from 'react';
-import { Check } from 'lucide-react';
+import React, { useState } from 'react';
+import { Check, Loader2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { THEMES } from '../utils/themes';
+import type { ThemeType } from '../types';
 
 /**
- * Переключатель оформления: ряд кружков по цвету темы.
+ * Переключатель оформления.
  *
- * Клик применяет тему сразу — промежуточного модального окна больше нет.
+ * Живёт только в панели администратора: тема общая для компании, сотрудники её
+ * не выбирают и переключателя не видят. Клик применяет тему сразу — сервер
+ * сохраняет выбор, остальные вкладки подхватывают его опросом.
  */
 export const ThemeSwatches: React.FC = () => {
-  const { theme, setTheme } = useApp();
+  const { theme, setTheme, isAdmin } = useApp();
+  const [pending, setPending] = useState<ThemeType | null>(null);
+  const [feedback, setFeedback] = useState<{ ok: boolean; message: string } | null>(null);
+
+  if (!isAdmin) return null;
+
+  const handlePick = async (next: ThemeType) => {
+    if (next === theme || pending) return;
+    setPending(next);
+    setFeedback(null);
+    const result = await setTheme(next);
+    setFeedback({ ok: result.success, message: result.message });
+    setPending(null);
+    setTimeout(() => setFeedback(null), 4000);
+  };
 
   return (
-    <div className="space-y-2">
-      <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-        Оформление
-      </p>
-      <div className="flex items-center gap-2">
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-sm font-black text-slate-900">Оформление портала</h3>
+        <p className="text-xs text-slate-500 mt-0.5">
+          Тема применяется у всех сотрудников. Открытые вкладки подхватят её в течение минуты.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {THEMES.map((item) => {
           const isActive = theme === item.id;
+          const Icon = item.icon;
           return (
             <button
               key={item.id}
-              onClick={() => setTheme(item.id)}
-              title={item.label}
-              aria-label={item.label}
+              onClick={() => void handlePick(item.id)}
+              disabled={pending !== null}
               aria-pressed={isActive}
-              className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+              className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-colors disabled:opacity-60 ${
                 isActive
-                  ? 'ring-2 ring-offset-2 ring-slate-400'
-                  : 'hover:scale-110 ring-1 ring-black/10'
+                  ? 'border-accent bg-accent-soft'
+                  : 'border-slate-200 bg-white hover:bg-slate-50'
               }`}
-              style={{ backgroundColor: item.swatch }}
             >
-              {isActive && <Check className="w-3.5 h-3.5 text-white" />}
+              <span
+                className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+                style={{ backgroundColor: item.decor }}
+              >
+                {pending === item.id ? (
+                  <Loader2 className="w-4 h-4 text-white animate-spin" />
+                ) : (
+                  <Icon className="w-4 h-4 text-white" />
+                )}
+              </span>
+
+              <span className="min-w-0 flex-1">
+                <span className="block text-xs font-bold text-slate-900 truncate">
+                  {item.label}
+                </span>
+                <span className="block text-[10px] text-slate-400 font-mono">{item.decor}</span>
+              </span>
+
+              {isActive && <Check className="w-4 h-4 text-accent shrink-0" />}
             </button>
           );
         })}
       </div>
+
+      {feedback && (
+        <div
+          className={`p-3 rounded-xl text-[11px] font-semibold ${
+            feedback.ok
+              ? 'bg-emerald-50 text-emerald-900 border border-emerald-200'
+              : 'bg-rose-50 text-rose-900 border border-rose-200'
+          }`}
+        >
+          {feedback.message}
+        </div>
+      )}
     </div>
   );
 };

@@ -4,18 +4,55 @@ import type { CMSContent, ThemeType } from '../types';
 export interface ThemeDescriptor {
   id: ThemeType;
   label: string;
+  /**
+   * Декоративная иконка темы.
+   *
+   * В брифе указаны имена из Tabler (`ti-flower`, `ti-gift`, `ti-snowflake`) —
+   * здесь взяты эквиваленты из lucide-react, которая уже подключена в проекте;
+   * вторую иконочную библиотеку ради трёх глифов тянуть не стали.
+   */
   icon: LucideIcon;
-  /** Цвет свотча в переключателе; совпадает с --color-accent темы в index.css. */
-  swatch: string;
+  /** Утверждённый цвет темы: используется для свотчей и декоративных иконок. */
+  decor: string;
+  /** CSS-класс анимации декоративной иконки (см. index.css). */
+  animation: string;
   /** Тег мероприятия, по которому собирается тематическая подборка в дайджесте. */
   tag: string;
 }
 
 export const THEMES: ThemeDescriptor[] = [
-  { id: 'classic', label: 'Классическая', icon: Circle, swatch: '#1560AA', tag: '' },
-  { id: 'spring', label: 'Весна', icon: Flower2, swatch: '#1B6F49', tag: 'весна' },
-  { id: 'birthday', label: 'День рождения', icon: Gift, swatch: '#AE3260', tag: 'день рождения' },
-  { id: 'newyear', label: 'Новый год', icon: Snowflake, swatch: '#17618A', tag: 'новый год' }
+  {
+    id: 'classic',
+    label: 'Обычная',
+    icon: Circle,
+    decor: '#1560AA',
+    animation: '',
+    tag: ''
+  },
+  {
+    id: 'spring',
+    label: 'Весна',
+    icon: Flower2,
+    decor: '#7C9885',
+    animation: 'theme-decor-sway',
+    tag: 'весна'
+  },
+  {
+    id: 'birthday',
+    label: 'День рождения компании',
+    icon: Gift,
+    decor: '#C97B5C',
+    animation: 'theme-decor-shimmer',
+    tag: 'день рождения'
+  },
+  {
+    id: 'newyear',
+    label: 'Новый год',
+    icon: Snowflake,
+    decor: '#2F6B73',
+    animation: 'theme-decor-spin',
+    tag: 'новый год'
+  }
 ];
 
 export function getTheme(theme: ThemeType): ThemeDescriptor {

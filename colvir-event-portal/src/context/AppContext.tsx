@@ -12,17 +12,21 @@ import {
   ThemeType,
   CMSContent,
   EventRating,
-  HolidayChatMessage
+  ChatMessage,
+  ChatChannel,
+  CoffeeState
 } from '../types';
 
 /**
  * Все данные портала хранятся на сервере в PostgreSQL.
  *
- * В localStorage остаётся единственная вещь — выбранная тема оформления. Это
- * настройка внешнего вида конкретного браузера, она не касается ни сотрудников,
- * ни мероприятий, поэтому синхронизировать её между устройствами не нужно.
+ * Тема оформления тоже переехала на сервер: её выбирает администратор, и она
+ * общая для компании. Раньше тема лежала в localStorage каждого браузера,
+ * поэтому «единое оформление» было принципиально невозможно. Клиент забирает
+ * её при загрузке и периодически опрашивает — так смена темы админом доезжает
+ * до уже открытых вкладок без перезагрузки.
  */
-const THEME_STORAGE_KEY = 'colvir_theme_v1';
+const THEME_POLL_INTERVAL_MS = 45_000;
 
 const EMPTY_CMS: CMSContent = {
   holidayBannerSpringText: '',
@@ -57,7 +61,10 @@ interface AppContextType {
   theme: ThemeType;
   organizerTags: string[];
   ratings: EventRating[];
-  holidayChatMessages: HolidayChatMessage[];
+  chatMessages: ChatMessage[];
+  chatChannels: ChatChannel[];
+  activeChannelId: string;
+  coffee: CoffeeState;
 
   /** true, пока идёт первичная загрузка данных с сервера. */
   isLoading: boolean;
@@ -69,7 +76,9 @@ interface AppContextType {
   setActiveView: (view: ViewMode) => void;
   setSearchQuery: (query: string) => void;
   setSelectedCategory: (cat: string) => void;
-  setTheme: (theme: ThemeType) => void;
+  setActiveChannelId: (channelId: string) => void;
+  /** Сменить тему для всей компании. Доступно только администратору. */
+  setTheme: (theme: ThemeType) => Promise<{ success: boolean; message: string }>;
 
   updateUserProfile: (profile: UserProfile) => Promise<void>;
   updateCMSContent: (newContent: Partial<CMSContent>) => Promise<void>;
@@ -86,7 +95,11 @@ interface AppContextType {
     comment?: string;
   }) => Promise<void>;
   getEventAverageRating: (eventId: string) => number;
-  addHolidayChatMessage: (msgText: string) => Promise<void>;
+  sendChatMessage: (text: string) => Promise<void>;
+
+  /** Отметить свои удобные слоты в текущем цикле Random Coffee. */
+  saveCoffeeAvailability: (slots: string[]) => Promise<{ success: boolean; message: string }>;
+  refreshCoffee: () => Promise<void>;
 
   registerForEvent: (data: {
     eventId: string;
@@ -119,10 +132,14 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-function readStoredTheme(): ThemeType {
-  const saved = localStorage.getItem(THEME_STORAGE_KEY);
-  return saved === 'spring' || saved === 'birthday' || saved === 'newyear' ? saved : 'classic';
-}
+const EMPTY_COFFEE: CoffeeState = {
+  cycle: null,
+  slots: [],
+  myAvailability: [],
+  slotDemand: {},
+  participants: 0,
+  myMatch: null
+};
 
 interface BootstrapResponse {
   user: UserProfile;
@@ -133,6 +150,8 @@ interface BootstrapResponse {
   organizerTags: string[];
   ratings: EventRating[];
   notifications: AdminNotification[];
+  theme: ThemeType;
+  chatChannels: ChatChannel[];
 }
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -145,7 +164,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [coffeeSlots, setCoffeeSlots] = useState<string[]>([]);
   const [organizerTags, setOrganizerTags] = useState<string[]>([]);
   const [ratings, setRatings] = useState<EventRating[]>([]);
-  const [holidayChatMessages, setHolidayChatMessages] = useState<HolidayChatMessage[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatChannels, setChatChannels] = useState<ChatChannel[]>([]);
+  const [activeChannelId, setActiveChannelId] = useState('general');
+  const [coffee, setCoffee] = useState<CoffeeState>(EMPTY_COFFEE);
 
   const [isLoading, setIsLoading] = useState(true);
   const [lastError, setLastError] = useState<string | null>(null);
@@ -153,12 +175,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activeView, setActiveView] = useState<ViewMode>('digest');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [theme, setTheme] = useState<ThemeType>(readStoredTheme);
+  const [theme, setThemeState] = useState<ThemeType>('classic');
 
   useEffect(() => {
-    localStorage.setItem(THEME_STORAGE_KEY, theme);
-    // Атрибут на <html> даёт CSS-переменным темы одну точку истины,
-    // из которой берут цвет и полоса-баннер, и свотчи переключателя.
+    // Атрибут на <html> — единственная точка истины для CSS-переменных темы:
+    // из них берут цвет и баннер, и кнопки, и бейджи, и прогресс-бары.
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 
@@ -184,6 +205,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setOrganizerTags(data.organizerTags);
       setRatings(data.ratings);
       setNotifications(data.notifications ?? []);
+      setThemeState(data.theme ?? 'classic');
+      setChatChannels(data.chatChannels ?? []);
     } catch (error) {
       reportError(error, 'Не удалось загрузить данные портала');
     }
@@ -198,23 +221,53 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     void refresh().finally(() => setIsLoading(false));
   }, [user, refresh]);
 
-  // Праздничный чат живёт в отдельном разделе и обновляется чаще остальных
-  // данных, поэтому подгружается отдельным запросом.
-  const refreshHoliday = useCallback(async () => {
+  // Чат обновляется чаще остальных данных, поэтому грузится отдельным запросом.
+  const refreshChat = useCallback(async () => {
     if (!user) return;
     try {
-      const { messages } = await api.get<{ messages: HolidayChatMessage[] }>(
-        '/api/holiday/messages'
+      const { messages } = await api.get<{ messages: ChatMessage[] }>(
+        `/api/chat/messages?channelId=${encodeURIComponent(activeChannelId)}`
       );
-      setHolidayChatMessages(messages);
+      setChatMessages(messages);
     } catch (error) {
-      reportError(error, 'Не удалось загрузить праздничный чат');
+      reportError(error, 'Не удалось загрузить чат');
+    }
+  }, [user, activeChannelId, reportError]);
+
+  useEffect(() => {
+    void refreshChat();
+  }, [refreshChat]);
+
+  // Random Coffee: текущий цикл, моя доступность и подобранная пара.
+  const refreshCoffee = useCallback(async () => {
+    if (!user) return;
+    try {
+      setCoffee(await api.get<CoffeeState>('/api/coffee/state'));
+    } catch (error) {
+      reportError(error, 'Не удалось загрузить состояние Random Coffee');
     }
   }, [user, reportError]);
 
   useEffect(() => {
-    void refreshHoliday();
-  }, [refreshHoliday]);
+    void refreshCoffee();
+  }, [refreshCoffee]);
+
+  // Тему меняет администратор, поэтому у остальных она подтягивается опросом.
+  useEffect(() => {
+    if (!user) return;
+
+    const poll = async () => {
+      try {
+        const { theme: current } = await api.get<{ theme: ThemeType }>('/api/theme');
+        setThemeState((prev) => (prev === current ? prev : current));
+      } catch {
+        // сеть моргнула — попробуем на следующем такте
+      }
+    };
+
+    const timer = setInterval(() => void poll(), THEME_POLL_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, [user]);
 
   // ---------------------------------------------------------------------------
   // Мероприятия
@@ -401,9 +454,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // ---------------------------------------------------------------------------
   // Уведомления
   // ---------------------------------------------------------------------------
+  /**
+   * Создать запись в административной ленте. Личные уведомления сотрудникам
+   * формирует только сервер — иначе из браузера можно было бы отправить
+   * сообщение «от имени системы» кому угодно.
+   */
   const addNotification = useCallback(
     async (notif: Omit<AdminNotification, 'id' | 'timestamp' | 'read'>) => {
-      if (!isAdmin) return; // сервер всё равно отклонит запрос от рядового сотрудника
+      if (!isAdmin) return; // эндпоинт закрыт правами администратора
       try {
         const response = await api.post<{ notification: AdminNotification }>(
           '/api/notifications',
@@ -471,19 +529,61 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // ---------------------------------------------------------------------------
   // Праздничный чат
   // ---------------------------------------------------------------------------
-  const addHolidayChatMessage = useCallback(
-    async (msgText: string) => {
+  const sendChatMessage = useCallback(
+    async (text: string) => {
       try {
-        const response = await api.post<{ message: HolidayChatMessage }>(
-          '/api/holiday/messages',
-          { text: msgText }
-        );
-        setHolidayChatMessages((prev) => [...prev, response.message]);
+        const response = await api.post<{ message: ChatMessage }>('/api/chat/messages', {
+          text,
+          channelId: activeChannelId
+        });
+        setChatMessages((prev) => [...prev, response.message]);
       } catch (error) {
         reportError(error, 'Не удалось отправить сообщение');
       }
     },
-    [reportError]
+    [activeChannelId, reportError]
+  );
+
+  /**
+   * Смена темы для всей компании. Сервер пускает только администратора,
+   * остальные вкладки увидят новую тему на следующем такте опроса.
+   */
+  const setTheme = useCallback(
+    async (next: ThemeType) => {
+      try {
+        const response = await api.post<{ theme: ThemeType }>('/api/theme', { theme: next });
+        setThemeState(response.theme);
+        return { success: true, message: 'Оформление обновлено для всех сотрудников' };
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Не удалось сменить оформление';
+        setLastError(message);
+        return { success: false, message };
+      }
+    },
+    []
+  );
+
+  const saveCoffeeAvailability = useCallback(
+    async (slots: string[]) => {
+      try {
+        await api.put('/api/coffee/availability', { slots });
+        await refreshCoffee();
+        return {
+          success: true,
+          message:
+            slots.length > 0
+              ? `Сохранено слотов: ${slots.length}. Пару подберём после закрытия записи.`
+              : 'Вы отказались от участия в этом цикле'
+        };
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Не удалось сохранить доступность';
+        setLastError(message);
+        return { success: false, message };
+      }
+    },
+    [refreshCoffee]
   );
 
   // ---------------------------------------------------------------------------
@@ -572,7 +672,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       theme,
       organizerTags,
       ratings,
-      holidayChatMessages,
+      chatMessages,
+      chatChannels,
+      activeChannelId,
+      coffee,
       isLoading,
       lastError,
       clearError: () => setLastError(null),
@@ -580,6 +683,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setActiveView,
       setSearchQuery,
       setSelectedCategory,
+      setActiveChannelId,
       setTheme,
       updateUserProfile,
       updateCMSContent,
@@ -589,7 +693,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addNotification,
       addEventRating,
       getEventAverageRating,
-      addHolidayChatMessage,
+      sendChatMessage,
+      saveCoffeeAvailability,
+      refreshCoffee,
       registerForEvent,
       cancelRegistration,
       createEvent,
@@ -619,10 +725,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       theme,
       organizerTags,
       ratings,
-      holidayChatMessages,
+      chatMessages,
+      chatChannels,
+      activeChannelId,
+      coffee,
       isLoading,
       lastError,
       refresh,
+      setTheme,
       updateUserProfile,
       updateCMSContent,
       addCoffeeSlot,
@@ -631,7 +741,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addNotification,
       addEventRating,
       getEventAverageRating,
-      addHolidayChatMessage,
+      sendChatMessage,
+      saveCoffeeAvailability,
+      refreshCoffee,
       registerForEvent,
       cancelRegistration,
       createEvent,

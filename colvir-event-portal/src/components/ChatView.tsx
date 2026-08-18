@@ -1,14 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MessageSquare, Send, Smile, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { getTheme } from '../utils/themes';
 
 /**
- * Праздничный чат.
+ * Чат компании.
  *
- * Раньше жил внутри тематического модального окна вместе с плеером и
- * плейлистом. Теперь это обычная страница — как RandomCoffeeView, — а музыка
- * из продукта убрана.
+ * Раньше жил внутри тематического модального окна вместе с музыкальным плеером
+ * и был привязан к праздничной теме. Теперь это постоянный раздел, доступный
+ * всем сотрудникам независимо от активной темы, а музыка из продукта убрана.
+ *
+ * Сообщения хранятся с привязкой к каналу. В интерфейсе пока один общий канал,
+ * переключателя нет — но данные уже готовы к группам по интересам.
  */
 
 // Один набор эмодзи вместо прежних двух дублирующих панелей.
@@ -18,8 +20,16 @@ const EMOJIS = [
   '⭐', '🙌', '🥇', '🥂', '💐', '🍰', '😄', '🤝'
 ];
 
-export const HolidayChatView: React.FC = () => {
-  const { holidayChatMessages, addHolidayChatMessage, userProfile, theme } = useApp();
+function pluralizeMessages(count: number): string {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  if (mod10 === 1 && mod100 !== 11) return 'сообщение';
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'сообщения';
+  return 'сообщений';
+}
+
+export const ChatView: React.FC = () => {
+  const { chatMessages, chatChannels, activeChannelId, sendChatMessage, userProfile } = useApp();
 
   const [text, setText] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -28,7 +38,7 @@ export const HolidayChatView: React.FC = () => {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: 'end' });
-  }, [holidayChatMessages.length]);
+  }, [chatMessages.length]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -39,27 +49,29 @@ export const HolidayChatView: React.FC = () => {
     setText('');
     setShowEmojiPicker(false);
     try {
-      await addHolidayChatMessage(trimmed);
+      await sendChatMessage(trimmed);
     } finally {
       setIsSending(false);
     }
   };
 
-  const themeInfo = getTheme(theme);
+  const channelName =
+    chatChannels.find((channel) => channel.id === activeChannelId)?.name ?? 'Общий чат';
+
+  const myName =
+    userProfile.displayName || `${userProfile.lastName} ${userProfile.firstName}`.trim();
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <div className="bg-white rounded-2xl border border-slate-200 p-6">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-accent-light flex items-center justify-center shrink-0">
+          <div className="w-11 h-11 rounded-xl bg-accent-soft flex items-center justify-center shrink-0">
             <MessageSquare className="w-5 h-5 text-accent" />
           </div>
           <div className="min-w-0">
-            <h2 className="text-xl font-black text-slate-900 tracking-tight">Праздничный чат</h2>
+            <h2 className="text-xl font-black text-slate-900 tracking-tight">Чат</h2>
             <p className="text-xs text-slate-500">
-              Общий чат компании
-              {theme !== 'classic' ? ` · ${themeInfo.label}` : ''} · {holidayChatMessages.length}{' '}
-              {holidayChatMessages.length === 1 ? 'сообщение' : 'сообщений'}
+              {channelName} · {chatMessages.length} {pluralizeMessages(chatMessages.length)}
             </p>
           </div>
         </div>
@@ -67,24 +79,20 @@ export const HolidayChatView: React.FC = () => {
 
       <div className="bg-white rounded-2xl border border-slate-200 flex flex-col">
         <div className="flex-1 p-4 sm:p-5 space-y-3 max-h-[55vh] overflow-y-auto">
-          {holidayChatMessages.length === 0 ? (
+          {chatMessages.length === 0 ? (
             <div className="py-12 text-center space-y-2">
               <MessageSquare className="w-10 h-10 text-slate-300 mx-auto" />
               <p className="text-sm font-bold text-slate-700">Сообщений пока нет</p>
               <p className="text-xs text-slate-500">Напишите первым — коллеги увидят сразу.</p>
             </div>
           ) : (
-            holidayChatMessages.map((message) => {
-              const isMine =
-                message.author ===
-                (userProfile.displayName ||
-                  `${userProfile.lastName} ${userProfile.firstName}`.trim());
-
+            chatMessages.map((message) => {
+              const isMine = message.author === myName;
               return (
                 <div
                   key={message.id}
                   className={`p-3 rounded-xl border ${
-                    isMine ? 'bg-accent-light border-accent/20' : 'bg-slate-50 border-slate-200'
+                    isMine ? 'bg-accent-soft border-accent/20' : 'bg-slate-50 border-slate-200'
                   }`}
                 >
                   <div className="flex items-baseline justify-between gap-3">

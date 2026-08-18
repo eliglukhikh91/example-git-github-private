@@ -66,8 +66,22 @@ describe('Права администратора', () => {
     assert.match(response.body.message, /группы администраторов/);
   });
 
-  test('рядовой сотрудник не видит уведомления администратора', async () => {
+  test('рядовой сотрудник видит только свою ленту уведомлений', async () => {
+    // Лента стала общей точкой входа: администратору отдаются события по всем
+    // сотрудникам, остальным — только адресованные лично им.
     const response = await employee.request('/api/notifications');
+    assert.equal(response.status, 200);
+    assert.ok(
+      response.body.notifications.every((item: any) => item.audience === 'user'),
+      'в личной ленте не должно быть административных записей'
+    );
+  });
+
+  test('рядовой сотрудник не может создать запись в админской ленте', async () => {
+    const response = await employee.request('/api/notifications', {
+      method: 'POST',
+      body: { eventTitle: 'Подделка', participantName: 'Кто-то' }
+    });
     assert.equal(response.status, 403);
   });
 
@@ -264,9 +278,9 @@ describe('Оценки мероприятий', () => {
   });
 });
 
-describe('Праздничный чат', () => {
+describe('Чат', () => {
   test('сообщение сохраняется и автор берётся из сессии', async () => {
-    const response = await employee.request('/api/holiday/messages', {
+    const response = await employee.request('/api/chat/messages', {
       method: 'POST',
       body: { text: 'Всем отличного дня!' }
     });
@@ -274,11 +288,12 @@ describe('Праздничный чат', () => {
     assert.equal(response.status, 201);
     assert.equal(response.body.message.text, 'Всем отличного дня!');
     assert.equal(response.body.message.author, 'Иванов Иван');
+    assert.equal(response.body.message.channelId, 'general', 'по умолчанию общий канал');
     assert.ok(response.body.message.time, 'должно быть время сообщения');
   });
 
   test('сообщение видно в другой сессии', async () => {
-    const list = await admin.request('/api/holiday/messages');
+    const list = await admin.request('/api/chat/messages');
     assert.equal(list.status, 200);
     assert.ok(
       list.body.messages.some((m: any) => m.text === 'Всем отличного дня!'),
@@ -287,7 +302,7 @@ describe('Праздничный чат', () => {
   });
 
   test('пустое сообщение отклоняется', async () => {
-    const response = await employee.request('/api/holiday/messages', {
+    const response = await employee.request('/api/chat/messages', {
       method: 'POST',
       body: { text: '   ' }
     });
@@ -303,6 +318,15 @@ describe('Праздничный чат', () => {
       });
       assert.equal(response.status, 404, `${method} /api/holiday/tracks должен быть удалён`);
     }
+  });
+
+  test('канал по умолчанию заведён', async () => {
+    const response = await employee.request('/api/chat/channels');
+    assert.equal(response.status, 200);
+    assert.ok(
+      response.body.channels.some((channel: any) => channel.id === 'general'),
+      'общий канал должен существовать'
+    );
   });
 });
 

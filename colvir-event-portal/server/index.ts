@@ -4,6 +4,7 @@ import { getConfig } from './config/env.js';
 import { createApp } from './app.js';
 import { runMigrations } from './db/migrate.js';
 import { closePool, query } from './db/pool.js';
+import { startScheduler } from './scheduler.js';
 
 async function start(): Promise<void> {
   let config: ReturnType<typeof getConfig>;
@@ -47,6 +48,14 @@ async function start(): Promise<void> {
     app.use(vite.middlewares);
   }
 
+  // Фоновые задачи Random Coffee: подбор пар по дедлайну и напоминания.
+  // Отключается через SCHEDULER_ENABLED=false, если задачи выносятся в CronJob.
+  const scheduler =
+    process.env.SCHEDULER_ENABLED === 'false' ? null : startScheduler();
+  if (scheduler) {
+    console.log('[colvir] Планировщик Random Coffee запущен');
+  }
+
   const server = app.listen(config.port, '0.0.0.0', () => {
     console.log(`[colvir] Портал запущен на порту ${config.port} (${config.nodeEnv})`);
     console.log(`[colvir] Каталог учётных записей: ${config.ldap.enabled ? config.ldap.url : 'файловый (разработка)'}`);
@@ -59,6 +68,7 @@ async function start(): Promise<void> {
 
   const shutdown = async (signal: string) => {
     console.log(`[colvir] Получен ${signal}, завершаю работу...`);
+    scheduler?.stop();
     server.close(async () => {
       await closePool().catch(() => undefined);
       process.exit(0);

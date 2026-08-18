@@ -6,68 +6,81 @@ import { getTheme, getThemeBannerText, splitBannerText } from '../utils/themes';
 /**
  * Баннер активной праздничной темы.
  *
- * Первая версия была тонкой полосой в одну строку — праздник не считывался.
- * Теперь это блок с плотной заливкой цветом темы: иконка в кружке, заголовок и
- * подзаголовок белым. Заливка сплошная, без градиента и блюра; по углам —
- * несколько тематических иконок с низкой непрозрачностью как едва заметный
- * узор (это не glassmorphism-блобы, а просто фон).
+ * Тему выбирает администратор, сотрудник её только видит — этот баннер и есть
+ * основной способ узнать, что оформление сменилось.
  *
- * Цвет берётся из --color-accent, который переопределяется под тему в index.css,
- * поэтому баннер всегда совпадает по цвету с кнопками и бейджами страницы.
+ * Закрытие живёт в sessionStorage, а не в localStorage: баннер должен вернуться
+ * в новой сессии, а не исчезнуть навсегда после одного клика.
  */
+const DISMISS_KEY = 'colvir_theme_banner_dismissed';
+
 export const ThemeBanner: React.FC = () => {
   const { theme, cmsContent } = useApp();
-  const [dismissedTheme, setDismissedTheme] = useState<string | null>(null);
+  const [dismissed, setDismissed] = useState<string | null>(() => {
+    try {
+      return sessionStorage.getItem(DISMISS_KEY);
+    } catch {
+      return null;
+    }
+  });
 
-  // Смена темы возвращает баннер: закрытие относится к конкретной теме,
-  // а не выключает баннер навсегда.
+  // Смена темы возвращает баннер: закрытие относится к конкретной теме.
   useEffect(() => {
-    setDismissedTheme(null);
+    try {
+      if (sessionStorage.getItem(DISMISS_KEY) !== theme) setDismissed(null);
+    } catch {
+      setDismissed(null);
+    }
   }, [theme]);
 
-  if (theme === 'classic' || dismissedTheme === theme) return null;
+  if (theme === 'classic' || dismissed === theme) return null;
 
   const text = getThemeBannerText(theme, cmsContent);
   if (!text) return null;
 
-  const { icon: Icon, label } = getTheme(theme);
+  const { icon: Icon, label, animation } = getTheme(theme);
   const { title, subtitle } = splitBannerText(text, label);
 
-  return (
-    <div className="relative overflow-hidden bg-accent">
-      {/* Декоративный узор: те же иконки темы, едва заметные. */}
-      <Icon
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-6 right-10 w-28 h-28 text-white/10"
-      />
-      <Icon
-        aria-hidden="true"
-        className="pointer-events-none absolute -bottom-8 right-44 w-24 h-24 text-white/[0.07]"
-      />
-      <Icon
-        aria-hidden="true"
-        className="pointer-events-none absolute top-4 right-[19rem] w-14 h-14 text-white/[0.06] hidden lg:block"
-      />
+  const handleDismiss = () => {
+    setDismissed(theme);
+    try {
+      sessionStorage.setItem(DISMISS_KEY, theme);
+    } catch {
+      // приватный режим — баннер просто вернётся при перезагрузке
+    }
+  };
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 flex items-center gap-4">
-        <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/15 flex items-center justify-center shrink-0">
-          <Icon className="w-6 h-6 text-white" />
+  return (
+    <div className="relative overflow-hidden bg-accent-soft border-b border-accent/15">
+      {/* Декоративные иконки темы: живут в правой части, за текстовым блоком,
+          поэтому читаемость не страдает. Цвет — утверждённый цвет темы. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 right-0 w-1/2 hidden sm:block"
+        style={{ color: 'var(--color-accent-decor)' }}
+      >
+        <Icon className={`absolute top-2 right-8 w-16 h-16 opacity-25 ${animation}`} />
+        <Icon className={`absolute bottom-1 right-32 w-10 h-10 opacity-30 ${animation}`} />
+        <Icon
+          className={`absolute top-6 right-52 w-8 h-8 opacity-25 hidden lg:block ${animation}`}
+        />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-3.5">
+        <div className="w-[38px] h-[38px] rounded-full bg-white flex items-center justify-center shrink-0 shadow-xs">
+          <Icon className="w-5 h-5 text-accent" />
         </div>
 
         <div className="min-w-0 flex-1">
-          <h2 className="text-lg sm:text-xl font-black text-white tracking-tight leading-snug">
-            {title}
-          </h2>
+          <h2 className="text-[15px] font-bold text-accent leading-snug">{title}</h2>
           {subtitle && (
-            <p className="text-xs sm:text-sm text-white/85 font-medium mt-0.5 leading-snug">
-              {subtitle}
-            </p>
+            <p className="text-[11px] text-slate-600 leading-snug mt-0.5">{subtitle}</p>
           )}
         </div>
 
         <button
-          onClick={() => setDismissedTheme(theme)}
-          className="shrink-0 p-2 -mr-1 text-white/70 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
+          onClick={handleDismiss}
+          className="shrink-0 p-1.5 -mr-1 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-white/70 transition-colors"
           aria-label={`Скрыть сообщение темы «${label}»`}
         >
           <X className="w-4 h-4" />

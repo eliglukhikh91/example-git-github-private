@@ -26,7 +26,7 @@ export async function seedDemoData(options: { force?: boolean } = {}): Promise<b
     if (options.force) {
       // participants/ratings/notifications удалятся каскадом вместе с events
       await client.query('DELETE FROM events');
-      await client.query('DELETE FROM holiday_chat_messages');
+      await client.query('DELETE FROM chat_messages');
     }
 
     for (const event of SEED_EVENTS) {
@@ -98,8 +98,8 @@ export async function seedDemoData(options: { force?: boolean } = {}): Promise<b
 
     for (const [index, message] of SEED_HOLIDAY_CHAT.entries()) {
       await client.query(
-        `INSERT INTO holiday_chat_messages (id, author, department, text, created_at)
-         VALUES ($1,$2,$3,$4, now() - ($5 || ' minutes')::interval)
+        `INSERT INTO chat_messages (id, channel_id, author, department, text, created_at)
+         VALUES ($1, 'general', $2, $3, $4, now() - ($5 || ' minutes')::interval)
          ON CONFLICT (id) DO NOTHING`,
         [
           message.id,

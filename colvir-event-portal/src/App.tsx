@@ -17,7 +17,7 @@ import { AccessSettingsModal } from './components/AccessSettingsModal';
 import { ActiveDirectoryAuthModal } from './components/ActiveDirectoryAuthModal';
 import { AdminDashboard } from './components/AdminDashboard';
 import { RandomCoffeeView } from './components/RandomCoffeeView';
-import { HolidayChatView } from './components/HolidayChatView';
+import { ChatView } from './components/ChatView';
 import { ThemedEventStrip } from './components/ThemedEventStrip';
 import { EventItem } from './types';
 import { Calendar, PlusCircle, Filter, Trophy, Lock } from 'lucide-react';
@@ -140,8 +140,8 @@ const MainApp: React.FC = () => {
         {/* VIEW 5: 15-MIN COFFEE BREAK & RANDOMIZER */}
         {activeView === 'random-coffee' && <RandomCoffeeView />}
 
-        {/* VIEW 6: HOLIDAY CHAT */}
-        {activeView === 'holiday-chat' && <HolidayChatView />}
+        {/* VIEW 6: ЧАТ — постоянный раздел, не привязан к темам */}
+        {activeView === 'chat' && <ChatView />}
 
         {/* VIEW 2: REAL-TIME TEAMS & PARTICIPANTS */}
         {activeView === 'teams' && (isAdmin ? <TeamList /> : <div className="max-w-md mx-auto p-12 text-center space-y-4"><div className="w-12 h-12 bg-amber-100 text-amber-700 rounded-2xl mx-auto flex items-center justify-center"><Lock className="w-5 h-5" /></div><h3 className="text-lg font-bold text-slate-800">Доступно только администратору</h3><p className="text-xs text-slate-500">Просмотр сформированных групп, команд и скачивание файлов доступны в панели администратора.</p></div>)}

@@ -83,6 +83,9 @@ export interface CMSContent {
 
 export interface AdminNotification {
   id: string;
+  /** 'admin' — лента администратора, 'user' — личное уведомление сотрудника. */
+  audience: 'admin' | 'user';
+  userId: string | null;
   eventId: string | null;
   eventTitle: string;
   participantName: string;
@@ -92,7 +95,12 @@ export interface AdminNotification {
   timeSlot?: string;
   timestamp: string;
   read: boolean;
-  type?: 'registration' | 'random_coffee_match' | 'direct_message' | 'zoom_invite' | string;
+  type?:
+    | 'registration'
+    | 'random_coffee_match'
+    | 'random_coffee_reminder'
+    | 'direct_message'
+    | string;
   messageText?: string;
 }
 
@@ -113,16 +121,27 @@ export type ViewMode =
   | 'my-events'
   | 'admin-manage'
   | 'random-coffee'
-  | 'holiday-chat';
+  | 'chat';
 
 export type ThemeType = 'classic' | 'spring' | 'birthday' | 'newyear';
 
-export interface HolidayChatMessage {
+export interface ChatMessage {
   id: string;
+  /**
+   * Канал сообщения. Пока в интерфейсе только общий 'general', но поле есть
+   * с самого начала — чтобы при добавлении групп по интересам не переписывать
+   * структуру данных и не переносить историю.
+   */
+  channelId: string;
   author: string;
   department: string;
   text: string;
   time: string;
+}
+
+export interface ChatChannel {
+  id: string;
+  name: string;
 }
 
 /** Состояние подключения к контроллеру домена, отдаётся /api/auth/ad/status. */
@@ -134,4 +153,50 @@ export interface DirectoryStatus {
   ssoEnabled: boolean;
   allowedDomains: string[];
   serverTimeMoscow: string;
+}
+
+// ---------------------------------------------------------------------------
+// Random Coffee
+// ---------------------------------------------------------------------------
+
+/**
+ * Цикл подбора: сотрудники отмечают удобные слоты до дедлайна, затем сервер
+ * разбивает всех на пары по общему слоту.
+ */
+export interface CoffeeCycle {
+  id: number;
+  title: string;
+  meetingDate: string;
+  registrationEndsAt: string;
+  status: 'open' | 'matched' | 'cancelled';
+  matchedAt: string | null;
+}
+
+export interface CoffeeMatchMember {
+  userId: string;
+  displayName: string;
+  email: string;
+  department: string;
+  telegram: string;
+  avatarUrl: string | null;
+}
+
+export interface CoffeeMatch {
+  id: number;
+  cycleId: number;
+  slot: string;
+  location: string;
+  status: 'scheduled' | 'done' | 'cancelled';
+  members: CoffeeMatchMember[];
+}
+
+/** Всё состояние экрана Random Coffee, приходит одним запросом. */
+export interface CoffeeState {
+  cycle: CoffeeCycle | null;
+  slots: string[];
+  myAvailability: string[];
+  /** Сколько человек отметили каждый слот — подсказка «где больше шансов». */
+  slotDemand: Record<string, number>;
+  participants: number;
+  myMatch: CoffeeMatch | null;
 }

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { getCategoryLabel } from '../utils/eventCategories';
+import { ThemeSwatches } from './ThemeSwatches';
+import { AdminCoffeeCycles } from './AdminCoffeeCycles';
 import { EventItem, Participant } from '../types';
 import { EditEventModal } from './EditEventModal';
 import {
@@ -32,7 +34,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 
-type AdminTab = 'events' | 'cms' | 'coffee' | 'analytics';
+type AdminTab = 'events' | 'cms' | 'coffee' | 'analytics' | 'appearance';
 
 const TABS: {
   id: AdminTab;
@@ -42,7 +44,8 @@ const TABS: {
   { id: 'events', label: () => 'Мероприятия и участники', icon: Calendar },
   { id: 'cms', label: () => 'Редактор текстов (CMS)', icon: FileText },
   { id: 'coffee', label: (count) => `Слоты Random Coffee (${count})`, icon: Coffee },
-  { id: 'analytics', label: () => 'Аналитика и оценки', icon: BarChart3 }
+  { id: 'analytics', label: () => 'Аналитика и оценки', icon: BarChart3 },
+  { id: 'appearance', label: () => 'Оформление', icon: Sparkles }
 ];
 
 interface AdminDashboardProps {
@@ -695,6 +698,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       )}
 
       {/* TAB 4: ANALYTICS & EVENT RATINGS (1-10) */}
+      {activeTab === 'coffee' && (
+        <div className="bg-white border border-slate-200 rounded-2xl p-5">
+          <AdminCoffeeCycles />
+        </div>
+      )}
+
       {activeTab === 'analytics' && (
         <div className="space-y-6 animate-fadeIn">
           
@@ -937,6 +946,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             )}
           </div>
 
+        </div>
+      )}
+
+      {/* Оформление: единственное место в приложении, где переключается тема.
+          Сотрудники её не выбирают — только видят результат. */}
+      {activeTab === 'appearance' && (
+        <div className="bg-white border border-slate-200 rounded-2xl p-5">
+          <ThemeSwatches />
         </div>
       )}
 
