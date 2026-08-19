@@ -6,6 +6,7 @@ import { runMigrations } from './db/migrate.js';
 import { closePool, query } from './db/pool.js';
 import { startScheduler } from './scheduler.js';
 import { ensureUploadsDir } from './services/attachments.js';
+import { seedDemoData } from './db/seed.js';
 
 async function start(): Promise<void> {
   let config: ReturnType<typeof getConfig>;
@@ -31,6 +32,18 @@ async function start(): Promise<void> {
     await runMigrations();
   }
 
+  // Демо-наполнение для стенда: включается только явным SEED_DEMO_DATA=true и
+  // ничего не делает, если мероприятия в базе уже есть. Нужно, чтобы
+  // docker-compose.demo.yml поднимался с данными, которые можно потыкать, —
+  // отдельный npm run seed в production-образе недоступен, там нет dev-зависимостей.
+  if (process.env.SEED_DEMO_DATA === 'true') {
+    try {
+      await seedDemoData();
+    } catch (error) {
+      console.error(`[colvir] Не удалось залить демо-данные: ${(error as Error).message}`);
+    }
+  }
+
   // Каталог вложений проверяется на старте, а не при первой загрузке файла:
   // иначе о том, что он не создан или доступен только на чтение, узнал бы
   // первый сотрудник, отправивший картинку.
@@ -48,7 +61,12 @@ async function start(): Promise<void> {
 
   const app = createApp();
 
-  if (config.isProduction) {
+  // Демо-стенду нужна связка «собранный клиент + непроизводственный режим
+  // аутентификации»: Vite есть только среди dev-зависимостей, а в образе их нет,
+  // поэтому режим отдачи клиента задается отдельно от NODE_ENV.
+  const serveBuiltClient = config.isProduction || process.env.SERVE_BUILT_CLIENT === 'true';
+
+  if (serveBuiltClient) {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath, { maxAge: '1h', index: false }));
     app.get('*', (_req, res) => {

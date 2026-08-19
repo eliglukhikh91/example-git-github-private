@@ -1,0 +1,78 @@
+# =============================================================================
+# ДЕМО-СТЕНД: потыкать приложение целиком, ничего не настраивая.
+#
+#   docker compose -f docker-compose.demo.yml up --build
+#   открыть http://localhost:3000
+#
+# Учетные записи (пароль у всех — ColvirDemo2026):
+#   a.admin@colvir.com     — администратор
+#   i.ivanov@colvir.com    — обычный сотрудник
+#   e.smirnova@colvir.com  — обычный сотрудник
+#   m.sokolov@colvir.com   — обычный сотрудник
+#
+# ЭТО НЕ PRODUCTION. Здесь нет ни Active Directory, ни HTTPS, а пользователи
+# лежат в файле с известным паролем. Приложение стартует с NODE_ENV=development
+# именно поэтому: в production-режиме сервер намеренно откажется работать с
+# файловым каталогом вместо контроллера домена.
+#
+# Для настоящей установки смотрите README, раздел «Запуск на корпоративном
+# сервере».
+# =============================================================================
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: colvir
+      POSTGRES_PASSWORD: colvir_demo_password
+      POSTGRES_DB: colvir_events
+    volumes:
+      - demo-db:/var/lib/postgresql/data
+    healthcheck:
+      # Приложение стартует с миграций, поэтому ждем готовности базы, а не
+      # просто запущенного контейнера.
+      test: ['CMD-SHELL', 'pg_isready -U colvir -d colvir_events']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: '3000'
+      DATABASE_URL: postgres://colvir:colvir_demo_password@db:5432/colvir_events
+
+      # Демо-секрет: годится только для стенда, для установки сгенерируйте свой
+      # командой openssl rand -base64 48
+      JWT_SECRET: demo-stand-secret-not-for-production-0123456789abcdef
+
+      AD_DOMAIN: COLVIR.COM
+      AD_ALLOWED_EMAIL_DOMAINS: colvir.com
+      AD_ADMIN_GROUPS: Colvir-Event-Managers
+
+      # Пользователи из файла вместо контроллера домена
+      AUTH_DEV_DIRECTORY_FILE: /app/demo/demo-directory.json
+
+      # Стенд по http, поэтому cookie без флага Secure и без редиректа на https
+      COOKIE_SECURE: 'false'
+      FORCE_HTTPS: 'false'
+
+      UPLOADS_DIR: /app/uploads
+
+      # Наполнить базу демо-мероприятиями при первом старте
+      SEED_DEMO_DATA: 'true'
+      # Отдавать собранный клиент: Vite лежит в dev-зависимостях, в образе их нет
+      SERVE_BUILT_CLIENT: 'true'
+    volumes:
+      - ./demo:/app/demo:ro
+      - demo-uploads:/app/uploads
+    ports:
+      - '127.0.0.1:3000:3000'
+
+volumes:
+  demo-db:
+  demo-uploads:

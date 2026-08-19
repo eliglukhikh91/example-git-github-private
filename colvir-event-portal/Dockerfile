@@ -17,6 +17,9 @@ RUN npm prune --omit=dev
 # ---------- Runtime ----------
 FROM node:22-bookworm-slim AS runtime
 
+# По умолчанию production. Демо-стенд (docker-compose.demo.yml) переопределяет
+# на development: в production-режиме сервер намеренно отказывается стартовать
+# с файловым каталогом пользователей вместо контроллера домена.
 ENV NODE_ENV=production
 
 WORKDIR /app
@@ -29,6 +32,11 @@ COPY --from=build --chown=colvir:colvir /app/node_modules ./node_modules
 COPY --from=build --chown=colvir:colvir /app/dist ./dist
 COPY --from=build --chown=colvir:colvir /app/dist-server ./dist-server
 COPY --from=build --chown=colvir:colvir /app/package.json ./package.json
+
+# Каталог вложений заводим заранее и от нужного владельца: смонтированный сюда
+# том наследует права существующего каталога, иначе он создался бы от root и
+# приложение, работающее не от root, не смогло бы в него писать.
+RUN mkdir -p /app/uploads && chown colvir:colvir /app/uploads
 
 USER colvir
 

@@ -1,0 +1,63 @@
+[
+  {
+    "upn": "a.admin@colvir.com",
+    "samAccountName": "a.admin",
+    "email": "a.admin@colvir.com",
+    "firstName": "Анна",
+    "lastName": "Админова",
+    "displayName": "Админова Анна",
+    "department": "HR & Event Team",
+    "title": "Менеджер мероприятий",
+    "company": "Colvir Software Solutions",
+    "memberOf": [
+      "CN=Colvir-Employees,OU=Groups,DC=colvir,DC=com",
+      "CN=Colvir-Event-Managers,OU=Groups,DC=colvir,DC=com"
+    ],
+    "passwordHash": "scrypt$a6089ada996734aecf454ac92f9a9077$c63671cbbdb1004039042ed147c5e768d4c75fa594fb9d01a10867787be39507d5602a3dc4fb83a1abccf4f6bb453ef9d4b44e5488e08dc3f3cccef6d0551bc0"
+  },
+  {
+    "upn": "i.ivanov@colvir.com",
+    "samAccountName": "i.ivanov",
+    "email": "i.ivanov@colvir.com",
+    "firstName": "Иван",
+    "lastName": "Иванов",
+    "displayName": "Иванов Иван",
+    "department": "Департамент разработки",
+    "title": "Разработчик",
+    "company": "Colvir Software Solutions",
+    "memberOf": [
+      "CN=Colvir-Employees,OU=Groups,DC=colvir,DC=com"
+    ],
+    "passwordHash": "scrypt$3ac14c2d4dfacf9ea780e982699a27c5$312e3908d3ffef5e9838e0c556a8e88689ae440347ffe7bc059d91b4057cc5a6c71f6bd44d0569d9fa39b13d03a326dc2f2de26f9dfc25d3d5f929a73152842d"
+  },
+  {
+    "upn": "e.smirnova@colvir.com",
+    "samAccountName": "e.smirnova",
+    "email": "e.smirnova@colvir.com",
+    "firstName": "Елена",
+    "lastName": "Смирнова",
+    "displayName": "Смирнова Елена",
+    "department": "HR & Корпоративная культура",
+    "title": "HR-специалист",
+    "company": "Colvir Software Solutions",
+    "memberOf": [
+      "CN=Colvir-Employees,OU=Groups,DC=colvir,DC=com"
+    ],
+    "passwordHash": "scrypt$972413935cca9d05e0f7db4fa94f5776$0665b938d2ff3811c59189a856cd22458e7fb2e2da4794f32b910818aec259c5a0f9728936fb6ea810d4a63a83c169a707f949dffe495d28b471f404b57fe1ac"
+  },
+  {
+    "upn": "m.sokolov@colvir.com",
+    "samAccountName": "m.sokolov",
+    "email": "m.sokolov@colvir.com",
+    "firstName": "Михаил",
+    "lastName": "Соколов",
+    "displayName": "Соколов Михаил",
+    "department": "Разработка Backend",
+    "title": "Ведущий разработчик",
+    "company": "Colvir Software Solutions",
+    "memberOf": [
+      "CN=Colvir-Employees,OU=Groups,DC=colvir,DC=com"
+    ],
+    "passwordHash": "scrypt$4f4fcfc5416c566d4564380acbc600f6$355e7f078f01dba2184a02c0f576a13853c383c25cc5e90b6994f54765543b1973105099d79c8b0c4545e0713fa50ae72de2dc885e15720f72e066cfacca728a"
+  }
+]
