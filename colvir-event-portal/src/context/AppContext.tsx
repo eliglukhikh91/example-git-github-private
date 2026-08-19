@@ -266,14 +266,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     void refreshCoffee();
   }, [refreshCoffee]);
 
-  // Тему меняет администратор, поэтому у остальных она подтягивается опросом.
+  // Тему и список групп чата меняет администратор, поэтому у остальных они
+  // подтягиваются опросом. Каналы опрашиваются тем же тактом: без этого новая
+  // группа появлялась у сотрудников только после перезагрузки страницы, и
+  // администратор, создав ее, не мог позвать туда людей.
   useEffect(() => {
     if (!user) return;
 
     const poll = async () => {
       try {
-        const { theme: current } = await api.get<{ theme: ThemeType }>('/api/theme');
-        setThemeState((prev) => (prev === current ? prev : current));
+        const [themeState, channelState] = await Promise.all([
+          api.get<{ theme: ThemeType }>('/api/theme'),
+          api.get<{ channels: ChatChannel[] }>('/api/chat/channels')
+        ]);
+
+        setThemeState((prev) => (prev === themeState.theme ? prev : themeState.theme));
+        setChatChannels((prev) => {
+          const next = channelState.channels;
+          // Сравниваем по составу и счетчикам, иначе новая ссылка на каждом
+          // такте перерисовывала бы раздел чата раз в 45 секунд.
+          const same =
+            prev.length === next.length &&
+            prev.every(
+              (channel, index) =>
+                channel.id === next[index].id && channel.messageCount === next[index].messageCount
+            );
+          return same ? prev : next;
+        });
       } catch {
         // сеть моргнула — попробуем на следующем такте
       }
