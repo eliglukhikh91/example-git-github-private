@@ -38,6 +38,9 @@ services:
 
   app:
     build: .
+    # Если база не успела подняться или моргнула — контейнер поднимется снова,
+    # а не останется лежать после первой неудачной попытки.
+    restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy

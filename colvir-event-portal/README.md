@@ -455,6 +455,32 @@ docker compose -f docker-compose.demo.yml down -v
 Coffee и отметить слоты разными пользователями; кинуть картинку в чат и
 упомянуть коллегу через «@».
 
+### Если http://localhost:3000 не открывается
+
+Сначала посмотрите, что со стендом:
+
+```bash
+docker compose -f docker-compose.demo.yml ps      # состояние контейнеров
+docker compose -f docker-compose.demo.yml logs app --tail=50
+```
+
+| Что видно | Причина и что делать |
+| --- | --- |
+| `no configuration file provided` | Команда запущена не из каталога `colvir-event-portal` |
+| `unknown shorthand flag` или ошибка на `condition:` | Установлен старый `docker-compose` v1. Нужен Compose v2: команда пишется через пробел — `docker compose`, а не `docker-compose` |
+| `port is already allocated` | Порт 3000 занят — например, локально запущен `npm run dev`. Остановите его или поменяйте порт в `ports` |
+| Контейнер `app` в состоянии `Restarting` | Смотрите `logs app`: обычно это база не поднялась или каталог загрузок недоступен для записи |
+| `Не удалось подключиться к базе данных` | База еще стартует. С `restart: unless-stopped` приложение поднимется само через несколько секунд |
+| Страница пустая, в консоли браузера 404 на `/assets/...` | Образ собран без клиента. Пересоберите: `docker compose -f docker-compose.demo.yml up --build --force-recreate` |
+| Сборка падает на `npm ci` | Проверьте, что рядом лежит `package-lock.json` и он не изменялся вручную |
+
+Полный сброс, если стенд запутался:
+
+```bash
+docker compose -f docker-compose.demo.yml down -v
+docker compose -f docker-compose.demo.yml up --build
+```
+
 **Это не production.** Пользователи лежат в файле с известным паролем, стенд
 работает по http без Active Directory. Поэтому он и запускается с
 `NODE_ENV=development`: в production-режиме сервер намеренно откажется стартовать
