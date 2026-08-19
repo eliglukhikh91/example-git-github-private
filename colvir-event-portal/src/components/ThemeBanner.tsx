@@ -53,14 +53,16 @@ export const ThemeBanner: React.FC = () => {
   return (
     <div className="relative border-b border-slate-200 bg-slate-100">
       {/*
-        Пропорция задана по самому файлу (2.35:1), а не фиксированной высотой:
+        Пропорция задана точно по файлам (1600×685), а не фиксированной высотой:
         заголовок и подпись впечатаны в изображение, и любая обрезка по высоте
         рано или поздно срезала бы текст на неудачной ширине экрана.
       */}
       <img
         src={banner}
         alt={label}
-        className="w-full aspect-[2.35/1] object-cover"
+        width={1600}
+        height={685}
+        className="w-full aspect-[1600/685] object-cover"
       />
 
       <button
