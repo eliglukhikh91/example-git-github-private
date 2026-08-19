@@ -28,6 +28,9 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
   const [newTimeSlot, setNewTimeSlot] = useState('');
   const [imageUrl, setImageUrl] = useState(event.imageUrl);
   const [organizer, setOrganizer] = useState(event.organizer);
+  const [themeTag, setThemeTag] = useState<'newyear' | 'spring' | 'birthday' | ''>(
+    event.themeTag ?? ''
+  );
   const [isAddingNewTag, setIsAddingNewTag] = useState(false);
   const [newTagInput, setNewTagInput] = useState('');
 
@@ -62,7 +65,8 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
       timeSlots: timeSlots.length > 0 ? timeSlots : ['10:00 - 11:00 (МСК)'],
       imageUrl: imageUrl.trim() || event.imageUrl,
       organizer: organizer.trim(),
-      tags: [category, isTeamGame ? 'Команды' : 'Индивидуально']
+      tags: [category, isTeamGame ? 'Команды' : 'Индивидуально'],
+      themeTag: themeTag || null
     });
     onClose();
   };
@@ -271,6 +275,30 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
                 Добавить слот
               </button>
             </div>
+          </div>
+
+          {/* Попадание в праздничную подборку под баннером дайджеста */}
+          <div className="space-y-2">
+            <label
+              htmlFor="edit-theme-tag"
+              className="block text-xs font-bold text-slate-700 flex items-center gap-1.5"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-accent" />
+              <span>Праздничная подборка</span>
+            </label>
+            <select
+              id="edit-theme-tag"
+              value={themeTag}
+              onChange={(changeEvent) =>
+                setThemeTag(changeEvent.target.value as 'newyear' | 'spring' | 'birthday' | '')
+              }
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-accent focus:ring-2 focus:ring-accent/20 outline-hidden"
+            >
+              <option value="">Не включать в подборку</option>
+              <option value="newyear">Новый год</option>
+              <option value="spring">Весна</option>
+              <option value="birthday">День рождения компании</option>
+            </select>
           </div>
 
           {/* ORGANIZER / BADGE SELECTION OR CREATION */}

@@ -19,6 +19,7 @@ export interface SeedEvent {
   imageUrl: string;
   organizer: string;
   tags: string[];
+  themeTag?: 'newyear' | 'spring' | 'birthday' | null;
 }
 
 export interface SeedParticipant {
@@ -52,7 +53,8 @@ export const SEED_EVENTS: SeedEvent[] = [
     imageUrl:
       'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&auto=format&fit=crop&q=80',
     organizer: 'HR & Event Team',
-    tags: ['Командная игра', 'Интеллект', 'Квиз', 'Вечер']
+    tags: ['Командная игра', 'Интеллект', 'Квиз', 'Вечер'],
+    themeTag: 'birthday'
   },
   {
     id: 'evt-002',
@@ -108,7 +110,8 @@ export const SEED_EVENTS: SeedEvent[] = [
     imageUrl:
       'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&auto=format&fit=crop&q=80',
     organizer: 'Colvir Book Club',
-    tags: ['Книги', 'Продуктивность', 'Саморазвитие']
+    tags: ['Книги', 'Продуктивность', 'Саморазвитие'],
+    themeTag: 'spring'
   },
   {
     id: 'evt-005',
@@ -125,7 +128,8 @@ export const SEED_EVENTS: SeedEvent[] = [
     imageUrl:
       'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&auto=format&fit=crop&q=80',
     organizer: 'Спорт-комитет Colvir',
-    tags: ['Спорт', 'Волейбол', 'Командная игра', 'На свежем воздухе']
+    tags: ['Спорт', 'Волейбол', 'Командная игра', 'На свежем воздухе'],
+    themeTag: 'newyear'
   }
 ];
 

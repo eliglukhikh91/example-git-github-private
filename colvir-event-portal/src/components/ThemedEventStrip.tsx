@@ -1,62 +1,58 @@
 import React from 'react';
-import { ArrowRight } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getTheme } from '../utils/themes';
-import { getCategoryLabel } from '../utils/eventCategories';
+import { EventCard } from './EventCard';
 import type { EventItem } from '../types';
 
 interface ThemedEventStripProps {
+  onRegister: (event: EventItem) => void;
   onViewDetails: (event: EventItem) => void;
 }
 
 /**
- * Тематическая подборка мероприятий в дайджесте.
+ * Подборка мероприятий под праздничным баннером.
  *
- * Вместо перекраски всего интерфейса активная тема просто подсвечивает
- * релевантный контент: 2–3 события с соответствующим тегом. При классической
- * теме и при отсутствии подходящих событий блок не рендерится.
+ * Вместе с баннером это единственное, на что влияет тема — весь остальной
+ * интерфейс от нее не зависит.
+ *
+ * Карточки берутся обычные, без отдельного оформления: те же бейджи, кнопки и
+ * фирменный синий, что и в основном дайджесте. Раньше здесь были собственные
+ * упрощенные карточки, из-за чего одно и то же мероприятие выглядело по-разному
+ * в подборке и ниже в списке.
+ *
+ * Отбор — по явному полю themeTag. Прежняя версия искала подстроку в свободных
+ * тегах («новый год» внутри tags), и мероприятие с тегом «новый формат»
+ * попадало в новогоднюю подборку.
  */
-export const ThemedEventStrip: React.FC<ThemedEventStripProps> = ({ onViewDetails }) => {
+export const ThemedEventStrip: React.FC<ThemedEventStripProps> = ({
+  onRegister,
+  onViewDetails
+}) => {
   const { theme, events } = useApp();
-  const themeInfo = getTheme(theme);
+  const { tag } = getTheme(theme);
 
-  if (theme === 'classic' || !themeInfo.tag) return null;
+  if (!tag) return null;
 
-  const matching = events
-    .filter((event) => event.tags.some((tag) => tag.toLowerCase().includes(themeInfo.tag)))
-    .slice(0, 3);
+  const matching = events.filter((event) => event.themeTag === tag).slice(0, 3);
 
+  // Пустой блок не показываем вовсе — иначе на классической подборке висел бы
+  // заголовок без содержимого.
   if (matching.length === 0) return null;
-
-  const Icon = themeInfo.icon;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="flex items-center gap-2 mb-3">
-        <Icon className="w-4 h-4 shrink-0 text-accent" />
-        <h3 className="text-sm font-black text-slate-900 tracking-tight">
-          Подборка: {themeInfo.label}
-        </h3>
-      </div>
+      <h3 className="text-sm font-black text-slate-900 tracking-tight mb-3">
+        Подборка мероприятий
+      </h3>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {matching.map((event) => (
-          <button
+          <EventCard
             key={event.id}
-            onClick={() => onViewDetails(event)}
-            className="text-left bg-white border border-slate-200 rounded-2xl p-4 hover:border-accent/40 transition-colors group"
-          >
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              {getCategoryLabel(event.category)}
-            </p>
-            <h4 className="text-sm font-bold text-slate-900 mt-1 line-clamp-2 leading-snug">
-              {event.title}
-            </h4>
-            <p className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
-              <span className="truncate">{event.date}</span>
-              <ArrowRight className="w-3.5 h-3.5 shrink-0 text-accent opacity-0 group-hover:opacity-100 transition-opacity" />
-            </p>
-          </button>
+            event={event}
+            onRegister={onRegister}
+            onViewDetails={onViewDetails}
+          />
         ))}
       </div>
     </div>

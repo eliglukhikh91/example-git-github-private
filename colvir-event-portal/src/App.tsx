@@ -82,7 +82,10 @@ const MainApp: React.FC = () => {
             <div className="space-y-8">
               <AnalyticsBanner />
 
-              <ThemedEventStrip onViewDetails={(evt) => setDetailEvent(evt)} />
+              <ThemedEventStrip
+                onRegister={(evt) => setRegisterEvent(evt)}
+                onViewDetails={(evt) => setDetailEvent(evt)}
+              />
 
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
                 

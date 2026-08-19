@@ -16,6 +16,11 @@ export interface EventItem {
   createdAt: string;
   organizer: string;
   tags: string[];
+  /**
+   * Тема, в подборку которой попадает мероприятие под праздничным баннером.
+   * null — мероприятие не попадает ни в одну подборку.
+   */
+  themeTag?: 'newyear' | 'spring' | 'birthday' | null;
 }
 
 export interface Participant {

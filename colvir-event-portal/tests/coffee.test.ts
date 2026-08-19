@@ -88,6 +88,77 @@ describe('Оформление портала', () => {
   });
 });
 
+describe('Тег темы у мероприятия', () => {
+  let eventId = '';
+
+  test('мероприятие сохраняет выбранную тему подборки', async () => {
+    const created = await admin.request('/api/events', {
+      method: 'POST',
+      body: {
+        title: 'Новогодний квиз',
+        date: '2026-12-25',
+        maxParticipants: 40,
+        themeTag: 'newyear'
+      }
+    });
+
+    assert.equal(created.status, 201);
+    assert.equal(created.body.event.themeTag, 'newyear');
+    eventId = created.body.event.id;
+  });
+
+  test('без темы мероприятие в подборки не попадает', async () => {
+    const created = await admin.request('/api/events', {
+      method: 'POST',
+      body: { title: 'Обычная встреча', date: '2026-09-01', maxParticipants: 10 }
+    });
+
+    assert.equal(created.status, 201);
+    assert.equal(created.body.event.themeTag, null);
+  });
+
+  test('неизвестная тема отклоняется, а не пишется в базу', async () => {
+    // Иначе значение упало бы на check-ограничении миграции 008 с невнятной
+    // для пользователя ошибкой базы.
+    const response = await admin.request('/api/events', {
+      method: 'POST',
+      body: { title: 'Хеллоуин', date: '2026-10-31', maxParticipants: 10, themeTag: 'halloween' }
+    });
+    assert.equal(response.status, 400);
+  });
+
+  test('тему подборки можно снять при правке', async () => {
+    const events = await admin.request('/api/events');
+    const target = events.body.events.find((e: any) => e.id === eventId);
+
+    const updated = await admin.request(`/api/events/${eventId}`, {
+      method: 'PUT',
+      body: { ...target, themeTag: null }
+    });
+
+    assert.equal(updated.status, 200);
+    assert.equal(updated.body.event.themeTag, null);
+  });
+
+  test('тег виден рядовому сотруднику: по нему собирается подборка', async () => {
+    // Свое мероприятие, а не из предыдущих тестов: там тег как раз снимали.
+    const created = await admin.request('/api/events', {
+      method: 'POST',
+      body: {
+        title: 'Весенний субботник',
+        date: '2026-04-12',
+        maxParticipants: 25,
+        themeTag: 'spring'
+      }
+    });
+    assert.equal(created.status, 201);
+
+    const response = await employee.request('/api/events');
+    const seen = response.body.events.find((e: any) => e.id === created.body.event.id);
+    assert.equal(seen.themeTag, 'spring', 'сотрудник должен получать themeTag с мероприятиями');
+  });
+});
+
 describe('Random Coffee: цикл и подбор', () => {
   let cycleId: number;
 

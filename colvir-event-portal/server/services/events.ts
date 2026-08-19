@@ -18,6 +18,8 @@ export interface EventDto {
   createdAt: string;
   organizer: string;
   tags: string[];
+  /** Тема, в подборку которой попадает мероприятие. null — ни в какую. */
+  themeTag: string | null;
 }
 
 export interface ParticipantDto {
@@ -51,6 +53,7 @@ interface EventRow {
   image_url: string;
   organizer: string;
   tags: string[];
+  theme_tag: string | null;
   created_at: Date;
 }
 
@@ -86,7 +89,8 @@ function toEvent(row: EventRow): EventDto {
     imageUrl: row.image_url,
     createdAt: row.created_at.toISOString().slice(0, 10),
     organizer: row.organizer,
-    tags: row.tags ?? []
+    tags: row.tags ?? [],
+    themeTag: row.theme_tag ?? null
   };
 }
 
@@ -110,7 +114,8 @@ function toParticipant(row: ParticipantRow): ParticipantDto {
 
 const EVENT_COLUMNS = `
   id, title, description, category, is_team_game, max_team_size, max_participants,
-  event_date, time_slots, location, meeting_url, image_url, organizer, tags, created_at
+  event_date, time_slots, location, meeting_url, image_url, organizer, tags, theme_tag,
+  created_at
 `;
 
 const PARTICIPANT_COLUMNS = `
@@ -144,7 +149,11 @@ export interface EventInput {
   imageUrl: string;
   organizer: string;
   tags: string[];
+  themeTag?: string | null;
 }
+
+/** Значения совпадают с ограничением events_theme_tag_check в миграции 008. */
+const THEME_TAGS = new Set(['newyear', 'spring', 'birthday']);
 
 function sanitizeEventInput(input: EventInput) {
   return {
@@ -160,7 +169,10 @@ function sanitizeEventInput(input: EventInput) {
     meetingUrl: sanitizeUrl(input.meetingUrl),
     imageUrl: sanitizeImageSource(input.imageUrl) ?? '',
     organizer: sanitizePlainText(input.organizer).slice(0, 200),
-    tags: input.tags.map((tag) => sanitizePlainText(tag).slice(0, 60)).filter(Boolean)
+    tags: input.tags.map((tag) => sanitizePlainText(tag).slice(0, 60)).filter(Boolean),
+    // Незнакомое значение превращаем в null, а не отдаем в базу: иначе запрос
+    // упал бы на check-ограничении с невнятной для пользователя ошибкой.
+    themeTag: input.themeTag && THEME_TAGS.has(input.themeTag) ? input.themeTag : null
   };
 }
 
@@ -171,8 +183,8 @@ export async function createEvent(input: EventInput, createdBy: string): Promise
   const { rows } = await query<EventRow>(
     `INSERT INTO events (id, title, description, category, is_team_game, max_team_size,
                          max_participants, event_date, time_slots, location, meeting_url,
-                         image_url, organizer, tags, created_by)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+                         image_url, organizer, tags, theme_tag, created_by)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
      RETURNING ${EVENT_COLUMNS}`,
     [
       id,
@@ -189,6 +201,7 @@ export async function createEvent(input: EventInput, createdBy: string): Promise
       clean.imageUrl,
       clean.organizer,
       clean.tags,
+      clean.themeTag,
       createdBy
     ]
   );
@@ -203,7 +216,8 @@ export async function updateEvent(id: string, input: EventInput): Promise<EventD
     `UPDATE events SET
        title = $2, description = $3, category = $4, is_team_game = $5, max_team_size = $6,
        max_participants = $7, event_date = $8, time_slots = $9, location = $10,
-       meeting_url = $11, image_url = $12, organizer = $13, tags = $14, updated_at = now()
+       meeting_url = $11, image_url = $12, organizer = $13, tags = $14, theme_tag = $15,
+       updated_at = now()
      WHERE id = $1
      RETURNING ${EVENT_COLUMNS}`,
     [
@@ -220,7 +234,8 @@ export async function updateEvent(id: string, input: EventInput): Promise<EventD
       clean.meetingUrl,
       clean.imageUrl,
       clean.organizer,
-      clean.tags
+      clean.tags,
+      clean.themeTag
     ]
   );
 

@@ -470,51 +470,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           )}
 
-          {/* Section A: Holiday Banner Slogans */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2 text-accent">
-              <Sparkles className="w-4 h-4 text-accent" />
-              <span>Праздничная плашка (Темы оформления)</span>
-            </h3>
-
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Текст слогана для темы «Весеннее настроение (Spring)»:
-                </label>
-                <input
-                  type="text"
-                  value={cmsForm.holidayBannerSpringText}
-                  onChange={(e) => setCmsForm({ ...cmsForm, holidayBannerSpringText: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-accent outline-hidden"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Текст слогана для темы «День Рождения Colvir»:
-                </label>
-                <input
-                  type="text"
-                  value={cmsForm.holidayBannerBirthdayText}
-                  onChange={(e) => setCmsForm({ ...cmsForm, holidayBannerBirthdayText: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-accent outline-hidden"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Текст слогана для темы «Новый Год в Colvir»:
-                </label>
-                <input
-                  type="text"
-                  value={cmsForm.holidayBannerNewYearText}
-                  onChange={(e) => setCmsForm({ ...cmsForm, holidayBannerNewYearText: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-accent outline-hidden"
-                />
-              </div>
-            </div>
-          </div>
+          {/*
+            Тексты праздничных баннеров убраны из редактора: заголовок и подпись
+            теперь впечатаны в само изображение баннера, и правка этих полей ни
+            на что не влияла бы — админ менял бы текст и не видел результата.
+            Сменить оформление можно на вкладке «Оформление».
+          */}
 
           {/* Section B: Random Coffee Texts */}
           <div className="space-y-4 pt-4 border-t border-slate-100">

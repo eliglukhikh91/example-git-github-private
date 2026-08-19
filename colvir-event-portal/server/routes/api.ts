@@ -81,7 +81,9 @@ const eventSchema = z.object({
   meetingUrl: z.string().max(2000).nullable().optional(),
   imageUrl: z.string().max(5_000_000).default(''),
   organizer: z.string().trim().max(200).default(''),
-  tags: z.array(z.string().max(60)).max(30).default([])
+  tags: z.array(z.string().max(60)).max(30).default([]),
+  // Тема, в подборку которой попадает мероприятие. null — ни в какую.
+  themeTag: z.enum(['newyear', 'spring', 'birthday']).nullable().optional()
 });
 
 const registrationSchema = z.object({

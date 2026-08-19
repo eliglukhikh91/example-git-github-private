@@ -33,8 +33,8 @@ export async function seedDemoData(options: { force?: boolean } = {}): Promise<b
       await client.query(
         `INSERT INTO events (id, title, description, category, is_team_game, max_team_size,
                              max_participants, event_date, time_slots, location, image_url,
-                             organizer, tags)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+                             organizer, tags, theme_tag)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
          ON CONFLICT (id) DO NOTHING`,
         [
           event.id,
@@ -49,7 +49,8 @@ export async function seedDemoData(options: { force?: boolean } = {}): Promise<b
           event.location,
           event.imageUrl,
           event.organizer,
-          event.tags
+          event.tags,
+          event.themeTag ?? null
         ]
       );
     }

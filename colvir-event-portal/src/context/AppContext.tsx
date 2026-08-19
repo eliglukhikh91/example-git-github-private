@@ -191,8 +191,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [theme, setThemeState] = useState<ThemeType>('classic');
 
   useEffect(() => {
-    // Атрибут на <html> — единственная точка истины для CSS-переменных темы:
-    // из них берут цвет и баннер, и кнопки, и бейджи, и прогресс-бары.
+    // Атрибут больше не влияет на оформление: акцент всегда фирменный синий, а
+    // тема меняет только баннер и подборку. Оставлен как маркер активной темы —
+    // по нему удобно понимать состояние в инспекторе и в автотестах.
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 

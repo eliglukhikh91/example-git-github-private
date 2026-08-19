@@ -28,6 +28,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
   const [newTimeSlot, setNewTimeSlot] = useState('');
   const [imageUrl, setImageUrl] = useState('https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80');
   const [organizer, setOrganizer] = useState(organizerTags[0] || 'Colvir Event Team');
+  const [themeTag, setThemeTag] = useState<'newyear' | 'spring' | 'birthday' | ''>('');
   const [isAddingNewTag, setIsAddingNewTag] = useState(false);
   const [newTagInput, setNewTagInput] = useState('');
 
@@ -78,7 +79,8 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
       meetingUrl: meetingUrl.trim() ? meetingUrl.trim() : undefined,
       imageUrl: defaultImg,
       organizer: organizer.trim(),
-      tags: [category, isTeamGame ? 'Команды' : 'Индивидуально']
+      tags: [category, isTeamGame ? 'Команды' : 'Индивидуально'],
+      themeTag: themeTag || null
     });
 
     onClose();
@@ -320,6 +322,33 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
             onImageChange={setImageUrl}
             category={category}
           />
+
+          {/* Попадание в праздничную подборку под баннером дайджеста */}
+          <div className="space-y-2">
+            <label
+              htmlFor="event-theme-tag"
+              className="block text-xs font-bold text-slate-700 flex items-center gap-1.5"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-accent" />
+              <span>Праздничная подборка</span>
+            </label>
+            <select
+              id="event-theme-tag"
+              value={themeTag}
+              onChange={(event) =>
+                setThemeTag(event.target.value as 'newyear' | 'spring' | 'birthday' | '')
+              }
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-accent focus:ring-2 focus:ring-accent/20 outline-hidden"
+            >
+              <option value="">Не включать в подборку</option>
+              <option value="newyear">Новый год</option>
+              <option value="spring">Весна</option>
+              <option value="birthday">День рождения компании</option>
+            </select>
+            <p className="text-[11px] text-slate-500">
+              Мероприятие покажется под баннером, когда администратор включит эту тему.
+            </p>
+          </div>
 
           {/* ORGANIZER / BADGE SELECTION OR CREATION */}
           <div className="space-y-2">
