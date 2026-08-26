@@ -1,5 +1,6 @@
 import test, { before, after, describe } from 'node:test';
 import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
 import { prepareTestEnv, startTestServer, type TestClient } from './helpers.js';
 
 prepareTestEnv();
@@ -85,6 +86,62 @@ describe('Оформление портала', () => {
       body: { theme: 'halloween' }
     });
     assert.equal(response.status, 400);
+  });
+});
+
+describe('Вложения в базе вместо диска', () => {
+  // Режим для площадок без постоянного диска: содержимое лежит в самой базе.
+  // Проверяем на уровне сервиса — маршруты уже покрыты в api.test.ts.
+  function pngBytes(): Buffer {
+    return Buffer.from(
+      '89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489' +
+        '0000000a49444154789c63000100000500010d0a2db40000000049454e44ae426082',
+      'hex'
+    );
+  }
+
+  test('режим хранения читается из переменной окружения', async () => {
+    const { loadConfig } = await import('../server/config/env.js');
+    const config = loadConfig({ ...process.env, UPLOADS_DRIVER: 'database' });
+    assert.equal(config.uploads.driver, 'database');
+  });
+
+  test('по умолчанию остается хранение на диске', async () => {
+    const { loadConfig } = await import('../server/config/env.js');
+    const config = loadConfig({ ...process.env, UPLOADS_DRIVER: undefined });
+    assert.equal(config.uploads.driver, 'disk', 'production-поведение не должно меняться');
+  });
+
+  test('неизвестное значение драйвера трактуется как диск', async () => {
+    const { loadConfig } = await import('../server/config/env.js');
+    const config = loadConfig({ ...process.env, UPLOADS_DRIVER: 's3' });
+    assert.equal(config.uploads.driver, 'disk');
+  });
+
+  test('вложение из базы отдается с теми же байтами', async () => {
+    const attachments = await import('../server/services/attachments.js');
+    const { query } = await import('../server/db/pool.js');
+
+    const bytes = pngBytes();
+    const id = crypto.randomUUID();
+    await query(
+      `INSERT INTO chat_attachments (id, file_name, mime_type, byte_size, storage_path, content)
+       VALUES ($1,$2,$3,$4,$5,$6)`,
+      [id, 'kotik.png', 'image/png', bytes.byteLength, '2026/08/kotik.png', bytes]
+    );
+
+    const stored = await attachments.getStoredAttachment(id);
+    assert.equal(stored.absolutePath, null, 'путь к файлу не нужен');
+    assert.deepEqual(stored.content, bytes, 'должны вернуться те же байты');
+    assert.equal(stored.mimeType, 'image/png');
+  });
+
+  test('обход каталога по-прежнему не проходит', async () => {
+    const attachments = await import('../server/services/attachments.js');
+    await assert.rejects(
+      () => attachments.getStoredAttachment('../../etc/passwd'),
+      /не найдено/i
+    );
   });
 });
 

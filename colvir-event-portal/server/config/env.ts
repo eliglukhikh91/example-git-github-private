@@ -85,7 +85,18 @@ export interface AppConfig {
   };
 
   uploads: {
-    /** Каталог с вложениями чата. В базе лежат только относительные пути. */
+    /**
+     * Где лежат вложения чата.
+     *
+     * 'disk' — файлы на диске, в базе только метаданные. Так правильно для
+     * корпоративного сервера: картинки не раздувают дампы базы.
+     *
+     * 'database' — содержимое в самой базе. Нужно там, где постоянного диска
+     * нет вовсе (бесплатные хостинги сбрасывают файловую систему при
+     * перезапуске, и вложения пропадали бы).
+     */
+    driver: 'disk' | 'database';
+    /** Каталог с вложениями чата. Используется только при driver = 'disk'. */
     dir: string;
     maxBytes: number;
   };
@@ -261,6 +272,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     },
 
     uploads: {
+      driver: env.UPLOADS_DRIVER?.trim() === 'database' ? 'database' : 'disk',
       dir: path.resolve(env.UPLOADS_DIR?.trim() || './uploads'),
       // 20 МБ на файл. Лимит проверяет и multer при приеме, и маршрут после.
       maxBytes: parseInteger(env.UPLOAD_MAX_BYTES, 20 * 1024 * 1024)

@@ -1,0 +1,74 @@
+# =============================================================================
+# Развертывание демо-версии портала на Render (бесплатный тариф).
+#
+# Render читает этот файл из корня репозитория. Приложение лежит в подкаталоге,
+# поэтому указан rootDir.
+#
+# ЭТО ДЕМО-РЕЖИМ, НЕ БОЕВАЯ УСТАНОВКА:
+#   • пользователи берутся из файла demo/demo-directory.json, а не из
+#     Active Directory — контроллер домена компании из интернета недоступен;
+#   • поэтому NODE_ENV=development: в production-режиме сервер намеренно
+#     откажется стартовать с файловым каталогом учетных записей;
+#   • вложения чата хранятся в базе, потому что на бесплатном тарифе Render
+#     нет постоянного диска и файлы пропадали бы при каждом перезапуске.
+#
+# Базу данных нужно завести отдельно и вставить строку подключения в
+# DATABASE_URL — см. README, раздел «Бесплатный хостинг».
+# =============================================================================
+
+services:
+  - type: web
+    name: colvir-event-portal
+    runtime: node
+    plan: free
+    region: frankfurt
+    rootDir: colvir-event-portal
+    buildCommand: npm ci && npm run build
+    startCommand: node dist-server/server.mjs
+    healthCheckPath: /api/health
+    envVars:
+      # Секрет подписи сессий Render сгенерирует сам — вводить ничего не нужно
+      - key: JWT_SECRET
+        generateValue: true
+
+      # Строка подключения к базе. Вставляется вручную в настройках сервиса:
+      # Render не должен хранить ее в репозитории.
+      - key: DATABASE_URL
+        sync: false
+
+      - key: DATABASE_SSL
+        value: 'true'
+
+      # Демо-режим: учетные записи из файла вместо контроллера домена
+      - key: NODE_ENV
+        value: development
+      - key: AUTH_DEV_DIRECTORY_FILE
+        value: ./demo/demo-directory.json
+      - key: SERVE_BUILT_CLIENT
+        value: 'true'
+      - key: SEED_DEMO_DATA
+        value: 'true'
+
+      - key: AD_DOMAIN
+        value: COLVIR.COM
+      - key: AD_ALLOWED_EMAIL_DOMAINS
+        value: colvir.com
+      - key: AD_ADMIN_GROUPS
+        value: Colvir-Event-Managers
+
+      # Вложения в базе: постоянного диска на бесплатном тарифе нет
+      - key: UPLOADS_DRIVER
+        value: database
+      # Бесплатная база маленькая, поэтому ограничиваем размер картинки 3 МБ
+      - key: UPLOAD_MAX_BYTES
+        value: '3145728'
+
+      # Render принимает запросы по HTTPS и сам проксирует их в приложение
+      - key: COOKIE_SECURE
+        value: 'true'
+      - key: TRUST_PROXY_HOPS
+        value: '1'
+      # Редирект не нужен: наружу Render и так отдает только HTTPS, а лишний
+      # редирект на бесплатном тарифе легко превращается в петлю
+      - key: FORCE_HTTPS
+        value: 'false'

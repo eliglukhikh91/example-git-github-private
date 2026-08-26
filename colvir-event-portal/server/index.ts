@@ -49,7 +49,11 @@ async function start(): Promise<void> {
   // первый сотрудник, отправивший картинку.
   try {
     const uploadsDir = await ensureUploadsDir();
-    console.log(`[colvir] Каталог вложений: ${uploadsDir}`);
+    console.log(
+      uploadsDir
+        ? `[colvir] Каталог вложений: ${uploadsDir}`
+        : '[colvir] Вложения чата хранятся в базе данных (UPLOADS_DRIVER=database)'
+    );
   } catch (error) {
     console.error(
       `[colvir] Каталог вложений недоступен для записи (${config.uploads.dir}): ${

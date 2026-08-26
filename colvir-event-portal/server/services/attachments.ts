@@ -132,9 +132,15 @@ function toDto(row: AttachmentRow): AttachmentDto {
   };
 }
 
-/** Создает каталог загрузок и проверяет, что в него можно писать. */
-export async function ensureUploadsDir(): Promise<string> {
-  const dir = getConfig().uploads.dir;
+/**
+ * Создает каталог загрузок и проверяет, что в него можно писать.
+ * При хранении в базе каталог не нужен — возвращаем null.
+ */
+export async function ensureUploadsDir(): Promise<string | null> {
+  const config = getConfig();
+  if (config.uploads.driver === 'database') return null;
+
+  const dir = config.uploads.dir;
   await fs.mkdir(dir, { recursive: true });
   await fs.access(dir, (await import('node:fs')).constants.W_OK);
   return dir;
@@ -167,28 +173,44 @@ export async function saveImageAttachment(input: {
   const folder = `${now.getUTCFullYear()}/${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
   const id = crypto.randomUUID();
   const relativePath = `${folder}/${id}.${EXTENSIONS[mimeType]}`;
-  const absolutePath = path.join(config.uploads.dir, relativePath);
 
-  await fs.mkdir(path.dirname(absolutePath), { recursive: true });
-  await fs.writeFile(absolutePath, input.buffer);
-
-  try {
+  if (config.uploads.driver === 'database') {
     await query(
-      `INSERT INTO chat_attachments (id, uploaded_by, file_name, mime_type, byte_size, storage_path)
-       VALUES ($1,$2,$3,$4,$5,$6)`,
+      `INSERT INTO chat_attachments (id, uploaded_by, file_name, mime_type, byte_size, storage_path, content)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)`,
       [
         id,
         input.uploadedBy,
         safeFileName(input.originalName),
         mimeType,
         input.buffer.byteLength,
-        relativePath
+        relativePath,
+        input.buffer
       ]
     );
-  } catch (error) {
-    // Иначе на диске останется файл, о котором никто не знает.
-    await fs.unlink(absolutePath).catch(() => undefined);
-    throw error;
+  } else {
+    const absolutePath = path.join(config.uploads.dir, relativePath);
+    await fs.mkdir(path.dirname(absolutePath), { recursive: true });
+    await fs.writeFile(absolutePath, input.buffer);
+
+    try {
+      await query(
+        `INSERT INTO chat_attachments (id, uploaded_by, file_name, mime_type, byte_size, storage_path)
+         VALUES ($1,$2,$3,$4,$5,$6)`,
+        [
+          id,
+          input.uploadedBy,
+          safeFileName(input.originalName),
+          mimeType,
+          input.buffer.byteLength,
+          relativePath
+        ]
+      );
+    } catch (error) {
+      // Иначе на диске останется файл, о котором никто не знает.
+      await fs.unlink(absolutePath).catch(() => undefined);
+      throw error;
+    }
   }
 
   return {
@@ -242,14 +264,17 @@ export async function listAttachmentsForMessages(
 }
 
 export interface StoredAttachment {
-  absolutePath: string;
+  /** Путь на диске. null, когда содержимое лежит в базе. */
+  absolutePath: string | null;
+  /** Байты из базы. null, когда файл лежит на диске. */
+  content: Buffer | null;
   mimeType: string;
   fileName: string;
   byteSize: number;
 }
 
 /**
- * Отдает путь к файлу по идентификатору.
+ * Отдает вложение по идентификатору: путь к файлу либо сами байты.
  *
  * Путь собирается из значения в базе, а не из параметра запроса, поэтому
  * «../../etc/passwd» в адресе никуда не приведет. На всякий случай результат
@@ -260,8 +285,8 @@ export async function getStoredAttachment(id: string): Promise<StoredAttachment>
     throw new AttachmentError('Вложение не найдено', 'not_found');
   }
 
-  const { rows } = await query<AttachmentRow>(
-    `SELECT id, file_name, mime_type, byte_size, storage_path
+  const { rows } = await query<AttachmentRow & { content: Buffer | null }>(
+    `SELECT id, file_name, mime_type, byte_size, storage_path, content
      FROM chat_attachments WHERE id = $1`,
     [id]
   );
@@ -270,16 +295,24 @@ export async function getStoredAttachment(id: string): Promise<StoredAttachment>
     throw new AttachmentError('Вложение не найдено', 'not_found');
   }
 
+  const row = rows[0];
+  const common = {
+    mimeType: row.mime_type,
+    fileName: row.file_name,
+    byteSize: Number(row.byte_size)
+  };
+
+  // Хранилище определяется по самой записи, а не по текущей настройке: после
+  // переключения драйвера старые вложения должны продолжать открываться.
+  if (row.content) {
+    return { absolutePath: null, content: row.content, ...common };
+  }
+
   const config = getConfig();
-  const absolutePath = path.resolve(config.uploads.dir, rows[0].storage_path);
+  const absolutePath = path.resolve(config.uploads.dir, row.storage_path);
   if (!absolutePath.startsWith(path.resolve(config.uploads.dir) + path.sep)) {
     throw new AttachmentError('Вложение не найдено', 'not_found');
   }
 
-  return {
-    absolutePath,
-    mimeType: rows[0].mime_type,
-    fileName: rows[0].file_name,
-    byteSize: Number(rows[0].byte_size)
-  };
+  return { absolutePath, content: null, ...common };
 }

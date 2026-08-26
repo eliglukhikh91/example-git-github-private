@@ -616,7 +616,13 @@ export function createApiRouter(): Router {
       // Файл неизменяем: идентификатор новый при каждой загрузке.
       res.setHeader('Cache-Control', 'private, max-age=86400, immutable');
 
-      const stream = fs.createReadStream(attachment.absolutePath);
+      // Вложение лежит либо в базе, либо файлом на диске — отдаем как есть.
+      if (attachment.content) {
+        res.end(attachment.content);
+        return;
+      }
+
+      const stream = fs.createReadStream(attachment.absolutePath!);
       stream.on('error', () => {
         if (!res.headersSent) {
           res.status(404).json({ success: false, message: 'Файл вложения недоступен' });
