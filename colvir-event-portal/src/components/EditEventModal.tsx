@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { EventItem, EventCategory } from '../types';
 import { useApp } from '../context/AppContext';
 import { RichTextEditor } from './RichTextEditor';
-import { X, Sparkles, Trash2, Calendar, Clock, MapPin, Tag } from 'lucide-react';
+import { formatHashtags, parseHashtags, THEME_HASHTAG_HINT } from '../utils/themeTags';
+import { X, Sparkles, Trash2, Calendar, Clock, MapPin, Tag, Hash } from 'lucide-react';
 
 interface EditEventModalProps {
   event: EventItem | null;
@@ -31,6 +32,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
   const [themeTag, setThemeTag] = useState<'newyear' | 'spring' | 'birthday' | ''>(
     event.themeTag ?? ''
   );
+  const [hashtags, setHashtags] = useState(() => formatHashtags(event.tags));
   const [isAddingNewTag, setIsAddingNewTag] = useState(false);
   const [newTagInput, setNewTagInput] = useState('');
 
@@ -65,7 +67,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
       timeSlots: timeSlots.length > 0 ? timeSlots : ['10:00 - 11:00 (МСК)'],
       imageUrl: imageUrl.trim() || event.imageUrl,
       organizer: organizer.trim(),
-      tags: [category, isTeamGame ? 'Команды' : 'Индивидуально'],
+      tags: [category, isTeamGame ? 'Команды' : 'Индивидуально', ...parseHashtags(hashtags)],
       themeTag: themeTag || null
     });
     onClose();
@@ -299,6 +301,30 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
               <option value="spring">Весна</option>
               <option value="birthday">День рождения компании</option>
             </select>
+          </div>
+
+          {/* Хэштеги: второй способ попасть в праздничную подборку */}
+          <div className="space-y-2">
+            <label
+              htmlFor="edit-hashtags"
+              className="block text-xs font-bold text-slate-700 flex items-center gap-1.5"
+            >
+              <Hash className="w-3.5 h-3.5 text-accent" />
+              <span>Хэштеги</span>
+            </label>
+            <input
+              id="edit-hashtags"
+              type="text"
+              value={hashtags}
+              onChange={(changeEvent) => setHashtags(changeEvent.target.value)}
+              placeholder="#новыйгод #квиз"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-accent focus:ring-2 focus:ring-accent/20 outline-hidden"
+            />
+            <p className="text-[11px] text-slate-500">
+              Каждый хэштег с решетки, через пробел или запятую. Хэштеги {THEME_HASHTAG_HINT}
+              тоже включают мероприятие в праздничную подборку — выбирать тему в списке выше
+              тогда не обязательно.
+            </p>
           </div>
 
           {/* ORGANIZER / BADGE SELECTION OR CREATION */}

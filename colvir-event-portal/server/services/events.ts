@@ -155,6 +155,12 @@ export interface EventInput {
 /** Значения совпадают с ограничением events_theme_tag_check в миграции 008. */
 const THEME_TAGS = new Set(['newyear', 'spring', 'birthday']);
 
+/**
+ * Потолок числа тегов у мероприятия: два служебных (категория и признак
+ * командной игры) плюс десять хэштегов от администратора.
+ */
+const MAX_TAGS = 12;
+
 function sanitizeEventInput(input: EventInput) {
   return {
     title: sanitizePlainText(input.title).slice(0, 300),
@@ -169,7 +175,12 @@ function sanitizeEventInput(input: EventInput) {
     meetingUrl: sanitizeUrl(input.meetingUrl),
     imageUrl: sanitizeImageSource(input.imageUrl) ?? '',
     organizer: sanitizePlainText(input.organizer).slice(0, 200),
-    tags: input.tags.map((tag) => sanitizePlainText(tag).slice(0, 60)).filter(Boolean),
+    // Длину списка ограничиваем здесь, а не только в форме: форма — не защита,
+    // запрос к API можно отправить и мимо нее.
+    tags: input.tags
+      .map((tag) => sanitizePlainText(tag).slice(0, 60))
+      .filter(Boolean)
+      .slice(0, MAX_TAGS),
     // Незнакомое значение превращаем в null, а не отдаем в базу: иначе запрос
     // упал бы на check-ограничении с невнятной для пользователя ошибкой.
     themeTag: input.themeTag && THEME_TAGS.has(input.themeTag) ? input.themeTag : null

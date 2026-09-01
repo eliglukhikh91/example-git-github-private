@@ -5,7 +5,8 @@ import { ImageUploadAndEditor } from './ImageUploadAndEditor';
 import { MoscowClock } from './MoscowClock';
 import { RichTextEditor } from './RichTextEditor';
 import { getMoscowDateString, getDefaultMoscowTimeSlot } from '../utils/timeUtils';
-import { X, Plus, Trash2, Calendar, Clock, MapPin, Image as ImageIcon, Sparkles, Gamepad2, Info, Tag } from 'lucide-react';
+import { parseHashtags, THEME_HASHTAG_HINT } from '../utils/themeTags';
+import { X, Plus, Trash2, Calendar, Clock, MapPin, Image as ImageIcon, Sparkles, Gamepad2, Info, Tag, Hash } from 'lucide-react';
 
 interface CreateEventModalProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
   const [imageUrl, setImageUrl] = useState('https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80');
   const [organizer, setOrganizer] = useState(organizerTags[0] || 'Colvir Event Team');
   const [themeTag, setThemeTag] = useState<'newyear' | 'spring' | 'birthday' | ''>('');
+  const [hashtags, setHashtags] = useState('');
   const [isAddingNewTag, setIsAddingNewTag] = useState(false);
   const [newTagInput, setNewTagInput] = useState('');
 
@@ -79,7 +81,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
       meetingUrl: meetingUrl.trim() ? meetingUrl.trim() : undefined,
       imageUrl: defaultImg,
       organizer: organizer.trim(),
-      tags: [category, isTeamGame ? 'Команды' : 'Индивидуально'],
+      tags: [category, isTeamGame ? 'Команды' : 'Индивидуально', ...parseHashtags(hashtags)],
       themeTag: themeTag || null
     });
 
@@ -347,6 +349,30 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
             </select>
             <p className="text-[11px] text-slate-500">
               Мероприятие покажется под баннером, когда администратор включит эту тему.
+            </p>
+          </div>
+
+          {/* Хэштеги: второй способ попасть в праздничную подборку */}
+          <div className="space-y-2">
+            <label
+              htmlFor="event-hashtags"
+              className="block text-xs font-bold text-slate-700 flex items-center gap-1.5"
+            >
+              <Hash className="w-3.5 h-3.5 text-accent" />
+              <span>Хэштеги</span>
+            </label>
+            <input
+              id="event-hashtags"
+              type="text"
+              value={hashtags}
+              onChange={(e) => setHashtags(e.target.value)}
+              placeholder="#новыйгод #квиз"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-accent focus:ring-2 focus:ring-accent/20 outline-hidden"
+            />
+            <p className="text-[11px] text-slate-500">
+              Каждый хэштег с решетки, через пробел или запятую. Хэштеги {THEME_HASHTAG_HINT}
+              тоже включают мероприятие в праздничную подборку — выбирать тему в списке выше
+              тогда не обязательно.
             </p>
           </div>
 

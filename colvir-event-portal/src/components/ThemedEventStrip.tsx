@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { getTheme } from '../utils/themes';
+import { matchesTheme } from '../utils/themeTags';
 import { EventCard } from './EventCard';
 import type { EventItem } from '../types';
 
@@ -20,9 +21,8 @@ interface ThemedEventStripProps {
  * упрощенные карточки, из-за чего одно и то же мероприятие выглядело по-разному
  * в подборке и ниже в списке.
  *
- * Отбор — по явному полю themeTag. Прежняя версия искала подстроку в свободных
- * тегах («новый год» внутри tags), и мероприятие с тегом «новый формат»
- * попадало в новогоднюю подборку.
+ * Отбор — по теме, выбранной в форме мероприятия, либо по хэштегу
+ * (`#новыйгод`, `#colvirspring`, `#деньрождения`), см. utils/themeTags.
  */
 export const ThemedEventStrip: React.FC<ThemedEventStripProps> = ({
   onRegister,
@@ -33,7 +33,7 @@ export const ThemedEventStrip: React.FC<ThemedEventStripProps> = ({
 
   if (!tag) return null;
 
-  const matching = events.filter((event) => event.themeTag === tag).slice(0, 3);
+  const matching = events.filter((event) => matchesTheme(event, tag)).slice(0, 3);
 
   // Пустой блок не показываем вовсе — иначе на классической подборке висел бы
   // заголовок без содержимого.
