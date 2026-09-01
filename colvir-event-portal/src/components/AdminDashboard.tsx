@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { getCategoryLabel } from '../utils/eventCategories';
+import { BANNER_THEMES } from '../utils/themes';
 import { ThemeSwatches } from './ThemeSwatches';
 import { AdminCoffeeCycles } from './AdminCoffeeCycles';
 import { EventItem, Participant } from '../types';
@@ -83,6 +84,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // CMS Form state
   const [cmsForm, setCmsForm] = useState({
+    themeBannerNewYearTitle: cmsContent?.themeBannerNewYearTitle || '',
+    themeBannerNewYearSubtitle: cmsContent?.themeBannerNewYearSubtitle || '',
+    themeBannerSpringTitle: cmsContent?.themeBannerSpringTitle || '',
+    themeBannerSpringSubtitle: cmsContent?.themeBannerSpringSubtitle || '',
+    themeBannerBirthdayTitle: cmsContent?.themeBannerBirthdayTitle || '',
+    themeBannerBirthdaySubtitle: cmsContent?.themeBannerBirthdaySubtitle || '',
+    // Прежний формат «Заголовок: подпись» одной строкой. Форма его не показывает,
+    // но прогоняет через себя: иначе сохранение CMS затерло бы значения в базе.
     holidayBannerSpringText: cmsContent?.holidayBannerSpringText || '',
     holidayBannerBirthdayText: cmsContent?.holidayBannerBirthdayText || '',
     holidayBannerNewYearText: cmsContent?.holidayBannerNewYearText || '',
@@ -471,11 +480,48 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           )}
 
           {/*
-            Тексты праздничных баннеров убраны из редактора: заголовок и подпись
-            теперь впечатаны в само изображение баннера, и правка этих полей ни
-            на что не влияла бы — админ менял бы текст и не видел результата.
-            Сменить оформление можно на вкладке «Оформление».
+            Section A: тексты праздничных баннеров.
+
+            Текста в самих картинках нет — он выводится слоем поверх, поэтому
+            редактируется здесь. Пары полей строятся по списку тем: добавится
+            новая тема — поля появятся сами, без правки этой формы.
           */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-black uppercase tracking-wider flex items-center gap-2 text-accent">
+              <Sparkles className="w-4 h-4 text-accent" />
+              <span>Баннеры праздничных тем</span>
+            </h3>
+            <p className="text-xs text-slate-500">
+              Заголовок и подпись выводятся поверх картинки баннера. Картинка меняется на вкладке «Оформление».
+            </p>
+
+            {BANNER_THEMES.map((theme) => (
+              <div key={theme.id} className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    {theme.label} — заголовок:
+                  </label>
+                  <input
+                    type="text"
+                    value={cmsForm[theme.titleKey]}
+                    onChange={(e) => setCmsForm({ ...cmsForm, [theme.titleKey]: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-accent outline-hidden"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    {theme.label} — подпись:
+                  </label>
+                  <input
+                    type="text"
+                    value={cmsForm[theme.subtitleKey]}
+                    onChange={(e) => setCmsForm({ ...cmsForm, [theme.subtitleKey]: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:border-accent outline-hidden"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
 
           {/* Section B: Random Coffee Texts */}
           <div className="space-y-4 pt-4 border-t border-slate-100">

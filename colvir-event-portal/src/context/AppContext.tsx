@@ -29,6 +29,12 @@ import {
 const THEME_POLL_INTERVAL_MS = 45_000;
 
 const EMPTY_CMS: CMSContent = {
+  themeBannerNewYearTitle: '',
+  themeBannerNewYearSubtitle: '',
+  themeBannerSpringTitle: '',
+  themeBannerSpringSubtitle: '',
+  themeBannerBirthdayTitle: '',
+  themeBannerBirthdaySubtitle: '',
   holidayBannerSpringText: '',
   holidayBannerBirthdayText: '',
   holidayBannerNewYearText: '',

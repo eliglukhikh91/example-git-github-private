@@ -77,9 +77,26 @@ export interface UserProfile {
 }
 
 export interface CMSContent {
+  /**
+   * Тексты праздничных баннеров: заголовок и подпись на каждую тему.
+   * Выводятся слоем поверх картинки, поэтому редактируются из админки.
+   */
+  themeBannerNewYearTitle: string;
+  themeBannerNewYearSubtitle: string;
+  themeBannerSpringTitle: string;
+  themeBannerSpringSubtitle: string;
+  themeBannerBirthdayTitle: string;
+  themeBannerBirthdaySubtitle: string;
+
+  /**
+   * Прежний формат «Заголовок: подпись» одной строкой. Интерфейсом больше не
+   * используется, оставлен, чтобы сохраненные значения не пропали из базы.
+   * @deprecated используйте themeBanner*Title и themeBanner*Subtitle
+   */
   holidayBannerSpringText: string;
   holidayBannerBirthdayText: string;
   holidayBannerNewYearText: string;
+
   randomCoffeeTitle: string;
   randomCoffeeDescription: string;
   randomCoffeeFormat: string;
