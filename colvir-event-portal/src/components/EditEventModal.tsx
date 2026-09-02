@@ -3,7 +3,10 @@ import { EventItem, EventCategory } from '../types';
 import { useApp } from '../context/AppContext';
 import { RichTextEditor } from './RichTextEditor';
 import { formatHashtags, parseHashtags, THEME_HASHTAG_HINT } from '../utils/themeTags';
-import { X, Sparkles, Trash2, Calendar, Clock, MapPin, Tag, Hash, AlertTriangle } from 'lucide-react';
+import { parseSlot, withSlot } from '../utils/timeSlots';
+import { toIsoDate, toRussianDate } from '../utils/eventDate';
+import { TimeSlotPicker } from './TimeSlotPicker';
+import { X, Sparkles, Trash2, Tag, Hash, AlertTriangle } from 'lucide-react';
 
 interface EditEventModalProps {
   event: EventItem | null;
@@ -22,11 +25,17 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
   const [isTeamGame, setIsTeamGame] = useState(event.isTeamGame);
   const [maxTeamSize, setMaxTeamSize] = useState(event.maxTeamSize || 5);
   const [maxParticipants, setMaxParticipants] = useState(event.maxParticipants);
-  const [date, setDate] = useState(event.date);
+  // Дата в базе лежит строкой «12 августа 2026»; для календаря переводим ее в
+  // YYYY-MM-DD, а при сохранении возвращаем обратно.
+  const [date, setDate] = useState(() => toIsoDate(event.date));
   const [location, setLocation] = useState(event.location);
   const [meetingUrl, setMeetingUrl] = useState(event.meetingUrl || '');
   const [timeSlots, setTimeSlots] = useState<string[]>(event.timeSlots);
-  const [newTimeSlot, setNewTimeSlot] = useState('');
+  // Поля «с» и «до» заполняем первым слотом мероприятия, чтобы было видно, от
+  // чего отталкиваться. Форма добавит выбранное время в список при сохранении,
+  // даже если кнопку «Добавить слот» не нажали.
+  const [slotFrom, setSlotFrom] = useState(() => parseSlot(event.timeSlots[0] ?? '')?.from ?? '');
+  const [slotTo, setSlotTo] = useState(() => parseSlot(event.timeSlots[0] ?? '')?.to ?? '');
   const [imageUrl, setImageUrl] = useState(event.imageUrl);
   const [organizer, setOrganizer] = useState(event.organizer);
   const [themeTag, setThemeTag] = useState<'newyear' | 'spring' | 'birthday' | ''>(
@@ -38,24 +47,15 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
   const [isAddingNewTag, setIsAddingNewTag] = useState(false);
   const [newTagInput, setNewTagInput] = useState('');
 
-  const handleAddTimeSlot = () => {
-    if (newTimeSlot.trim()) {
-      let slot = newTimeSlot.trim();
-      if (!slot.includes('МСК')) slot += ' (МСК)';
-      if (!timeSlots.includes(slot)) {
-        setTimeSlots([...timeSlots, slot]);
-      }
-      setNewTimeSlot('');
-    }
-  };
-
-  const handleRemoveTimeSlot = (idx: number) => {
-    setTimeSlots(timeSlots.filter((_, i) => i !== idx));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSaving) return;
+
+    const slots = withSlot(timeSlots, slotFrom, slotTo);
+    if (slots.length === 0) {
+      setSaveError('Выберите хотя бы один слот времени.');
+      return;
+    }
 
     setIsSaving(true);
     setSaveError(null);
@@ -71,10 +71,10 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
         isTeamGame,
         maxTeamSize: isTeamGame ? maxTeamSize : undefined,
         maxParticipants,
-        date: date.trim(),
+        date: toRussianDate(date),
         location: location.trim(),
         meetingUrl: meetingUrl.trim() ? meetingUrl.trim() : undefined,
-        timeSlots: timeSlots.length > 0 ? timeSlots : ['10:00 - 11:00 (МСК)'],
+        timeSlots: slots,
         imageUrl: imageUrl.trim() || event.imageUrl,
         organizer: organizer.trim(),
         tags: [category, isTeamGame ? 'Команды' : 'Индивидуально', ...parseHashtags(hashtags)],
@@ -177,12 +177,16 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
                 Дата проведения <span className="text-red-500">*</span>
               </label>
               <input
-                type="text"
+                id="edit-date"
+                type="date"
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-accent outline-hidden"
               />
+              {date && (
+                <p className="text-[11px] text-slate-500 mt-1">{toRussianDate(date)}</p>
+              )}
             </div>
           </div>
 
@@ -257,46 +261,15 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
             )}
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
-              Слоты времени (МСК)
-            </label>
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              {timeSlots.map((slot, idx) => (
-                <span
-                  key={idx}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-accent border border-blue-200 rounded-xl text-xs font-bold"
-                >
-                  <span>{slot}</span>
-                  {timeSlots.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveTimeSlot(idx)}
-                      className="text-blue-400 hover:text-red-600 font-bold"
-                    >
-                      ×
-                    </button>
-                  )}
-                </span>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newTimeSlot}
-                onChange={(e) => setNewTimeSlot(e.target.value)}
-                placeholder="Например: 16:30 - 17:30"
-                className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-hidden"
-              />
-              <button
-                type="button"
-                onClick={handleAddTimeSlot}
-                className="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition-colors"
-              >
-                Добавить слот
-              </button>
-            </div>
-          </div>
+          <TimeSlotPicker
+            slots={timeSlots}
+            onSlotsChange={setTimeSlots}
+            from={slotFrom}
+            to={slotTo}
+            onFromChange={setSlotFrom}
+            onToChange={setSlotTo}
+            idPrefix="edit"
+          />
 
           {/* Попадание в праздничную подборку под баннером дайджеста */}
           <div className="space-y-2">

@@ -4,9 +4,12 @@ import { EventCategory } from '../types';
 import { ImageUploadAndEditor } from './ImageUploadAndEditor';
 import { MoscowClock } from './MoscowClock';
 import { RichTextEditor } from './RichTextEditor';
-import { getMoscowDateString, getDefaultMoscowTimeSlot } from '../utils/timeUtils';
+import { getDefaultMoscowTimeSlot } from '../utils/timeUtils';
+import { getMoscowIsoDate, toRussianDate } from '../utils/eventDate';
+import { withSlot } from '../utils/timeSlots';
+import { TimeSlotPicker } from './TimeSlotPicker';
 import { parseHashtags, THEME_HASHTAG_HINT } from '../utils/themeTags';
-import { X, Plus, Trash2, Calendar, Clock, MapPin, Image as ImageIcon, Sparkles, Gamepad2, Info, Tag, Hash, AlertTriangle } from 'lucide-react';
+import { X, Sparkles, Tag, Hash, AlertTriangle } from 'lucide-react';
 
 interface CreateEventModalProps {
   isOpen: boolean;
@@ -22,11 +25,16 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
   const [isTeamGame, setIsTeamGame] = useState(false);
   const [maxTeamSize, setMaxTeamSize] = useState(5);
   const [maxParticipants, setMaxParticipants] = useState(30);
-  const [date, setDate] = useState(() => getMoscowDateString());
+  // Дата выбирается в календаре, поэтому в состоянии она лежит как YYYY-MM-DD,
+  // а в мероприятие уходит привычной строкой «12 августа 2026».
+  const [date, setDate] = useState(() => getMoscowIsoDate());
   const [location, setLocation] = useState('Конференц-зал Colvir / Online');
   const [meetingUrl, setMeetingUrl] = useState('');
   const [timeSlots, setTimeSlots] = useState<string[]>(() => [getDefaultMoscowTimeSlot()]);
-  const [newTimeSlot, setNewTimeSlot] = useState('');
+  // Поля «с» и «до» держит форма, а не сам выбор слотов: при отправке надо
+  // добавить выбранное время в список, даже если кнопку «Добавить» не нажали.
+  const [slotFrom, setSlotFrom] = useState('');
+  const [slotTo, setSlotTo] = useState('');
   const [imageUrl, setImageUrl] = useState('https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80');
   const [organizer, setOrganizer] = useState(organizerTags[0] || 'Colvir Event Team');
   const [themeTag, setThemeTag] = useState<'newyear' | 'spring' | 'birthday' | ''>('');
@@ -38,29 +46,41 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
 
   if (!isOpen) return null;
 
-  const handleAddTimeSlot = (rawSlot?: string) => {
-    const slotToAdd = rawSlot || newTimeSlot.trim();
-    if (slotToAdd) {
-      // Ensure Moscow timezone indicator is attached
-      let formattedSlot = slotToAdd;
-      if (!formattedSlot.includes('МСК') && !formattedSlot.includes('MSK')) {
-        formattedSlot += ' (МСК)';
-      }
-      if (!timeSlots.includes(formattedSlot)) {
-        setTimeSlots([...timeSlots, formattedSlot]);
-      }
-      setNewTimeSlot('');
-    }
-  };
-
-  const handleRemoveTimeSlot = (index: number) => {
-    setTimeSlots(timeSlots.filter((_, i) => i !== index));
+  /**
+   * Форма не размонтируется при закрытии, поэтому после удачной публикации ее
+   * нужно очистить руками: иначе в следующий раз админ увидит поля от прошлого
+   * мероприятия и легко создаст его копию.
+   */
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    setIsTeamGame(false);
+    setMaxTeamSize(5);
+    setMaxParticipants(30);
+    setDate(getMoscowIsoDate());
+    setLocation('Конференц-зал Colvir / Online');
+    setMeetingUrl('');
+    setTimeSlots([getDefaultMoscowTimeSlot()]);
+    setSlotFrom('');
+    setSlotTo('');
+    setThemeTag('');
+    setHashtags('');
+    setSaveError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !date.trim()) return;
     if (isSaving) return;
+
+    // Время из полей «с» и «до» попадает в список даже без нажатия «Добавить
+    // слот»: раньше оно просто пропадало, а мероприятие сохранялось с
+    // подставленным 10:00 - 11:00, которое админ не выбирал.
+    const slots = withSlot(timeSlots, slotFrom, slotTo);
+    if (slots.length === 0) {
+      setSaveError('Выберите хотя бы один слот времени.');
+      return;
+    }
 
     let defaultImg = imageUrl.trim();
     if (!defaultImg) {
@@ -85,8 +105,8 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
         isTeamGame,
         maxTeamSize: isTeamGame ? maxTeamSize : undefined,
         maxParticipants,
-        date: date.trim(),
-        timeSlots: timeSlots.length > 0 ? timeSlots : ['10:00 - 11:00 (МСК)'],
+        date: toRussianDate(date),
+        timeSlots: slots,
         location: location.trim(),
         meetingUrl: meetingUrl.trim() ? meetingUrl.trim() : undefined,
         imageUrl: defaultImg,
@@ -94,6 +114,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
         tags: [category, isTeamGame ? 'Команды' : 'Индивидуально', ...parseHashtags(hashtags)],
         themeTag: themeTag || null
       });
+      resetForm();
       onClose();
     } catch (error) {
       // Форму не закрываем: введенное остается на месте, чтобы не набирать
@@ -184,13 +205,16 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                 Дата проведения <span className="text-red-500">*</span>
               </label>
               <input
-                type="text"
+                id="create-date"
+                type="date"
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                placeholder="25 августа 2026"
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:border-accent outline-hidden"
               />
+              {date && (
+                <p className="text-[11px] text-slate-500 mt-1">{toRussianDate(date)}</p>
+              )}
             </div>
           </div>
 
@@ -224,77 +248,15 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
             )}
           </div>
 
-          {/* Time Slots Selector with Explicit Moscow Time Zone */}
-          <div className="space-y-3 bg-accent-light/80 p-4 rounded-2xl border border-accent/20">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-black text-slate-900 flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-accent" />
-                <span>Слоты времени для записи (Московское время)</span>
-              </label>
-              <span className="px-2 py-0.5 bg-accent text-white text-[10px] font-black rounded uppercase">
-                МСК / UTC+3
-              </span>
-            </div>
-
-            <div className="p-2.5 bg-blue-100/60 border border-blue-200/80 rounded-xl text-[11px] text-accent font-semibold flex items-center gap-2">
-              <Info className="w-4 h-4 shrink-0" />
-              <span>Время всех событий автоматически фиксируется по Московскому часовому поясу (МСК).</span>
-            </div>
-
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newTimeSlot}
-                onChange={(e) => setNewTimeSlot(e.target.value)}
-                placeholder="Например: 14:00 - 15:00"
-                className="flex-1 px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:border-accent outline-hidden"
-              />
-              <button
-                type="button"
-                onClick={() => handleAddTimeSlot()}
-                className="px-3.5 py-2 bg-accent text-white text-xs font-bold rounded-xl hover:bg-accent-hover"
-              >
-                + Добавить слот (МСК)
-              </button>
-            </div>
-
-            {/* Quick Presets for Moscow Time */}
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold text-slate-500 uppercase block">Быстрые слоты МСК:</span>
-              <div className="flex flex-wrap gap-1.5 text-[11px]">
-                {['10:00 - 11:00 (МСК)', '12:00 - 13:00 (МСК)', '15:00 - 16:00 (МСК)', '18:00 - 19:00 (МСК)'].map((presetSlot) => (
-                  <button
-                    type="button"
-                    key={presetSlot}
-                    onClick={() => handleAddTimeSlot(presetSlot)}
-                    className="px-2.5 py-1 bg-white hover:bg-blue-50 border border-slate-200 text-slate-700 font-bold rounded-lg transition-colors"
-                  >
-                    + {presetSlot}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Current Selected Time Slots */}
-            <div className="flex flex-wrap gap-2 pt-1">
-              {timeSlots.map((slot, idx) => (
-                <span
-                  key={idx}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-blue-300 text-xs font-bold rounded-lg text-accent shadow-xs"
-                >
-                  <Clock className="w-3 h-3 text-accent" />
-                  {slot}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveTimeSlot(idx)}
-                    className="text-slate-400 hover:text-red-600 ml-1"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </span>
-              ))}
-            </div>
-          </div>
+          <TimeSlotPicker
+            slots={timeSlots}
+            onSlotsChange={setTimeSlots}
+            from={slotFrom}
+            to={slotTo}
+            onFromChange={setSlotFrom}
+            onToChange={setSlotTo}
+            idPrefix="create"
+          />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
