@@ -3,8 +3,7 @@ import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginScreen } from './components/LoginScreen';
 import { Sidebar } from './components/Sidebar';
-import { ColvirLogo } from './components/ColvirLogo';
-import { AnalyticsBanner } from './components/AnalyticsBanner';
+import { EventFilterBar } from './components/EventFilterBar';
 import { ThemeBanner } from './components/ThemeBanner';
 import { EventCard } from './components/EventCard';
 import { TeamList } from './components/TeamList';
@@ -20,7 +19,7 @@ import { RandomCoffeeView } from './components/RandomCoffeeView';
 import { ChatView } from './components/ChatView';
 import { ThemedEventStrip } from './components/ThemedEventStrip';
 import { EventItem } from './types';
-import { Calendar, PlusCircle, Filter, Trophy, Lock } from 'lucide-react';
+import { Calendar, PlusCircle, Filter, Lock } from 'lucide-react';
 
 const MainApp: React.FC = () => {
   const {
@@ -80,7 +79,7 @@ const MainApp: React.FC = () => {
           {/* VIEW 1: DIGEST & DASHBOARD */}
           {activeView === 'digest' && (
             <div className="space-y-8">
-              <AnalyticsBanner />
+              <EventFilterBar />
 
               <ThemedEventStrip
                 onRegister={(evt) => setRegisterEvent(evt)}
@@ -165,9 +164,6 @@ const MainApp: React.FC = () => {
                 <h2 className="text-2xl font-black text-slate-900">
                   Мой личный кабинет
                 </h2>
-                <p className="text-xs text-slate-500">
-                  История записей, активные билеты и настройка профиля
-                </p>
               </div>
 
               <button
@@ -176,33 +172,6 @@ const MainApp: React.FC = () => {
               >
                 Редактировать профиль
               </button>
-            </div>
-
-            {/* Quick Summary Card */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-accent-light border border-accent/20 p-5 rounded-2xl flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-accent uppercase block">
-                    Активные записи:
-                  </span>
-                  <span className="text-3xl font-black text-slate-900">
-                    {userRegs.length}
-                  </span>
-                </div>
-                <Calendar className="w-10 h-10 text-accent opacity-80" />
-              </div>
-
-              <div className="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-emerald-800 uppercase block">
-                    Статус участия:
-                  </span>
-                  <span className="text-base font-bold text-emerald-900">
-                    Подтверждено
-                  </span>
-                </div>
-                <Trophy className="w-10 h-10 text-emerald-600 opacity-80" />
-              </div>
             </div>
 
             {/* Registrations List */}
@@ -266,19 +235,6 @@ const MainApp: React.FC = () => {
         )}
 
       </main>
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center space-y-3">
-          <ColvirLogo className="h-8" />
-          <p className="text-xs text-slate-500 font-medium max-w-md">
-            Корпоративная система бронирования и записи на внутренние мероприятия, секции и тимбилдинги
-          </p>
-          <p className="text-[11px] text-slate-400">
-            © 2026 Colvir Software Solutions. Все права защищены.
-          </p>
-        </div>
-      </footer>
 
       </div>
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { getCategoryLabel } from '../utils/eventCategories';
+import { formatMoscowDateTime } from '../utils/timeUtils';
 import { BANNER_THEMES } from '../utils/themes';
 import { ThemeSwatches } from './ThemeSwatches';
 import { AdminCoffeeCycles } from './AdminCoffeeCycles';
@@ -17,9 +18,6 @@ import {
   Search,
   CheckCircle2,
   Clock,
-  MapPin,
-  Building2,
-  KeyRound,
   Lock,
   FileText,
   Save,
@@ -28,10 +26,7 @@ import {
   X,
   Sparkles,
   BarChart3,
-  TrendingUp,
   Star,
-  Award,
-  Activity,
   MessageSquare
 } from 'lucide-react';
 
@@ -458,9 +453,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <FileText className="w-5 h-5 text-accent" />
                 <span>Редактор текстов и слоганов платформы</span>
               </h2>
-              <p className="text-xs text-slate-500 mt-1">
-                Вносите изменения в праздничные слоганы и тексты Random Coffee без участия разработчиков. Изменения сохраняются моментально.
-              </p>
             </div>
 
             <button
@@ -714,54 +706,48 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {activeTab === 'analytics' && (
         <div className="space-y-6 animate-fadeIn">
           
-          {/* Top KPI Metric Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            
+          {/*
+            Сводка по вкладке.
+
+            Раньше здесь было четыре плитки, и три из них показывали числа,
+            зашитые в код: «посещаемость платформы 1 420, +18% за месяц», «явка
+            91,5%» и «синхронизация AD 100%». Ничего этого приложение не
+            считает — счетчика посещений нет, явку никто не отмечает, состояние
+            каталога не проверяется. Выглядели они при этом как настоящая
+            статистика, и такие цифры легко уходят в отчет. Остались только те,
+            что действительно считаются по базе.
+          */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Посещаемость платформы
+                  Мероприятия
                 </span>
                 <div className="p-2 bg-blue-50 text-accent rounded-xl">
-                  <Activity className="w-5 h-5 text-accent" />
+                  <Calendar className="w-5 h-5 text-accent" />
                 </div>
               </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black text-slate-900">1,420</span>
-                <span className="text-xs font-bold text-emerald-600 flex items-center gap-0.5">
-                  <TrendingUp className="w-3 h-3 text-emerald-600" />
-                  +18% / мес.
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400">
-                Активных пользователей Colvir Portal
-              </p>
+              <div className="text-2xl font-black text-slate-900">{events.length}</div>
+              <p className="text-[11px] text-slate-400">Опубликовано в дайджесте</p>
             </div>
 
             <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Посещаемость мероприятий
+                  Записи
                 </span>
                 <div className="p-2 bg-blue-50 text-accent rounded-xl">
                   <Users className="w-5 h-5 text-accent" />
                 </div>
               </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black text-slate-900">{participants.length}</span>
-                <span className="text-xs font-bold text-accent">
-                  Явка: 91.5%
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400">
-                Подтвержденных записей сотрудников
-              </p>
+              <div className="text-2xl font-black text-slate-900">{activeParticipantsCount}</div>
+              <p className="text-[11px] text-slate-400">Действующих записей сотрудников</p>
             </div>
 
             <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Средняя оценка (1-10)
+                  Средняя оценка
                 </span>
                 <div className="p-2 bg-blue-50 text-accent rounded-xl">
                   <Star className="w-5 h-5 text-accent" />
@@ -771,35 +757,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <span className="text-2xl font-black text-accent">
                   {ratings.length > 0
                     ? (ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length).toFixed(1)
-                    : '9.4'}
+                    : '—'}
                 </span>
-                <span className="text-xs font-bold text-slate-500">
-                  / 10
-                </span>
+                {ratings.length > 0 && (
+                  <span className="text-xs font-bold text-slate-500">/ 10</span>
+                )}
               </div>
               <p className="text-[11px] text-slate-400">
-                На основе {ratings.length} оценок от участников
+                {ratings.length > 0
+                  ? `На основе ${ratings.length} оценок от участников`
+                  : 'Оценок пока нет'}
               </p>
             </div>
-
-            <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Синхронизация AD
-                </span>
-                <div className="p-2 bg-emerald-50 text-emerald-700 rounded-xl">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                </div>
-              </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black text-slate-900">100%</span>
-                <span className="text-xs font-bold text-emerald-700">COLVIR.COM</span>
-              </div>
-              <p className="text-[11px] text-slate-400">
-                Интеграция с корпоративной связкой Active Directory
-              </p>
-            </div>
-
           </div>
 
           {/* Section 1: Event Attendance & Occupancy Table */}
@@ -810,9 +779,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <BarChart3 className="w-5 h-5 text-accent" />
                   <span>Посещаемость и заполняемость по мероприятиям</span>
                 </h3>
-                <p className="text-xs text-slate-500">
-                  Метрики активности, количество участников и средние оценки по каждому событию
-                </p>
               </div>
             </div>
 
@@ -900,9 +866,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <MessageSquare className="w-5 h-5 text-accent" />
                   <span>Оценки и отзывы сотрудников (Шкала от 1 до 10)</span>
                 </h3>
-                <p className="text-xs text-slate-500">
-                  Обратная связь от участников мероприятий в реальном времени
-                </p>
               </div>
               <span className="px-3 py-1 bg-blue-50 text-accent font-extrabold text-xs rounded-xl border border-blue-100">
                 Всего отзывов: {ratings.length}
@@ -945,7 +908,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     )}
 
                     <div className="text-[10px] text-slate-400 text-right pt-1">
-                      {r.timestamp}
+                      {formatMoscowDateTime(r.timestamp)}
                     </div>
                   </div>
                 ))}

@@ -143,9 +143,6 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
               <h2 className="text-xl font-black text-slate-900">
                 Создать новое мероприятие
               </h2>
-              <p className="text-xs text-slate-500">
-                Добавление события в корпоративный дайджест Colvir
-              </p>
             </div>
           </div>
 

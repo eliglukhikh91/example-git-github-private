@@ -10,7 +10,6 @@ import {
   PlusCircle,
   ShieldCheck,
   Menu,
-  Activity,
   User,
   Coffee,
   MessageSquare,
@@ -261,12 +260,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
       </div>
 
-      <div className="p-4 border-t border-slate-100 bg-slate-50/70 space-y-3">
-        <div className="flex items-center gap-2 px-3 py-2 bg-accent-light border border-accent/20 rounded-xl text-[11px] font-semibold text-accent">
-          <Activity className="w-3.5 h-3.5 shrink-0" />
-          <span className="truncate">{stats.totalParticipants} участников в системе</span>
-        </div>
-
+      <div className="p-4 border-t border-slate-100 bg-slate-50/70">
         <p className="text-[10px] text-center text-slate-400 font-medium">
           Colvir Event Hub © {new Date().getFullYear()}
         </p>

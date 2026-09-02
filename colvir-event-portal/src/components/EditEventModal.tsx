@@ -113,9 +113,6 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
               <h2 className="text-xl font-black text-slate-900">
                 Редактировать мероприятие
               </h2>
-              <p className="text-xs text-slate-500">
-                Управление параметрами события в Colvir Portal
-              </p>
             </div>
           </div>
 
