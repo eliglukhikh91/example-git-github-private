@@ -6,7 +6,7 @@ import { MoscowClock } from './MoscowClock';
 import { RichTextEditor } from './RichTextEditor';
 import { getMoscowDateString, getDefaultMoscowTimeSlot } from '../utils/timeUtils';
 import { parseHashtags, THEME_HASHTAG_HINT } from '../utils/themeTags';
-import { X, Plus, Trash2, Calendar, Clock, MapPin, Image as ImageIcon, Sparkles, Gamepad2, Info, Tag, Hash } from 'lucide-react';
+import { X, Plus, Trash2, Calendar, Clock, MapPin, Image as ImageIcon, Sparkles, Gamepad2, Info, Tag, Hash, AlertTriangle } from 'lucide-react';
 
 interface CreateEventModalProps {
   isOpen: boolean;
@@ -31,6 +31,8 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
   const [organizer, setOrganizer] = useState(organizerTags[0] || 'Colvir Event Team');
   const [themeTag, setThemeTag] = useState<'newyear' | 'spring' | 'birthday' | ''>('');
   const [hashtags, setHashtags] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [isAddingNewTag, setIsAddingNewTag] = useState(false);
   const [newTagInput, setNewTagInput] = useState('');
 
@@ -55,9 +57,10 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
     setTimeSlots(timeSlots.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !date.trim()) return;
+    if (isSaving) return;
 
     let defaultImg = imageUrl.trim();
     if (!defaultImg) {
@@ -68,24 +71,41 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
       else defaultImg = 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&auto=format&fit=crop&q=80';
     }
 
-    createEvent({
-      title: title.trim(),
-      category,
-      description: description.trim() || 'Приглашаем всех сотрудников принять участие!',
-      isTeamGame,
-      maxTeamSize: isTeamGame ? maxTeamSize : undefined,
-      maxParticipants,
-      date: date.trim(),
-      timeSlots: timeSlots.length > 0 ? timeSlots : ['10:00 - 11:00 (МСК)'],
-      location: location.trim(),
-      meetingUrl: meetingUrl.trim() ? meetingUrl.trim() : undefined,
-      imageUrl: defaultImg,
-      organizer: organizer.trim(),
-      tags: [category, isTeamGame ? 'Команды' : 'Индивидуально', ...parseHashtags(hashtags)],
-      themeTag: themeTag || null
-    });
+    setIsSaving(true);
+    setSaveError(null);
 
-    onClose();
+    // Раньше здесь не было ни await, ни catch: форма закрывалась сразу, и
+    // когда сервер отказывал (например, из-за тяжелой обложки), мероприятие
+    // не создавалось молча — без единого сообщения.
+    try {
+      await createEvent({
+        title: title.trim(),
+        category,
+        description: description.trim() || 'Приглашаем всех сотрудников принять участие!',
+        isTeamGame,
+        maxTeamSize: isTeamGame ? maxTeamSize : undefined,
+        maxParticipants,
+        date: date.trim(),
+        timeSlots: timeSlots.length > 0 ? timeSlots : ['10:00 - 11:00 (МСК)'],
+        location: location.trim(),
+        meetingUrl: meetingUrl.trim() ? meetingUrl.trim() : undefined,
+        imageUrl: defaultImg,
+        organizer: organizer.trim(),
+        tags: [category, isTeamGame ? 'Команды' : 'Индивидуально', ...parseHashtags(hashtags)],
+        themeTag: themeTag || null
+      });
+      onClose();
+    } catch (error) {
+      // Форму не закрываем: введенное остается на месте, чтобы не набирать
+      // все заново.
+      setSaveError(
+        error instanceof Error && error.message
+          ? error.message
+          : 'Не удалось создать мероприятие. Попробуйте еще раз.'
+      );
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -370,9 +390,9 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-accent focus:ring-2 focus:ring-accent/20 outline-hidden"
             />
             <p className="text-[11px] text-slate-500">
-              Каждый хэштег с решетки, через пробел или запятую. Хэштеги {THEME_HASHTAG_HINT}
-              тоже включают мероприятие в праздничную подборку — выбирать тему в списке выше
-              тогда не обязательно.
+              Каждый хэштег с решетки, через пробел или запятую. Хэштеги{' '}
+              {THEME_HASHTAG_HINT} тоже включают мероприятие в праздничную подборку —
+              выбирать тему в списке выше тогда не обязательно.
             </p>
           </div>
 
@@ -443,12 +463,20 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
             />
           </div>
 
+          {saveError && (
+            <div className="p-4 rounded-2xl text-xs font-semibold flex items-start gap-3 bg-rose-50 text-rose-900 border border-rose-200">
+              <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+              <div className="leading-relaxed">{saveError}</div>
+            </div>
+          )}
+
           <div className="pt-2">
             <button
               type="submit"
-              className="w-full py-3 px-4 bg-accent hover:bg-accent-hover text-white font-bold text-sm rounded-xl shadow-md transition-all"
+              disabled={isSaving}
+              className="w-full py-3 px-4 bg-accent hover:bg-accent-hover text-white font-bold text-sm rounded-xl shadow-md transition-all disabled:opacity-60"
             >
-              Опубликовать мероприятие в дайджесте
+              {isSaving ? 'Публикуем…' : 'Опубликовать мероприятие в дайджесте'}
             </button>
           </div>
 

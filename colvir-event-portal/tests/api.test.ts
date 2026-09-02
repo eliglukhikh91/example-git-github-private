@@ -131,6 +131,23 @@ describe('Права администратора', () => {
     assert.equal(removed.status, 200);
   });
 
+  test('слишком тяжелая обложка отклоняется с понятной причиной', async () => {
+    // Обложка приходит строкой data:base64 внутри JSON. Раньше запрос сверх
+    // лимита падал в общий обработчик, клиент получал 500 «Внутренняя ошибка
+    // сервера», и мероприятие не создавалось без объяснения причины.
+    const response = await admin.request('/api/events', {
+      method: 'POST',
+      body: {
+        title: 'Мероприятие с тяжелой обложкой',
+        maxParticipants: 10,
+        imageUrl: `data:image/jpeg;base64,${'A'.repeat(9 * 1024 * 1024)}`
+      }
+    });
+
+    assert.equal(response.status, 413);
+    assert.match(response.body.message, /Слишком большой запрос/);
+  });
+
   test('сотрудник не может удалить чужое мероприятие', async () => {
     const events = await employee.request('/api/events');
     const eventId = events.body.events[0].id;

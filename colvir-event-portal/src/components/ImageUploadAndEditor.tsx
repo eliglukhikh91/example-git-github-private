@@ -13,6 +13,7 @@ import {
   FileCheck,
   Building2
 } from 'lucide-react';
+import { shrinkImageDataUrl } from '../utils/imageResize';
 
 interface ImageUploadAndEditorProps {
   currentImageUrl: string;
@@ -126,10 +127,12 @@ export const ImageUploadAndEditor: React.FC<ImageUploadAndEditorProps> = ({
     setFileInfo({ name: file.name, sizeMb });
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       const result = e.target?.result as string;
       if (result) {
-        onImageChange(result);
+        // Уменьшаем до отправки: файл на 20 МБ в исходном виде сервер не
+        // принимает, и мероприятие молча не создавалось.
+        onImageChange(await shrinkImageDataUrl(result));
         setIsEditingOpen(true);
       }
     };
@@ -188,7 +191,7 @@ export const ImageUploadAndEditor: React.FC<ImageUploadAndEditorProps> = ({
         
         try {
           const bakedDataUrl = canvas.toDataURL('image/jpeg', 0.92);
-          onImageChange(bakedDataUrl);
+          void shrinkImageDataUrl(bakedDataUrl).then(onImageChange);
         } catch (e) {
           console.warn('Canvas export cross-origin limit, style kept visually', e);
         }

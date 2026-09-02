@@ -108,6 +108,19 @@ export function createApp(): Express {
   app.use((error: Error, req: Request, res: Response, _next: NextFunction) => {
     console.error(`[api] Необработанная ошибка ${req.method} ${req.originalUrl}:`, error);
     if (res.headersSent) return;
+
+    // Слишком большой запрос — это не поломка сервера, а понятная причина
+    // отказа. Раньше он попадал в общий случай, и на форме создания
+    // мероприятия с тяжелой обложкой пользователь получал «Внутренняя ошибка
+    // сервера» вместо объяснения, что делать.
+    if ((error as { type?: string }).type === 'entity.too.large') {
+      res.status(413).json({
+        success: false,
+        message: 'Слишком большой запрос. Скорее всего дело в тяжелой картинке — выберите файл поменьше.'
+      });
+      return;
+    }
+
     res.status(500).json({ success: false, message: 'Внутренняя ошибка сервера' });
   });
 

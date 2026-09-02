@@ -3,7 +3,7 @@ import { EventItem, EventCategory } from '../types';
 import { useApp } from '../context/AppContext';
 import { RichTextEditor } from './RichTextEditor';
 import { formatHashtags, parseHashtags, THEME_HASHTAG_HINT } from '../utils/themeTags';
-import { X, Sparkles, Trash2, Calendar, Clock, MapPin, Tag, Hash } from 'lucide-react';
+import { X, Sparkles, Trash2, Calendar, Clock, MapPin, Tag, Hash, AlertTriangle } from 'lucide-react';
 
 interface EditEventModalProps {
   event: EventItem | null;
@@ -33,6 +33,8 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
     event.themeTag ?? ''
   );
   const [hashtags, setHashtags] = useState(() => formatHashtags(event.tags));
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [isAddingNewTag, setIsAddingNewTag] = useState(false);
   const [newTagInput, setNewTagInput] = useState('');
 
@@ -51,26 +53,43 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
     setTimeSlots(timeSlots.filter((_, i) => i !== idx));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateEvent({
-      ...event,
-      title: title.trim(),
-      category,
-      description: description.trim(),
-      isTeamGame,
-      maxTeamSize: isTeamGame ? maxTeamSize : undefined,
-      maxParticipants,
-      date: date.trim(),
-      location: location.trim(),
-      meetingUrl: meetingUrl.trim() ? meetingUrl.trim() : undefined,
-      timeSlots: timeSlots.length > 0 ? timeSlots : ['10:00 - 11:00 (МСК)'],
-      imageUrl: imageUrl.trim() || event.imageUrl,
-      organizer: organizer.trim(),
-      tags: [category, isTeamGame ? 'Команды' : 'Индивидуально', ...parseHashtags(hashtags)],
-      themeTag: themeTag || null
-    });
-    onClose();
+    if (isSaving) return;
+
+    setIsSaving(true);
+    setSaveError(null);
+
+    // Как и в форме создания: без await и catch правки терялись молча, если
+    // сервер отказывал.
+    try {
+      await updateEvent({
+        ...event,
+        title: title.trim(),
+        category,
+        description: description.trim(),
+        isTeamGame,
+        maxTeamSize: isTeamGame ? maxTeamSize : undefined,
+        maxParticipants,
+        date: date.trim(),
+        location: location.trim(),
+        meetingUrl: meetingUrl.trim() ? meetingUrl.trim() : undefined,
+        timeSlots: timeSlots.length > 0 ? timeSlots : ['10:00 - 11:00 (МСК)'],
+        imageUrl: imageUrl.trim() || event.imageUrl,
+        organizer: organizer.trim(),
+        tags: [category, isTeamGame ? 'Команды' : 'Индивидуально', ...parseHashtags(hashtags)],
+        themeTag: themeTag || null
+      });
+      onClose();
+    } catch (error) {
+      setSaveError(
+        error instanceof Error && error.message
+          ? error.message
+          : 'Не удалось сохранить изменения. Попробуйте еще раз.'
+      );
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDelete = () => {
@@ -321,9 +340,9 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-accent focus:ring-2 focus:ring-accent/20 outline-hidden"
             />
             <p className="text-[11px] text-slate-500">
-              Каждый хэштег с решетки, через пробел или запятую. Хэштеги {THEME_HASHTAG_HINT}
-              тоже включают мероприятие в праздничную подборку — выбирать тему в списке выше
-              тогда не обязательно.
+              Каждый хэштег с решетки, через пробел или запятую. Хэштеги{' '}
+              {THEME_HASHTAG_HINT} тоже включают мероприятие в праздничную подборку —
+              выбирать тему в списке выше тогда не обязательно.
             </p>
           </div>
 
@@ -406,6 +425,13 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
             />
           </div>
 
+          {saveError && (
+            <div className="p-4 rounded-2xl text-xs font-semibold flex items-start gap-3 bg-rose-50 text-rose-900 border border-rose-200">
+              <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+              <div className="leading-relaxed">{saveError}</div>
+            </div>
+          )}
+
           {/* Footer Actions */}
           <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
             <button
@@ -427,9 +453,10 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({ event, isOpen, o
               </button>
               <button
                 type="submit"
-                className="px-6 py-3 bg-accent hover:bg-accent-hover text-white font-bold text-xs rounded-xl shadow-xs transition-all"
+                disabled={isSaving}
+                className="px-6 py-3 bg-accent hover:bg-accent-hover text-white font-bold text-xs rounded-xl shadow-xs transition-all disabled:opacity-60"
               >
-                Сохранить изменения
+                {isSaving ? 'Сохраняем…' : 'Сохранить изменения'}
               </button>
             </div>
           </div>
