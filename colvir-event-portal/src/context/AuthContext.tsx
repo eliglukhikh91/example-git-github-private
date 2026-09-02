@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { api, ApiError, setUnauthorizedHandler } from '../api/client';
+import { api, apiRequest, ApiError, setUnauthorizedHandler } from '../api/client';
 import type { DirectoryStatus, UserProfile } from '../types';
 
 export type AuthStatus = 'checking' | 'authenticated' | 'anonymous';
@@ -66,9 +66,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = useCallback(async (email: string, password: string) => {
     try {
-      const response = await api.post<{ user: UserProfile; message: string }>(
+      // skipRefresh: на вход обновлять нечего. Иначе 401 «неверный пароль»
+      // уходил в обновление сессии, оно ожидаемо не срабатывало, и вместо
+      // причины отказа сотрудник видел «Сессия истекла, войдите повторно».
+      const response = await apiRequest<{ user: UserProfile; message: string }>(
         '/api/auth/ad/login',
-        { email, password }
+        { method: 'POST', body: { email, password }, skipRefresh: true }
       );
       setUser(response.user);
       setStatus('authenticated');
@@ -83,7 +86,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithSso = useCallback(async () => {
     try {
-      const response = await api.post<{ user: UserProfile; message: string }>('/api/auth/ad/sso');
+      const response = await apiRequest<{ user: UserProfile; message: string }>(
+        '/api/auth/ad/sso',
+        { method: 'POST', skipRefresh: true }
+      );
       setUser(response.user);
       setStatus('authenticated');
       return { success: true, message: response.message };

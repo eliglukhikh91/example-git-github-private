@@ -40,7 +40,7 @@ describe('Аутентификация Active Directory', () => {
       body: { email: 'i.ivanov@colvir.com', password: 'НеверныйПароль' }
     });
     assert.equal(response.status, 401);
-    assert.match(response.body.message, /Неверный доменный логин или пароль/);
+    assert.match(response.body.message, /Неверный логин или пароль/);
   });
 
   test('несуществующая учетная запись дает тот же ответ, что и неверный пароль', async () => {
@@ -51,7 +51,7 @@ describe('Аутентификация Active Directory', () => {
     // Сообщения совпадают, чтобы эндпоинт нельзя было использовать
     // для перебора существующих логинов домена.
     assert.equal(response.status, 401);
-    assert.match(response.body.message, /Неверный доменный логин или пароль/);
+    assert.match(response.body.message, /Неверный логин или пароль/);
   });
 
   test('учетная запись вне разрешенных доменов не пускается', async () => {

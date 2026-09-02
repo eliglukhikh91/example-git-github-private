@@ -214,7 +214,7 @@ export class LdapDirectory implements Directory {
     } catch (error) {
       if (error instanceof InvalidCredentialsError) {
         throw new AuthenticationError(
-          'Неверный доменный логин или пароль Active Directory',
+          'Неверный логин или пароль',
           'invalid_credentials'
         );
       }

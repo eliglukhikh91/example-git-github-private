@@ -129,7 +129,7 @@ export function createAuthRouter(): Router {
       const message =
         error.status === 403
           ? error.message
-          : 'Неверный доменный логин или пароль Active Directory';
+          : 'Неверный логин или пароль';
       res.status(error.status).json({ success: false, message });
       return;
     }
