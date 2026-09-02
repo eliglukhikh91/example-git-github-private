@@ -5,9 +5,9 @@ import { formatSlot, withSlot } from '../utils/timeSlots';
 /**
  * Выбор слотов времени для мероприятия.
  *
- * Время выбирается в полях «с» и «до» — это обычные поля типа time, браузер
- * открывает в них свои часы. Раньше слот набирался строкой в свободном виде
- * («Например: 14:00 - 15:00»), и любая опечатка молча уезжала в базу.
+ * Время выбирается списками часов и минут. Раньше слот набирался строкой в
+ * свободном виде («Например: 14:00 - 15:00»), и любая опечатка молча уезжала
+ * в базу.
  *
  * Поля «с» и «до» живут в родительской форме: при отправке она добавляет
  * выбранное время в список, даже если админ не нажал «Добавить слот».
@@ -22,13 +22,6 @@ interface TimeSlotPickerProps {
   /** Префикс id: на странице бывает открыта только одна форма, но id должны быть свои. */
   idPrefix: string;
 }
-
-const PRESETS: [string, string][] = [
-  ['10:00', '11:00'],
-  ['12:00', '13:00'],
-  ['15:00', '16:00'],
-  ['18:00', '19:00']
-];
 
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
@@ -116,12 +109,6 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
     onSlotsChange(withSlot(slots, from, to));
   };
 
-  const handlePreset = (presetFrom: string, presetTo: string) => {
-    onFromChange(presetFrom);
-    onToChange(presetTo);
-    onSlotsChange(withSlot(slots, presetFrom, presetTo));
-  };
-
   const handleRemove = (index: number) => {
     onSlotsChange(slots.filter((_, i) => i !== index));
   };
@@ -168,22 +155,6 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
           Окончание должно быть позже начала.
         </p>
       )}
-
-      <div className="space-y-1">
-        <span className="text-[10px] font-bold text-slate-500 uppercase block">Частые слоты:</span>
-        <div className="flex flex-wrap gap-1.5 text-[11px]">
-          {PRESETS.map(([presetFrom, presetTo]) => (
-            <button
-              type="button"
-              key={`${presetFrom}-${presetTo}`}
-              onClick={() => handlePreset(presetFrom, presetTo)}
-              className="px-2.5 py-1 bg-white hover:bg-blue-50 border border-slate-200 text-slate-700 font-bold rounded-lg transition-colors"
-            >
-              + {presetFrom} - {presetTo}
-            </button>
-          ))}
-        </div>
-      </div>
 
       <div className="space-y-1 pt-1">
         <span className="text-[10px] font-bold text-slate-500 uppercase block">
